@@ -83,7 +83,7 @@ void Clock::end_of_loop_time_updates()
     failed_steps = 0;
     current_time += _dt;
 
-    if (current_time > 50.) 
+
     _dt = dt_next; 
     _success = 0;
 }
@@ -97,7 +97,10 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
         while (_success == 0)
         {
             Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
-            update_dt(Y_old, Ystar, Y_new);
+            if (current_time > 50.) 
+                update_dt(Y_old, Ystar, Y_new);
+            else 
+                _success = 1;
         }
         cF.advance(Y_new,current_time,_dt);
         PE.Neighbor_Communications(Y_new);
@@ -135,7 +138,7 @@ void Clock::update_dt(State1D& Y_old, const State1D& Ystar, State1D& Y_new){
             _success = int(((!(acceptabilitylist[iprocess] > 1)) && _success));
             acceptability = max(acceptabilitylist[iprocess],acceptability);
         }
-        
+
         /// Update timestep and if failed, add an iteration
         if (_success == 1)
         {
