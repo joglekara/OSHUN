@@ -40,7 +40,7 @@
 //--------------------------------------------------------------
 Clock::Clock(double starttime, double __dt, double abs_tol, double rel_tol, size_t _maxfails,
                     State1D& Y): 
-    current_time(starttime), dt_next(0.5*__dt), _dt(0.5*__dt),
+    current_time(starttime), dt_next(0.1*__dt), _dt(0.1*__dt),
     atol(abs_tol), rtol(rel_tol), 
     acceptability(0.), err_val(0.), 
     failed_steps(0), max_failures(_maxfails), _success(false),
@@ -82,6 +82,8 @@ void Clock::end_of_loop_time_updates()
     dt_next = min(dt_next,Input::List().dt);
     failed_steps = 0;
     current_time += _dt;
+
+    if (current_time > 50.) 
     _dt = dt_next; 
     _success = 0;
 }
@@ -100,7 +102,7 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
         cF.advance(Y_new,current_time,_dt);
         PE.Neighbor_Communications(Y_new);
     }
-    
+
     else Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
 }
 //--------------------------------------------------------------
@@ -119,7 +121,7 @@ void Clock::update_dt(State1D& Y_old, const State1D& Ystar, State1D& Y_new){
     if (acceptability > 1) _success = 0;
     else _success = 1;
 
-    // std::cout << "\n acc = " << acceptability;
+    std::cout << "\n acc = " << acceptability;
     std::cout << "\n dt = " << _dt;
 
     /// Error is shared so that global timestep can be determined on rank 0
@@ -133,15 +135,15 @@ void Clock::update_dt(State1D& Y_old, const State1D& Ystar, State1D& Y_new){
             _success = int(((!(acceptabilitylist[iprocess] > 1)) && _success));
             acceptability = max(acceptabilitylist[iprocess],acceptability);
         }
-
+        
         /// Update timestep and if failed, add an iteration
         if (_success == 1)
         {
-            dt_next = 0.9*_dt/pow(acceptability,0.25);   
+            dt_next = 0.9*_dt/pow(acceptability,0.2);   
         }
         else
         {
-            dt_next = 0.9*_dt/pow(acceptability,1./3.);
+            dt_next = 0.9*_dt/pow(acceptability,0.25);
             
             ++failed_steps;
             if (failed_steps > max_failures) 
@@ -186,7 +188,7 @@ void Clock::update_dt(const State2D& Y_old, const State2D& Ystar, State2D& Y_new
     else _success = 1;
 
     // std::cout << "\n acc = " << acceptability;
-    std::cout << "\n dt = " << _dt;
+    // std::cout << "\n dt = " << _dt;
 
     /// Error is shared so that global timestep can be determined on rank 0
     MPI_Gather(&acceptability, 1, MPI_DOUBLE, acceptabilitylist, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -281,6 +283,9 @@ double Clock::check_last_harmonic(const State1D& Ystar, const State1D& Y, double
 
     fave *= fave;
     fstarave *= fstarave;
+
+    maxval = max(fave.max(),fstarave.max());
+    maxval = sqrt(maxval);
 
     fstarave -= fave;
     return sqrt(fstarave.sum());

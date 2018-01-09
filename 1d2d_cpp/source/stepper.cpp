@@ -506,31 +506,37 @@ void RKCK45::take_step(State1D& Y5, State1D& Y4, double time, double h, VlasovFu
     // z1 = Y2;
     vF(Y4,Yh1); Yh1 *= h;
     Yh1 *= a21;
+    PE.Neighbor_Communications(Yh1);
     Yt = Y4;    Yt  += Yh1;                              // Y1 = Y1 + (h/5)*Yh
 
     //      Step 2
     // vF(Yt,Yh2);                                   // f(Y1)
     vF(Yt,Y5); Y5 *= h;                                   // f(Y1)
-    Yh1 *= a31/a21; Y5 *= a32;  
+    Yh1 *= a31/a21; Y5 *= a32; 
+    PE.Neighbor_Communications(Y5); 
     Yt = Y4;    Yt += Yh1;  Yt += Y5;
 
     //      Step 3
     vF(Yt,Yh3); Yh3 *= h;
     Yh1 *= a41/a31; Y5 *= a42/a32;   Yh3 *= a43;
-    Yt = Y4;    Yt += Yh1; Yt += Y5; Yt += Yh3;
+    PE.Neighbor_Communications(Yh3);
+    Yt = Y4;    Yt += Yh1;  Yt += Y5; Yt += Yh3;
     
     //      Step 4
     vF(Yt,Yh4); Yh4 *= h;
     Yh1 *= a51/a41; Y5 *= a52/a42;   Yh3 *= a53/a43;    Yh4 *= a54;
-    Yt = Y4;    Yt += Yh1; Yt += Y5; Yt += Yh3; Yt += Yh4;
+    PE.Neighbor_Communications(Yh4);
+    Yt = Y4;    Yt += Yh1;  Yt += Y5; Yt += Yh3; Yt += Yh4;
     
     //      Step 5
     vF(Yt,Yh5); Yh5 *= h;
     Yh1 *= a61/a51; Y5 *= a62/a52;   Yh3 *= a63/a53;    Yh4 *= a64/a54; Yh5 *= a65;
-    Yt = Y4;    Yt += Yh1; Yt += Y5; Yt += Yh3; Yt += Yh4; Yt += Yh5;
+    PE.Neighbor_Communications(Yh5);
+    Yt = Y4;    Yt += Yh1;  Yt += Y5; Yt += Yh3; Yt += Yh4; Yt += Yh5;
     
     //      Step 6
     vF(Yt,Yh6); Yh6 *= h;
+    PE.Neighbor_Communications(Yh6);
 
 
     //      Assemble 5th order solution
@@ -548,4 +554,87 @@ void RKCK45::take_step(State1D& Y5, State1D& Y4, double time, double h, VlasovFu
     Yh6 *= b6_4/b6_5;   Y4 += Yh6;
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 }
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+/*RKT54::RKT54(State1D& Yin): Yh1(Yin), Yh2(Yin), Yh3(Yin), Yh4(Yin), Yh5(Yin), Yh6(Yin), Yh7(Yin), Yt(Yin),
+        
+        a21(0.161),
+        a31(-0.008480655492356989),   a32(0.335480655492357),
+        a41(2.8971530571054935),    a42(-6.359448489975075),    a43(4.3622954328695815),
+        a51(5.325864828439257),   a52(-11.748883564062828),  a53(7.4955393428898365),  a54(-0.09249506636175525),
+        a61(5.86145544294642),    a62(-12.92096931784711),    a63(8.159367898576159), a64(-0.071584973281401), a65(-0.028269050394068383),
+        a71(0.09646076681806523), a72(0.01),   a73(0.4798896504144996),   a74(1.379008574103742),    a75(-3.290069515436081),    a76(2.324710524099774),
+
+        b1_5(0.09468075576583945),    b2_5(0.009183565540343254),   b3_5(0.4877705284247616),    b4_5(1.234297566930479),  b5_5(-2.7077123499835256),  b6_5(1.866628418170587),    b7_5(0.015151515151515152),
+        btilde1(-0.00178001105222577714),   btilde2(-0.0008164344596567469),   btilde3(0.007880878010261995), btilde4(-0.1447110071732629),    btilde5(0.5823571654525552),    btilde6(-0.45808210592918697),  btilde7(0.015151515151515152)
+    {}
+//--------------------------------------------------------------
+RKT54:: ~RKT54(){
+//--------------------------------------------------------------
+//  Destructor
+//--------------------------------------------------------------
+}
+void RKT54::take_step(State1D& Y4, State1D& Y5, double time, double h, VlasovFunctor1D_explicitE& vF, collisions_1D& coll, Parallel_Environment_1D& PE) 
+{
+//      Step 1
+    vF(Y5,Yh1); Yh1 *= h;
+    Yh1 *= a21;
+    PE.Neighbor_Communications(Yh1);
+    Yt = Y5;    Yt  += Yh1;                              // Y1 = Y1 + (h/5)*Yh
+
+    //      Step 2
+    vF(Yt,Yh2); Yh2 *= h;                                   // f(Y1)
+    Yh1 *= a31/a21; Yh2 *= a32;
+    PE.Neighbor_Communications(Yh2);  
+    Yt = Y5;    Yt += Yh1;  Yt += Yh2;
+
+    //      Step 3
+    vF(Yt,Yh3); Yh3 *= h;
+    Yh1 *= a41/a31; Yh2 *= a42/a32;   Yh3 *= a43;
+    PE.Neighbor_Communications(Yh3);
+    Yt = Y5;    Yt += Yh1; Yt += Yh2; Yt += Yh3;
+    
+    //      Step 4
+    vF(Yt,Yh4); Yh4 *= h;
+    Yh1 *= a51/a41; Yh2 *= a52/a42;   Yh3 *= a53/a43;    Yh4 *= a54;
+    PE.Neighbor_Communications(Yh4);
+    Yt = Y5;    Yt += Yh1; Yt += Yh2; Yt += Yh3; Yt += Yh4;
+    
+    //      Step 5
+    vF(Yt,Yh5); Yh5 *= h;
+    Yh1 *= a61/a51; Yh2 *= a62/a52;   Yh3 *= a63/a53;    Yh4 *= a64/a54; Yh5 *= a65;
+    PE.Neighbor_Communications(Yh5);
+    Yt = Y5;    Yt += Yh1; Yt += Yh2; Yt += Yh3; Yt += Yh4; Yt += Yh5;
+        
+    //      Step 6
+    vF(Yt,Yh6); Yh6 *= h;
+    Yh1 *= a71/a61; Yh2 *= a72/a62;   Yh3 *= a73/a63;    Yh4 *= a74/a64; Yh5 *= a75/a65; Yh6 *= a76;
+    PE.Neighbor_Communications(Yh6);
+    Yt = Y5;    Yt += Yh1;  Yt += Yh2;   Yt += Yh3;  Yt += Yh4;  Yt += Yh5;  Yt += Yh6;
+
+    //      Step 7
+    vF(Yt,Yh7); Yh7 *= h;
+    PE.Neighbor_Communications(Yh7);
+
+    //      Assemble 5th order solution
+    Y4 = Y5;
+    Yh1 *= b1_5/a71;    Y5 += Yh1;
+    Yh2 *= b2_5/a72;    Y5 += Yh2;
+    Yh3 *= b3_5/a73;    Y5 += Yh3;
+    Yh4 *= b4_5/a74;    Y5 += Yh4;
+    Yh5 *= b5_5/a75;    Y5 += Yh5;
+    Yh6 *= b6_5/a76;    Y5 += Yh6;
+    Yh7 *= b7_5;        Y5 += Yh7;
+
+    //      Assemble 4th order solution
+    Yh1 *= btilde1/b1_5;  Y4 += Yh1;
+    Yh2 *= btilde2/b2_5;  Y4 += Yh2;
+    Yh3 *= btilde3/b3_5;  Y4 += Yh3;
+    Yh4 *= btilde4/b4_5;  Y4 += Yh4;
+    Yh5 *= btilde5/b5_5;  Y4 += Yh5;
+    Yh6 *= btilde6/b6_5;  Y4 += Yh6;
+    Yh7 *= btilde7/b7_5;  Y4 += Yh7;
+
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}*/
 //--------------------------------------------------------------

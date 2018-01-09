@@ -2086,8 +2086,12 @@ Input::Input_List::Input_List():
         }
 
         // Determination of the local computational domain (i.e. the x-axis and the y-axis)
-        if (dbydx_order > 2 || dbydy_order > 2) BoundaryCells = 6;
-        else BoundaryCells = 6;
+        if (implicit_E)
+        {
+            if (dbydx_order > 2 || dbydy_order > 2) BoundaryCells = 6;
+            else BoundaryCells = 4;
+        }
+        else BoundaryCells = 2;
 
         /// Do X discretization
         for (size_t i(0); i < NxGlobal.size(); ++i){

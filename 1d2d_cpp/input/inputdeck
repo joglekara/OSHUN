@@ -21,7 +21,7 @@ charge = -1.0
 // Spatial Grid    
 //-----------------------------------------------------------------------
 
-Nx = 24 				/// Keep these even
+Nx = 40 				/// Keep these even
 Ny = 8												
 
 xmin = 0.0
@@ -35,20 +35,21 @@ ymax = 50000.0
 					OpenMP parallelizes harmonic space
 //-----------------------------------------------------------------------
 
-MPI_Processes_X = 2		// Make sure N_x/MPI_x >= 4
+MPI_Processes_X = 1		// Make sure N_x/MPI_x >= 4
 MPI_Processes_Y = 1		// Make sure N_y/MPI_y >= 4
 
-OpenMP_Threads = 2		// Make sure N_harmonics / OpenMPThreads > 5
+OpenMP_Threads = 4		// Make sure N_harmonics / OpenMPThreads > 5
 
 //-----------------------------------------------------------------------
 // Time and Output Discretization 
 //-----------------------------------------------------------------------
+adaptive_time_step = true
 
-max_timestep = 0.06
-n_outsteps = 400				// Number of outputs
-n_distoutsteps = 40				// Number of Dist output
+max_timestep = 0.25
+n_outsteps = 800				// Number of outputs
+n_distoutsteps = 60				// Number of Dist output
 n_bigdistoutsteps = 10			// Number of Big dist output 
-t_stop = 500.0
+t_stop = 400.0
 
 //-----------------------------------------------------------------------
 // Restart information
@@ -93,7 +94,7 @@ implicit_E                          = false	// For collisional time-scale proble
 /// Fokker-Planck
 collisions_switch = true		
 f00_collisions = implicit		// Can be implicit or explicit, implicit recommended
-flm_collisions = on				// Can be ee, ei, or on
+flm_collisions = ee				// Can be ee, ei, or on
 
 lnLambda_ee = -1
 lnLambda_ei = -1			// -1 : Calculate locally using NRL formula
@@ -117,8 +118,8 @@ dbydy_order 						= 2
 
 
 // Adaptive Time-Step
-adaptive_time_step_abs_tol			= 1e-16
-adaptive_time_step_rel_tol			= 1e-6
+adaptive_time_step_abs_tol			= 1e-24
+adaptive_time_step_rel_tol			= 1e-8
 
 adaptive_time_step_max_iterations 	= 20
 
@@ -187,10 +188,10 @@ o_p1p3x1 = false
 o_p2p3x1 = false
 
 o_f0x1 = true
-o_f10x1 = false
-o_f20x1 = false
+o_f10x1 = true
+o_f20x1 = true
 o_f11x1 = false
-o_fl0x1 = false
+o_fl0x1 = true
 
 /   ---   /   ---   /   ---   /   ---   /   ---   /   ---   /   ---   /
 
@@ -208,7 +209,7 @@ o_Ti = false
 
 traveling_wave = true
 num_waves = 1
-dEx(x,y,t) = fnc{1e-5*sin(2*pi/0.837758*x-1.159846*t)}   
+dEx(x,y,t) = fnc{1e-4*sin(2*pi/0.837758*x-1.159846*t)}   
 dEy(x,y,t) = cst{0.0} 
 dEz(x,y,t) = cst{0.0} 
 dBx(x,y,t) = cst{0.0} 
@@ -216,7 +217,7 @@ dBy(x,y,t) = cst{0.0}
 dBz(x,y,t) = cst{0.0} 
 
 // Time envelope info
-rise_flat_fall_center = 10.0 40.0 10.0 30.0
+rise_flat_fall_center = 5.0 20.0 5.0 16.0
 
 
 //-----------------------------------------------------------------------

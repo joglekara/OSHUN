@@ -120,6 +120,32 @@ private:
 
 };
 //--------------------------------------------------------------
+//--------------------------------------------------------------
+/*class RKT54 {
+public:
+//      Constructor
+    RKT54(State1D& Yin);
+    ~RKT54();
+
+    void take_step(State1D& Y4, State1D& Y5, double time, double h, 
+        VlasovFunctor1D_explicitE& vF, collisions_1D& cF, Parallel_Environment_1D& PE);
+private:
+
+    State1D  Yh1, Yh2, Yh3, Yh4, Yh5, Yh6, Yh7, Yt;
+
+    double a21;
+    double a31,a32;
+    double a41,a42,a43;
+    double a51,a52,a53,a54;
+    double a61,a62,a63,a64,a65;
+    double a71,a72,a73,a74,a75,a76;
+    
+
+    double b1_5,b2_5,b3_5,b4_5,b5_5,b6_5, b7_5;
+    double btilde1, btilde2, btilde3, btilde4, btilde5, btilde6, btilde7;
+
+};*/
+//--------------------------------------------------------------
 //**************************************************************
 #endif //OSHUN_STEPPERS_H
 
