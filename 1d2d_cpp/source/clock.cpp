@@ -106,7 +106,13 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
         PE.Neighbor_Communications(Y_new);
     }
 
-    else Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
+    else 
+    {   
+        Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
+        cF.advance(Y_new,current_time,_dt);
+        PE.Neighbor_Communications(Y_new);
+    }
+
 }
 //--------------------------------------------------------------
 //  Collect all of the terms
