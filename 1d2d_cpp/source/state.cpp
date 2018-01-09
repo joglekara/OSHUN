@@ -1332,6 +1332,30 @@ void DistFunc1D::checknan(){
 
 
 }
+//--------------------------------------------------------------------------------------------------------------------------
+void DistFunc1D::checknan() const {
+
+    for (size_t indx(0); indx<dim();++indx){
+        for (size_t i(0); i<(*df)[indx].numx();++i){
+            for (size_t p(0); p<(*df)[indx].nump();++p){
+                if (  isnan((*df)[indx](p,i).real()) || isnan((*df)[indx](p,i).imag())   )
+                {
+                    std::cout << "NaN @ (" << indx << "," << p << "," << i << ")\n";
+                    int rank;
+                    MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
+                    if (rank == 0)
+                    {
+                            fprintf(stderr, "Error: Program terminated with error code %d\n", 1);
+                    }
+                    MPI_Finalize();
+                    exit(1);
+                } 
+            }
+        }
+    }
+//    std::cout << "OK! \n";
+    return;
+}
 //*********************************************************************************************************************
 //  Definition of the 2D distribution function
 //--------------------------------------------------------------
@@ -2573,6 +2597,16 @@ State1D& State1D::operator-=(const complex<double> & d){
 }
 //   //  Debug
 void State1D::checknan(){
+
+    for(size_t s(0); s < ns; ++s){
+        (*sp)[s].checknan();
+    }
+//    std::cout << "Y OK! \n";
+    return;
+}
+
+//   //  Debug
+void State1D::checknan() const {
 
     for(size_t s(0); s < ns; ++s){
         (*sp)[s].checknan();

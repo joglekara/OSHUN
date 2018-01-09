@@ -47,6 +47,7 @@ namespace Input{
         double ymin, ymax;
 
         double dt;
+
         bool filterdistribution;
         double filter_dp, filter_pmax;
 
@@ -54,6 +55,7 @@ namespace Input{
         bool if_tridiagonal;
         bool implicit_E;
         size_t dbydx_order, dbydy_order;
+        bool adaptive_dt;
         double abs_tol, rel_tol;
         size_t max_fails;
         bool relativity;

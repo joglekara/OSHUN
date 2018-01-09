@@ -50,7 +50,7 @@ Input::Input_List::Input_List():
     if_tridiagonal(1),
     implicit_E(1),
     dbydx_order(2),dbydy_order(2),
-    abs_tol(1e-16),rel_tol(1e-6),max_fails(20),
+    adaptive_dt(false),abs_tol(1e-16),rel_tol(1e-6),max_fails(20),
     relativity(0),
     implicit_B(0),
     collisions(1),
@@ -649,6 +649,15 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> dbydy_order;
             }
+            if (deckstring == "adaptive_time_step") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                adaptive_dt = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
             if (deckstring == "adaptive_time_step_abs_tol") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
@@ -778,6 +787,7 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> dt;
             }
+            
 
             if (deckstring == "t_stop") {
                 deckfile >> deckequalssign;
@@ -2077,7 +2087,7 @@ Input::Input_List::Input_List():
 
         // Determination of the local computational domain (i.e. the x-axis and the y-axis)
         if (dbydx_order > 2 || dbydy_order > 2) BoundaryCells = 6;
-        else BoundaryCells = 4;
+        else BoundaryCells = 6;
 
         /// Do X discretization
         for (size_t i(0); i < NxGlobal.size(); ++i){

@@ -534,7 +534,7 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 
     Array2D<T> temp(*this);
 
-    double onesixth(2.0/12.0);
+    double onesixth(1./6.);
 
     for (long i2(0); i2<long(d2);++i2)
     {
@@ -563,7 +563,7 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 template<class T> Array2D<T>& Array2D<T>::Dd2_4th_order(){
     Array2D<T> temp(*this);
 
-    double onesixth(2.0/12.0);
+    double onesixth(1.0/6.0);
 
     for (long i1(0); i1<long(d1);++i1)
     {

@@ -1,0 +1,551 @@
+/*! \brief time-integrators for various methods
+ * \author PICKSC
+ * \file   steppers.cpp
+ *
+ * Includes spatial advection, electric field advection, and electric field update routines
+ *
+ */
+//--------------------------------------------------------------
+//  Standard libraries
+#include <mpi.h>
+#include <iostream>
+#include <vector>
+#include <valarray>
+#include <complex>
+#include <algorithm>
+#include <cstdlib>
+#include <mpi.h>
+
+#include <math.h>
+#include <map>
+
+//  My libraries
+#include "lib-array.h"
+#include "lib-algorithms.h"
+
+//  Declerations
+#include "state.h"
+#include "input.h"
+#include "formulary.h"
+#include "collisions.h"
+#include "parallel.h"
+#include "vlasov.h"
+#include "functors.h"
+#include "stepper.h"
+
+
+//**************************************************************
+//**************************************************************
+//--------------------------------------------------------------
+ARK32::ARK32(State1D& Yin): Yhv1(Yin), Yhv2(Yin), Yhv3(Yin), Yhv4(Yin),
+                        Yhc1(Yin),Yhc2(Yin), Yhc3(Yin), Yhc4(Yin), 
+                        Yt(Yin),
+        ae21(1767732205903./2027836641118.),
+        ae31(5535828885825./10492691773637.), ae32(788022342437./10882634858940.),
+        ae41(6485989280629./16251701735622.), ae42(-4246266847089./9704473918619), ae43(10755448449292./10357097424841),
+        ai21(1767732205903./4055673282236), ai22(1767732205903./4055673282236.),
+        ai31(2746238789719./10658868560708.), ai32(-640167445237./6845629431997), ai33(1767732205903./4055673282236.),
+        ai41(1471266399579./7840856788654.), ai42(-4482444167858./7529755066697), ai43(11266239266428./11593286722821.), ai44(1767732205903./4055673282236.),
+
+        b1(1471266399579./7840856788654.), b2(-4482444167858./7529755066697), b3(11266239266428./11593286722821.), b4(1767732205903./4055673282236.),
+        b1_LO(2756255671327./12835298489170.), b2_LO(-10771552573575./22201958757719), b3_LO(9247589265047./10645013368117), b4_LO(2193209047091./5459859503100)
+    {
+        
+        Yhv1 = static_cast<complex<double> >(0.0);  Yhc1 = static_cast<complex<double> >(0.0);
+        Yhv2 = static_cast<complex<double> >(0.0);  Yhc2 = static_cast<complex<double> >(0.0);
+        Yhv3 = static_cast<complex<double> >(0.0);  Yhc3 = static_cast<complex<double> >(0.0);
+        Yhv4 = static_cast<complex<double> >(0.0);  Yhc4 = static_cast<complex<double> >(0.0);
+    }
+//--------------------------------------------------------------
+ARK32:: ~ARK32(){
+//--------------------------------------------------------------
+//  Destructor
+//--------------------------------------------------------------
+}
+void ARK32::take_step(State1D& Y2, State1D& Y3, double time, double h, VlasovFunctor1D_explicitE& vF, collisions_1D& coll, Parallel_Environment_1D& PE) 
+{
+//      Take a step using ARK32
+
+//      Yh1, Stage 1
+        // z1 = Y2;
+
+        vF(Y3,Yhv1); PE.Neighbor_Communications(Yhv1);
+        Yhv1 *= ae21*h; Yhc1 *= ai21*h;
+        
+        Yt = Y3;
+        Yt += Yhv1; Yt += Yhc1;     
+        
+        coll(Yt,Yhc2,time,(ai22*h));
+        Yhc2 *= (ai22*h);    Yt += Yhc2;
+        
+        // z2 = Yt;
+
+        vF(Yt,Yhv2); PE.Neighbor_Communications(Yhv2);
+        Yhv1 *= ae31/ae21;  Yhc1 *= ai31/ai21;  
+        Yhv2 *= ae32*h;     Yhc2 *= ai32/ai22;  
+
+        Yt = Y2;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        
+        coll(Yt,Yhc3,time,(ai33*h));
+        Yhc3 *= (ai33*h);   Yt += Yhc3;
+        
+        // z3 = Yt;
+
+        vF(Yt,Yhv3); PE.Neighbor_Communications(Yhv3);
+        Yhv1 *= ae41/ae31;  Yhc1 *= ai41/ai31;  
+        Yhv2 *= ae42/ae32;  Yhc2 *= ai42/ai32;  
+        Yhv3 *= ae43*h;     Yhc3 *= ai43/ai33;
+
+        Yt = Y2;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        Yt += Yhv3; Yt += Yhc3;
+
+        coll(Yt,Yhc4,time,(ai44*h));
+        Yhc4 *= (ai44*h);   Yt += Yhc4;
+        
+        // z4 = Yt;
+        vF(Yt,Yhv4); PE.Neighbor_Communications(Yhv4);
+
+        //  Assemble 3rd order solution
+        Y2 = Y3;
+        Yhv1 *= b1/ae41;    Y3 += Yhv1;
+        Yhv2 *= b2/ae42;    Y3 += Yhv2;
+        Yhv3 *= b3/ae43;    Y3 += Yhv3;
+        Yhv4 *= b4*h;       Y3 += Yhv4;
+
+        Yhc1 *= b1/ai41;    Y3 += Yhc1;
+        Yhc2 *= b2/ai42;    Y3 += Yhc2;
+        Yhc3 *= b3/ai43;    Y3 += Yhc3;
+        Yhc4 *= b4/ai44;    Y3 += Yhc4;
+
+        //  Assemble 2nd order solution
+        Yhv1 *= b1_LO/b1;   Y2 += Yhv1;
+        Yhv2 *= b2_LO/b2;   Y2 += Yhv2;
+        Yhv3 *= b3_LO/b3;   Y2 += Yhv3;
+        Yhv4 *= b4_LO/b4;   Y2 += Yhv4;
+
+        Yhc1 *= b1_LO/b1;   Y2 += Yhc1;
+        Yhc2 *= b2_LO/b2;   Y2 += Yhc2;
+        Yhc3 *= b3_LO/b3;   Y2 += Yhc3;
+        Yhc4 *= b4_LO/b4;   Y2 += Yhc4;
+
+        Yhc4 *= 1./(b4_LO*h);
+        Yhc1 = Yhc4;
+
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+//--------------------------------------------------------------
+ARK43::ARK43(State1D& Yin): Yhv1(Yin), Yhv2(Yin), Yhv3(Yin), Yhv4(Yin), Yhv5(Yin), Yhv6(Yin),
+                        Yhc1(Yin), Yhc2(Yin), Yhc3(Yin), Yhc4(Yin), Yhc5(Yin), Yhc6(Yin), 
+                        Yt(Yin),
+        
+        ae21(0.5),
+        ae31(13861.0/62500.0), ae32(6889.0/62500.0),
+        ae41(-116923316275.0/2393684061468.0), ae42(-2731218467317.0/15368042101831.0), ae43(9408046702089.0/11113171139209.0),
+        ae51(-451086348788.0/2902428689909.0), ae52(-2682348792572.0/7519795681897.0), ae53(12662868775082.0/11960479115383.0), ae54(3355817975965.0/11060851509271.0),
+        ae61(647845179188.0/3216320057751.0), ae62(73281519250.0/8382639484533.0), ae63(552539513391.0/3454668386233.0), ae64(3354512671639.0/8306763924573.0), ae65(4040.0/17871.0),
+        
+        ai21(1.0/4.0), ai22(1.0/4.0),
+        ai31(8611.0/62500.0), ai32(-1743.0/31250.0), ai33(1.0/4.0),
+        ai41(5012029.0/34652500.0), ai42(-654441.0/2922500.0), ai43(174375.0/388108.0), ai44(1.0/4.0),
+        ai51(15267082809.0/155376265600.0), ai52(-71443401.0/120774400.0), ai53(730878875.0/902184768.0), ai54(2285395.0/8070912.0), ai55(1.0/4.0),
+        ai61(82889.0/524892.0), ai63(15625.0/83664.0), ai64(69875.0/102672.0), ai65(-2260.0/8211.0), ai66(1.0/4.0),
+
+        b1(82889.0/524892.0), b3(15625.0/83664.0), b4(69875.0/102672.0), b5(-2260.0/8211.0), b6(1.0/4.0),
+        b1_LO(4586570599.0/29645900160.0), b3_LO(178811875.0/945068544.0), b4_LO(814220225.0/1159782912.0), b5_LO(-3700637.0/11593932.0), b6_LO(61727.0/225920.0)
+    {
+        
+        Yhv1 = static_cast<complex<double> >(0.0);  Yhc1 = static_cast<complex<double> >(0.0);
+        Yhv2 = static_cast<complex<double> >(0.0);  Yhc2 = static_cast<complex<double> >(0.0);
+        Yhv3 = static_cast<complex<double> >(0.0);  Yhc3 = static_cast<complex<double> >(0.0);
+        Yhv4 = static_cast<complex<double> >(0.0);  Yhc4 = static_cast<complex<double> >(0.0);
+        Yhv5 = static_cast<complex<double> >(0.0);  Yhc5 = static_cast<complex<double> >(0.0);
+        Yhv6 = static_cast<complex<double> >(0.0);  Yhc6 = static_cast<complex<double> >(0.0);
+    }
+//--------------------------------------------------------------
+ARK43:: ~ARK43(){
+//--------------------------------------------------------------
+//  Destructor
+//--------------------------------------------------------------
+}
+void ARK43::take_step(State1D& Y3, State1D& Y4, double time, double h, VlasovFunctor1D_explicitE& vF, collisions_1D& coll, Parallel_Environment_1D& PE) 
+{
+//      Take a step using ARK43
+
+//      Yh1, Stage 1
+    // z1 = Y2;
+
+    vF(Y4,Yhv1); PE.Neighbor_Communications(Yhv1);
+    Yhv1 *= ae21*h; Yhc1 *= ai21*h;
+    
+    Yt = Y4;
+    Yt += Yhv1; Yt += Yhc1;     
+
+    coll(Yt,Yhc2,time,(ai22*h));   
+    Yhc2 *= (ai22*h);    Yt += Yhc2;
+    
+    // z2 = Yt;
+
+    vF(Yt,Yhv2); PE.Neighbor_Communications(Yhv2);
+    Yhv1 *= ae31/ae21;  Yhc1 *= ai31/ai21;  
+    Yhv2 *= ae32*h;     Yhc2 *= ai32/ai22;  
+
+    Yt = Y4;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv2; Yt += Yhc2;
+    coll(Yt,Yhc3,time,(ai33*h));
+
+    Yhc3 *= (ai33*h);   Yt += Yhc3;
+    
+    // z3 = Yt;
+
+    vF(Yt,Yhv3); PE.Neighbor_Communications(Yhv3);
+    Yhv1 *= ae41/ae31;  Yhc1 *= ai41/ai31;  
+    Yhv2 *= ae42/ae32;  Yhc2 *= ai42/ai32;  
+    Yhv3 *= ae43*h;     Yhc3 *= ai43/ai33;
+
+    Yt = Y4;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv2; Yt += Yhc2;
+    Yt += Yhv3; Yt += Yhc3;
+
+    coll(Yt,Yhc4,time,(ai44*h));
+
+    Yhc4 *= (ai44*h);   Yt += Yhc4;
+    
+    // z4 = Yt;
+    vF(Yt,Yhv4); PE.Neighbor_Communications(Yhv4);
+    Yhv1 *= ae51/ae41;  Yhc1 *= ai51/ai41;  
+    Yhv2 *= ae52/ae42;  Yhc2 *= ai52/ai42;  
+    Yhv3 *= ae53/ae43;  Yhc3 *= ai53/ai43;  
+    Yhv4 *= ae54*h;     Yhc4 *= ai54/ai44;
+
+    Yt = Y4;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv2; Yt += Yhc2;
+    Yt += Yhv3; Yt += Yhc3;
+    Yt += Yhv4; Yt += Yhc4;
+
+    coll(Yt,Yhc5,time,(ai55*h));
+
+    Yhc5 *= (ai55*h);   Yt += Yhc5;
+    
+    // z5 = Yt;
+    vF(Yt,Yhv5); PE.Neighbor_Communications(Yhv5);
+    Yhv1 *= ae61/ae51;  Yhc1 *= ai61/ai51;  
+    Yhv2 *= ae62/ae52;  Yhc2 *= ai62/ai52;  
+    Yhv3 *= ae63/ae53;  Yhc3 *= ai63/ai53;  
+    Yhv4 *= ae64/ae54;  Yhc4 *= ai64/ai54;  
+    Yhv5 *= ae65*h;     Yhc5 *= ai65/ai55;
+
+    Yt = Y4;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv2; Yt += Yhc2;
+    Yt += Yhv3; Yt += Yhc3;
+    Yt += Yhv4; Yt += Yhc4;
+    Yt += Yhv5; Yt += Yhc5;
+
+    coll(Yt,Yhc6,time,(ai66*h));
+
+    Yhc6 *= (ai66*h);   Yt += Yhc6;
+
+    // z6 = Yt;
+    vF(Yt,Yhv6);  PE.Neighbor_Communications(Yhv6);
+
+    //  Assemble 4th order solution
+    Y3 = Y4;
+    Yhv1 *= b1/ae61;    Y4 += Yhv1;
+    Yhv3 *= b3/ae63;    Y4 += Yhv3;
+    Yhv4 *= b4/ae64;    Y4 += Yhv4;
+    Yhv5 *= b5/ae65;    Y4 += Yhv5;
+    Yhv6 *= b6*h;       Y4 += Yhv6;
+
+    Yhc1 *= b1/ai61;    Y4 += Yhc1;
+    Yhc3 *= b3/ai63;    Y4 += Yhc3;
+    Yhc4 *= b4/ai64;    Y4 += Yhc4;
+    Yhc5 *= b5/ai65;    Y4 += Yhc5;
+    Yhc6 *= b6/ai66;    Y4 += Yhc6;
+
+    //  Assemble 3rd order solution
+    Yhv1 *= b1_LO/b1;   Y3 += Yhv1;
+    Yhv3 *= b3_LO/b3;   Y3 += Yhv3;
+    Yhv4 *= b4_LO/b4;   Y3 += Yhv4;
+    Yhv5 *= b5_LO/b5;   Y3 += Yhv5;
+    Yhv6 *= b6_LO/b6;   Y3 += Yhv6;
+
+    Yhc1 *= b1_LO/b1;   Y3 += Yhc1;
+    Yhc3 *= b3_LO/b3;   Y3 += Yhc3;
+    Yhc4 *= b4_LO/b4;   Y3 += Yhc4;
+    Yhc5 *= b5_LO/b5;   Y3 += Yhc5;
+    Yhc6 *= b6_LO/b6;   Y3 += Yhc6;
+
+    Yhc6 *= 1./(b6_LO*h);
+    Yhc1 = Yhc6;
+
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+//--------------------------------------------------------------
+ARK54::ARK54(State1D& Yin): Yhv1(Yin), Yhv2(Yin), Yhv3(Yin), Yhv4(Yin), Yhv5(Yin), Yhv6(Yin), Yhv7(Yin), Yhv8(Yin),
+                        Yhc1(Yin), Yhc2(Yin), Yhc3(Yin), Yhc4(Yin), Yhc5(Yin), Yhc6(Yin), Yhc7(Yin), Yhc8(Yin),
+                        Yt(Yin),
+
+    ae21(41.0/100.0),
+    ae31(367902744464.0/2072280473677.0), ae32(677623207551.0/8224143866563.0),
+    ae41(1268023523408.0/10340822734521.0), ae43(1029933939417.0/13636558850479.0),
+    ae51(14463281900351.0/6315353703477.0), ae53(66114435211212.0/5879490589093.0), ae54(-54053170152839.0/4284798021562.0),
+    ae61(14090043504691.0/34967701212078.0), ae63(15191511035443.0/11219624916014.0), ae64(-18461159152457.0/12425892160975.0), ae65(-281667163811.0/9011619295870.0),
+    ae71(19230459214898.0/13134317526959.0), ae73(21275331358303.0/2942455364971.0), ae74(-38145345988419.0/4862620318723.0), ae75(-1.0/8.0), ae76(-1.0/8.0),
+    ae81(-19977161125411.0/11928030595625.0), ae83(-40795976796054.0/6384907823539.0), ae84(177454434618887.0/12078138498510.0), ae85(782672205425.0/8267701900261.0), ae86(-69563011059811.0/9646580694205.0), ae87(7356628210526.0/4942186776405.0),
+        
+    ai21(41.0/200.0), ai22(41.0/200.0),
+    ai31(41.0/400.0), ai32(-567603406766.0/11931857230679.0), ai33(41.0/200.0),
+    ai41(683785636431.0/9252920307686.0), ai43(-110385047103.0/1367015193373.0), ai44(41.0/200.0),
+    ai51(3016520224154.0/10081342136671.0), ai53(30586259806659.0/12414158314087.0), ai54(-22760509404356.0/11113319521817.0), ai55(41.0/200.0),
+    ai61(218866479029.0/1489978393911.0), ai63(638256894668.0/5436446318841.0), ai64(-1179710474555.0/5321154724896.0), ai65(-60928119172.0/8023461067671.0), ai66(41.0/200.0),
+    ai71(1020004230633.0/5715676835656.0), ai73(25762820946817.0/25263940353407.0), ai74(-2161375909145.0/9755907335909.0), ai75(-211217309593.0/5846859502534.0), ai76(-4269925059573.0/7827059040749.0), ai77(41.0/200.0),
+    ai81(-872700587467.0/9133579230613.0), ai84(22348218063261.0/9555858737531.0), ai85(-1143369518992.0/8141816002931.0), ai86(-39379526789629.0/19018526304540.0), ai87(32727382324388.0/42900044865799.0), ai88(41.0/200.0),
+
+    b1(-872700587467.0/9133579230613.0), b4(22348218063261.0/9555858737531.0), b5(-1143369518992.0/8141816002931.0), b6(-39379526789629.0/19018526304540.0), b7(32727382324388.0/42900044865799.0), b8(41.0/200.0),
+
+    b1_LO(-975461918565.0/9796059967033.0), b4_LO(78070527104295.0/32432590147079.0), b5_LO(-548382580838.0/3424219808633.0), b6_LO(-33438840321285.0/15594753105479.0), b7_LO(3629800801594.0/4656183773603.0), b8_LO(4035322873751.0/18575991585200.0)
+    {
+        
+        Yhv1 = static_cast<complex<double> >(0.0);  Yhc1 = static_cast<complex<double> >(0.0);
+        Yhv2 = static_cast<complex<double> >(0.0);  Yhc2 = static_cast<complex<double> >(0.0);
+        Yhv3 = static_cast<complex<double> >(0.0);  Yhc3 = static_cast<complex<double> >(0.0);
+        Yhv4 = static_cast<complex<double> >(0.0);  Yhc4 = static_cast<complex<double> >(0.0);
+        Yhv5 = static_cast<complex<double> >(0.0);  Yhc5 = static_cast<complex<double> >(0.0);
+        Yhv6 = static_cast<complex<double> >(0.0);  Yhc6 = static_cast<complex<double> >(0.0);
+    }
+//--------------------------------------------------------------
+ARK54:: ~ARK54(){
+//--------------------------------------------------------------
+//  Destructor
+//--------------------------------------------------------------
+}
+void ARK54::take_step(State1D& Y4, State1D& Y5, double time, double h, VlasovFunctor1D_explicitE& vF, collisions_1D& coll, Parallel_Environment_1D& PE) 
+{
+//      Take a step using ARK43
+
+//      Yh1, Stage 1
+    // z1 = Y2;
+
+    vF(Y5,Yhv1); PE.Neighbor_Communications(Yhv1);
+    Yhv1 *= ae21*h; Yhc1 *= ai21*h;
+    
+    Yt = Y5;
+    Yt += Yhv1; Yt += Yhc1;     
+
+    coll(Yt,Yhc2,time,(ai22*h));   
+    Yhc2 *= (ai22*h);    Yt += Yhc2;
+    
+    // z2 = Yt;
+
+    vF(Yt,Yhv2); PE.Neighbor_Communications(Yhv2);
+    Yhv1 *= ae31/ae21;  Yhc1 *= ai31/ai21;  
+    Yhv2 *= ae32*h;     Yhc2 *= ai32/ai22;  
+
+    Yt = Y5;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv2; Yt += Yhc2;
+    coll(Yt,Yhc3,time,(ai33*h));
+
+    Yhc3 *= (ai33*h);   Yt += Yhc3;
+    
+    // z3 = Yt;
+
+    vF(Yt,Yhv3); PE.Neighbor_Communications(Yhv3);
+    Yhv1 *= ae41/ae31;  Yhc1 *= ai41/ai31;  
+    Yhv3 *= ae43*h;     Yhc3 *= ai43/ai33;
+
+    Yt = Y5;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv3; Yt += Yhc3;
+
+    coll(Yt,Yhc4,time,(ai44*h));
+
+    Yhc4 *= (ai44*h);   Yt += Yhc4;
+    
+    // z4 = Yt;
+    vF(Yt,Yhv4); PE.Neighbor_Communications(Yhv4);
+    Yhv1 *= ae51/ae41;  Yhc1 *= ai51/ai41;  
+    Yhv3 *= ae53/ae43;  Yhc3 *= ai53/ai43;  
+    Yhv4 *= ae54*h;     Yhc4 *= ai54/ai44;
+
+    Yt = Y5;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv3; Yt += Yhc3;
+    Yt += Yhv4; Yt += Yhc4;
+
+    coll(Yt,Yhc5,time,(ai55*h));
+
+    Yhc5 *= (ai55*h);   Yt += Yhc5;
+    
+    // z5 = Yt;
+    vF(Yt,Yhv5); PE.Neighbor_Communications(Yhv5);
+    Yhv1 *= ae61/ae51;  Yhc1 *= ai61/ai51;  
+    Yhv3 *= ae63/ae53;  Yhc3 *= ai63/ai53;  
+    Yhv4 *= ae64/ae54;  Yhc4 *= ai64/ai54;  
+    Yhv5 *= ae65*h;     Yhc5 *= ai65/ai55;
+
+    Yt = Y5;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv3; Yt += Yhc3;
+    Yt += Yhv4; Yt += Yhc4;
+    Yt += Yhv5; Yt += Yhc5;
+
+    coll(Yt,Yhc6,time,(ai66*h));
+
+    Yhc6 *= (ai66*h);   Yt += Yhc6;
+
+    // z6 = Yt;
+    vF(Yt,Yhv6);  PE.Neighbor_Communications(Yhv6);
+    Yhv1 *= ae71/ae61;  Yhc1 *= ai71/ai61;  
+    Yhv3 *= ae73/ae63;  Yhc3 *= ai73/ai63;  
+    Yhv4 *= ae74/ae64;  Yhc4 *= ai74/ai64;  
+    Yhv5 *= ae75/ae65;  Yhc5 *= ai75/ai65;
+    Yhv6 *= ae76*h;     Yhc6 *= ai76/ai66;
+
+    Yt = Y5;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv3; Yt += Yhc3;
+    Yt += Yhv4; Yt += Yhc4;
+    Yt += Yhv5; Yt += Yhc5;
+    Yt += Yhv6; Yt += Yhc6;
+
+    coll(Yt,Yhc7,time,(ai77*h));
+
+    Yhc7 *= (ai77*h);   Yt += Yhc7;
+
+    // z6 = Yt;
+    vF(Yt,Yhv7);  PE.Neighbor_Communications(Yhv7);
+    Yhv1 *= ae81/ae71;  Yhc1 *= ai81/ai71;  
+    Yhv3 *= ae83/ae73;  
+    Yhv4 *= ae84/ae74;  Yhc4 *= ai84/ai74;  
+    Yhv5 *= ae85/ae75;  Yhc5 *= ai85/ai75;
+    Yhv6 *= ae86/ae76;  Yhc6 *= ai86/ai76;
+    Yhv7 *= ae87*h;     Yhc7 *= ai87/ai77;
+
+    Yt = Y5;
+    Yt += Yhv1; Yt += Yhc1;
+    Yt += Yhv3;
+    Yt += Yhv4; Yt += Yhc4;
+    Yt += Yhv5; Yt += Yhc5;
+    Yt += Yhv6; Yt += Yhc6;
+    Yt += Yhv7; Yt += Yhc7;
+
+    coll(Yt,Yhc8,time,(ai88*h));
+
+    Yhc8 *= (ai88*h);   Yt += Yhc8;
+
+    // z6 = Yt;
+    vF(Yt,Yhv8);  PE.Neighbor_Communications(Yhv8);
+
+    //  Assemble 4th order solution
+    Y4 = Y5;
+    Yhv1 *= b1/ae81;    Y5 += Yhv1;
+    Yhv4 *= b4/ae84;    Y5 += Yhv4;
+    Yhv5 *= b5/ae85;    Y5 += Yhv5;
+    Yhv6 *= b6/ae86;    Y5 += Yhv6;
+    Yhv7 *= b7/ae87;    Y5 += Yhv7;
+    Yhv8 *= b8*h;       Y5 += Yhv8;
+
+    Yhc1 *= b1/ai81;    Y5 += Yhc1;
+    Yhc4 *= b4/ai84;    Y5 += Yhc4;
+    Yhc5 *= b5/ai85;    Y5 += Yhc5;
+    Yhc6 *= b6/ai86;    Y5 += Yhc6;
+    Yhc7 *= b7/ai87;    Y5 += Yhc7;
+    Yhc8 *= b8/ai88;    Y5 += Yhc8;
+
+    //  Assemble 3rd order solution
+    Yhv1 *= b1_LO/b1;   Y4 += Yhv1;
+    Yhv4 *= b4_LO/b4;   Y4 += Yhv4;
+    Yhv5 *= b5_LO/b5;   Y4 += Yhv5;
+    Yhv6 *= b6_LO/b6;   Y4 += Yhv6;
+    Yhv7 *= b7_LO/b7;   Y4 += Yhv7;
+    Yhv8 *= b8_LO/b8;   Y4 += Yhv8;
+
+    Yhc1 *= b1_LO/b1;    Y4 += Yhc1;
+    Yhc4 *= b4_LO/b4;    Y4 += Yhc4;
+    Yhc5 *= b5_LO/b5;    Y4 += Yhc5;
+    Yhc6 *= b6_LO/b6;    Y4 += Yhc6;
+    Yhc7 *= b7_LO/b7;    Y4 += Yhc7;
+    Yhc8 *= b8_LO/b8;    Y4 += Yhc8;
+
+    Yhc8 *= 1./(b8_LO*h);
+    Yhc1 = Yhc8;
+
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+//--------------------------------------------------------------
+RKCK45::RKCK45(State1D& Yin): Yh1(Yin), Yh3(Yin), Yh4(Yin), Yh5(Yin), Yh6(Yin), Yt(Yin),
+        
+        a21(0.2), 
+        a31(3./40.), a32(9./40.),
+        a41(.3), a42(-.9), a43(1.2),
+        a51(-11./54.), a52(2.5) ,a53(-70./27.), a54(35./27.),
+        a61(1631./55296.), a62(175./512.), a63(575./13824.), a64(44275./110592.), a65(253./4096.),
+        b1_5(37./378.), b3_5(250./621.), b4_5(125./594.), b6_5(512./1771.),
+        b1_4(2825./27648.), b3_4(18575./48384.), b4_4(13525./55296.), b5_4(277./14336.), b6_4(0.25)
+    {}
+//--------------------------------------------------------------
+RKCK45:: ~RKCK45(){
+//--------------------------------------------------------------
+//  Destructor
+//--------------------------------------------------------------
+}
+void RKCK45::take_step(State1D& Y5, State1D& Y4, double time, double h, VlasovFunctor1D_explicitE& vF, collisions_1D& coll, Parallel_Environment_1D& PE) 
+{
+//  Take a step using RKCK
+
+//      Yh1, Stage 1
+    // z1 = Y2;
+    vF(Y4,Yh1); Yh1 *= h;
+    Yh1 *= a21;
+    Yt = Y4;    Yt  += Yh1;                              // Y1 = Y1 + (h/5)*Yh
+
+    //      Step 2
+    // vF(Yt,Yh2);                                   // f(Y1)
+    vF(Yt,Y5); Y5 *= h;                                   // f(Y1)
+    Yh1 *= a31/a21; Y5 *= a32;  
+    Yt = Y4;    Yt += Yh1;  Yt += Y5;
+
+    //      Step 3
+    vF(Yt,Yh3); Yh3 *= h;
+    Yh1 *= a41/a31; Y5 *= a42/a32;   Yh3 *= a43;
+    Yt = Y4;    Yt += Yh1; Yt += Y5; Yt += Yh3;
+    
+    //      Step 4
+    vF(Yt,Yh4); Yh4 *= h;
+    Yh1 *= a51/a41; Y5 *= a52/a42;   Yh3 *= a53/a43;    Yh4 *= a54;
+    Yt = Y4;    Yt += Yh1; Yt += Y5; Yt += Yh3; Yt += Yh4;
+    
+    //      Step 5
+    vF(Yt,Yh5); Yh5 *= h;
+    Yh1 *= a61/a51; Y5 *= a62/a52;   Yh3 *= a63/a53;    Yh4 *= a64/a54; Yh5 *= a65;
+    Yt = Y4;    Yt += Yh1; Yt += Y5; Yt += Yh3; Yt += Yh4; Yt += Yh5;
+    
+    //      Step 6
+    vF(Yt,Yh6); Yh6 *= h;
+
+
+    //      Assemble 5th order solution
+    Y5 = Y4;
+    Yh1 *= b1_5/a61;    Y5 += Yh1;
+    Yh3 *= b3_5/a63;    Y5 += Yh3;
+    Yh4 *= b4_5/a64;    Y5 += Yh4;
+    Yh6 *= b6_5;        Y5 += Yh6;
+
+    //      Assemble 4th order solution
+    Yh1 *= b1_4/b1_5;   Y4 += Yh1;
+    Yh3 *= b3_4/b3_5;   Y4 += Yh3;
+    Yh4 *= b4_4/b4_5;   Y4 += Yh4;
+    Yh5 *= b5_4/a65;    Y4 += Yh5;
+    Yh6 *= b6_4/b6_5;   Y4 += Yh6;
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+}
+//--------------------------------------------------------------

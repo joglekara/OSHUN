@@ -47,7 +47,7 @@ private:
 
     Formulary formulas;
 
-    void   update_C_Rosenbluth(valarray<double>& fin);
+    void   update_C_Rosenbluth( valarray<double>& fin);
     double update_D_Rosenbluth(const size_t& k, valarray<double>& fin, const double& delta);
     void   update_D_and_delta(valarray<double>& fin);
     void   update_D_inversebremsstrahlung(const double& Z0, const double& heatingcoefficient, const double& vos);
@@ -80,8 +80,8 @@ public:
     /// This loop calls the RK4_f00 private member that is
     /// responsible for setting up the RK4 algorithm to advance
     /// the collision step.
-    void loop(SHarmonic1D& SHin, valarray<double>& Zarray, SHarmonic1D& SHout, const double time, const double step_size);
-    void loop(SHarmonic2D& SHin, Array2D<double>& Zarray, SHarmonic2D& SHout, const double time, const double step_size);
+    void loop(const SHarmonic1D& SHin, const valarray<double>& Zarray, SHarmonic1D& SHout, const double time, const double step_size);
+    void loop(const SHarmonic2D& SHin, const Array2D<double>& Zarray, SHarmonic2D& SHout, const double time, const double step_size);
 
 private:
     //  Variables
@@ -157,6 +157,7 @@ class self_f00_explicit_step {
 
 //          Collect all the operators and apply on Yin
             void operator()(const valarray<double>& fin, valarray<double>& fslope);
+            void operator()(const valarray<double>& fin, valarray<double>& fslope, double time, double dt);
             void operator()(const valarray<double>& fin, valarray<double>& fslope, size_t dir);
         private:
             //          Variables
@@ -189,8 +190,8 @@ class self_f00_explicit_step {
         /// This loop calls the RK4_f00 private member that is
         /// responsible for setting up the RK4 algorithm to advance
         /// the collision step. 
-            void loop(SHarmonic1D& SHin, SHarmonic1D& SHout, const double step_size);
-            void loop(SHarmonic2D& SHin, SHarmonic2D& SHout, const double step_size);
+            void loop(const SHarmonic1D& SHin, SHarmonic1D& SHout, const double step_size);
+            void loop(const SHarmonic2D& SHin, SHarmonic2D& SHout, const double step_size);
 
         private:
         //  Variables
@@ -208,7 +209,7 @@ class self_f00_explicit_step {
             size_t                                  num_h;
             double                                  h;
 
-            size_t Nbc; ///< Number of boundary cells in each direction
+            // size_t Nbc; ///< Number of boundary cells in each direction
             size_t szx, szy; ///< Total cells including boundary cells in x-direction
 
         };
@@ -291,11 +292,11 @@ class self_f00_explicit_step {
             self_flm_implicit_collisions(const size_t _l0, const size_t _m0,
                              const valarray<double>& dp); 
 
-            void advancef1(DistFunc1D& DF, valarray<double>& Zarray, DistFunc1D& DFh, const double step_size);
-            void advanceflm(DistFunc1D& DF, valarray<double>& Zarray, DistFunc1D& DFh);
+            void advancef1(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh, const double step_size);
+            void advanceflm(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh);
 
-            void advancef1(DistFunc2D& DF, Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
-            void advanceflm(DistFunc2D& DF, Array2D<double>& Zarray, DistFunc2D& DFh);
+            void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
+            void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
 
         private:
 
@@ -332,13 +333,13 @@ class self_f00_explicit_step {
             self_collisions(const size_t _l0, const size_t _m0,
                              const valarray<double>& dp, const double& charge, const double& mass); 
             // ~self_collisions();
-            void advancef00(SHarmonic1D& f00, valarray<double>& Zarray, SHarmonic1D& f00h, const double time, const double step_size);
-            void advancef1(DistFunc1D& DF, valarray<double>& Zarray, DistFunc1D& DFh, const double step_size);
-            void advanceflm(DistFunc1D& DF, valarray<double>& Zarray, DistFunc1D& DFh);
+            void advancef00(const SHarmonic1D& f00, const valarray<double>& Zarray, SHarmonic1D& f00h, const double time, const double step_size);
+            void advancef1(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh, const double step_size);
+            void advanceflm(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh);
 
-            void advancef00(SHarmonic2D& f00, Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size);
-            void advancef1(DistFunc2D& DF, Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
-            void advanceflm(DistFunc2D& DF, Array2D<double>& Zarray, DistFunc2D& DFh);
+            void advancef00(const SHarmonic2D& f00, const Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size);
+            void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
+            void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
 
 
         private:
@@ -355,16 +356,21 @@ class self_f00_explicit_step {
 * 
 *   
 */        
-        class collisions_1D {
+        class collisions_1D : public Algorithms::AbstFunctor<State1D> {
 //--------------------------------------------------------------            
         public:
         /// Constructors/Destructors
-            collisions_1D(const State1D& Yin); 
+            collisions_1D(const State1D& Y);
             // ~self_collisions();
+            
+            void operator()(const State1D& Y, State1D& Yh, const double time, const double step_size);
+            void operator()(const State1D& Y, State1D& Yh);
+            void operator()(const State1D& Y, State1D& Yh, size_t dir);
+
             void advance(State1D& Y, const double time, const double step_size);
-            void advancef0(State1D& Y, State1D& Yh, const double time, const double step_size);
-            void advancef1(State1D& Y, State1D& Yh, const double step_size);
-            void advanceflm(State1D& Y, State1D& Yh);
+            void advancef0(const State1D& Y, State1D& Yh, const double time, const double step_size);
+            void advancef1(const State1D& Y, State1D& Yh, const double step_size);
+            void advanceflm(const State1D& Y, State1D& Yh);
 
             vector<self_collisions> self();
             // void advancef1(State1D& Y);
@@ -378,16 +384,22 @@ class self_f00_explicit_step {
 //            vector<interspecies_f00_explicit_collisions> unself_f00_coll;
         };
 
-        class collisions_2D {
+        class collisions_2D : public Algorithms::AbstFunctor<State2D> {
 //--------------------------------------------------------------            
         public:
         /// Constructors/Destructors
-            collisions_2D(const State2D& Yin); 
-            // ~self_collisions();
+            collisions_2D(const State2D& Y);
+            
+
+            void operator()(const State2D& Y, State2D& Yout, const double time, const double step_size);
+            void operator()(const State2D& Y, State2D& Yh);
+            void operator()(const State2D& Y, State2D& Yh, size_t dir);
+            
+
             void advance(State2D& Y, const double time, const double step_size);
-            void advancef0(State2D& Y, State2D& Yh, const double time, const double step_size);
-            void advancef1(State2D& Y, State2D& Yh, const double step_size);
-            void advanceflm(State2D& Y, State2D& Yh);
+            void advancef0(const State2D& Y, State2D& Yh, const double time, const double step_size);
+            void advancef1(const State2D& Y, State2D& Yh, const double step_size);
+            void advanceflm(const State2D& Y, State2D& Yh);
 
             vector<self_collisions> self();
             // void advancef1(State1D& Y);

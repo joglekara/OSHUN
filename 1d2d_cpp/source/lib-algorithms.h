@@ -611,6 +611,7 @@ namespace Algorithms {
 //  abstract functor interface 
     public:
         virtual void operator()(const T& Yin, T& Yslope)=0;  // call using operator
+        virtual void operator()(const T& Yin, T& Yslope, double time, double dt)=0;  // call using operator
         virtual void operator()(const T& Yin, T& Yslope, size_t dir)=0;  // call using operator
     };
 
@@ -638,7 +639,7 @@ namespace Algorithms {
         Y0 = Y;
 
 //      Step 1
-        (*F)(Y0,Yh); Yh *= h;     // Yh = h*F(Y0)
+        (*F)(Y0,Yh); Yh *= h;     // Yh = h*F(Y0)      Yh += Y;  Yh = (*CF)(Yh,time,h);  Yh -= Y;
         Y0 += Yh;                 // Y0 = Y0 + h*Yh
         Yh *= 0.5; Y  += Yh;      // Y  = Y  + (h/2)*F(Y0)      
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -750,7 +751,7 @@ namespace Algorithms {
     template<class T> class RK4 {
     public:
 //      Constructor
-        RK4(T& Yin): Y0(Yin), Y1(Yin), Yh(Yin) { }
+        RK4(T& Yin): Y0(Yin), Y1(Yin), Y2(Yin), Yh(Yin) { }
 
 //      Main function
         T& operator()(T& Y, double h, AbstFunctor<T>* F);
@@ -758,7 +759,7 @@ namespace Algorithms {
 
     private:
 //      R-K copies for the data
-        T  Y0, Y1, Yh;
+        T  Y0, Y1, Y2, Yh;
     };
 
     template<class T> T& RK4<T>::operator()
@@ -770,7 +771,7 @@ namespace Algorithms {
 
 //      Step 1
         (*F)(Y1,Yh);                    // slope in the beginning
-        Yh *= (0.5*h);   Y1 += Yh;      // Y1 = Y1 + (h/2)*Yh
+        Yh *= (0.5*h);   Y1 += Yh;      // Y1 = Y1 + (h/2)*Yh  Yhc = (*CF)(Y1,time,0.5*h)
         Yh *= (1.0/3.0); Y  += Yh;      // Y  = Y  + (h/6)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -825,7 +826,6 @@ namespace Algorithms {
 
         return Y;
     }
-
 
 //  RKCK
     template<class T> class RKCK54 {
@@ -1125,6 +1125,295 @@ namespace Algorithms {
         // return Y;
     }
 
+// ----------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------    
+//  ARK
+    template<class T> class ARK32 {
+    public:
+//      Constructor
+        ARK32(T& Yin): Yhv1(Yin), Yhv2(Yin), Yhv3(Yin), Yhv4(Yin),
+                        Yhc2(Yin), Yhc3(Yin), Yhc4(Yin), 
+                        Yt(Yin),
+        ae21(1767732205903./2027836641118.),
+        ae31(5535828885825./10492691773637.), ae32(788022342437./10882634858940.),
+        ae41(6485989280629./16251701735622.), ae42(-4246266847089./9704473918619), ae43(10755448449292./10357097424841),
+        ai21(1767732205903./4055673282236), ai22(1767732205903./4055673282236.),
+        ai31(2746238789719./10658868560708.), ai32(-640167445237./6845629431997), ai33(1767732205903./4055673282236.),
+        ai41(1471266399579./7840856788654.), ai42(-4482444167858./7529755066697), ai43(11266239266428./11593286722821.), ai44(1767732205903./4055673282236.),
+
+        b1(1471266399579./7840856788654.), b2(-4482444167858./7529755066697), b3(11266239266428./11593286722821.), b4(1767732205903./4055673282236.),
+        b1_LO(2756255671327./12835298489170.), b2_LO(-10771552573575./22201958757719), b3_LO(9247589265047./10645013368117), b4_LO(2193209047091./5459859503100)
+        {}
+
+//      Main function
+        T& operator()(T& Y3, T&Y2, T& Yhc1, double time, double h, AbstFunctor<T>* vF,  AbstFunctor<T>* cF);
+
+    private:
+//      R-K copies for the data
+        T  Yhv1, Yhv2, Yhv3, Yhv4, Yhc2, Yhc3, Yhc4, Yt;
+
+        double ae21;
+        double ae31,ae32;
+        double ae41,ae42,ae43;
+        double ai21, ai22;
+        double ai31,ai32,ai33;
+        double ai41,ai42,ai43,ai44;
+    
+        double b1,b2,b3,b4;
+        double b1_LO,b2_LO,b3_LO,b4_LO;
+    };
+
+    template<class T> T& ARK32<T>::operator()
+            (T& Y3, T& Y2, T& Yhc1, double time, double h, AbstFunctor<T>* vF, AbstFunctor<T>* cF) {
+//      Take a step using ARK32
+
+//      Yh1, Stage 1
+        // z1 = Y2;
+
+        (*vF)(Y2,Yhv1);
+        Yhv1 *= ae21*h; Yhc1 *= ai21*h;
+        
+        Yt = Y2;
+        Yt += Yhv1; Yt += Yhc1;     
+        
+        (*cF)(Yt,Yhc2,time,(ai22*h));
+        Yhc2 *= (ai22*h);    Yt += Yhc2;
+        
+        // z2 = Yt;
+
+        (*vF)(Yt,Yhv2);
+        Yhv1 *= ae31/ae21;  Yhc1 *= ai31/ai21;  
+        Yhv2 *= ae32*h;     Yhc2 *= ai32/ai22;  
+
+        Yt = Y2;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        (*cF)(Yt,Yhc3,time,(ai33*h));
+
+        Yhc3 *= (ai33*h);   Yt += Yhc3;
+        
+        // z3 = Yt;
+
+        (*vF)(Yt,Yhv3);
+        Yhv1 *= ae41/ae31;  Yhc1 *= ai41/ai31;  
+        Yhv2 *= ae42/ae32;  Yhc2 *= ai42/ai32;  
+        Yhv3 *= ae43*h;     Yhc3 *= ai43/ai33;
+
+        Yt = Y2;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        Yt += Yhv3; Yt += Yhc3;
+
+        (*cF)(Yt,Yhc4,time,(ai44*h));
+
+        Yhc4 *= (ai44*h);   Yt += Yhc4;
+        
+        // z4 = Yt;
+
+        (*vF)(Yt,Yhv4);
+
+        //  Assemble 3rd order solution
+        Y3 = Y2;
+        Yhv1 *= b1/ae41;    Y3 += Yhv1;
+        Yhv2 *= b2/ae42;    Y3 += Yhv2;
+        Yhv3 *= b3/ae43;    Y3 += Yhv3;
+        Yhv4 *= b4*h;       Y3 += Yhv4;
+
+        Yhc1 *= b1/ai41;    Y3 += Yhc1;
+        Yhc2 *= b2/ai42;    Y3 += Yhc2;
+        Yhc3 *= b3/ai43;    Y3 += Yhc3;
+        Yhc4 *= b4/ai44;    Y3 += Yhc4;
+
+        //  Assemble 2nd order solution
+        Yhv1 *= b1_LO/b1;   Y2 += Yhv1;
+        Yhv2 *= b2_LO/b2;   Y2 += Yhv2;
+        Yhv3 *= b3_LO/b3;   Y2 += Yhv3;
+        Yhv4 *= b4_LO/b4;   Y2 += Yhv4;
+
+        Yhc1 *= b1_LO/b1;   Y2 += Yhc1;
+        Yhc2 *= b2_LO/b2;   Y2 += Yhc2;
+        Yhc3 *= b3_LO/b3;   Y2 += Yhc3;
+        Yhc4 *= b4_LO/b4;   Y2 += Yhc4;
+
+        Yhc4 *= 1./(b4_LO*h);
+        Yhc1 = Yhc4;
+
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        // return Y;
+    }
+// ----------------------------------------------------------------------------------------------------------------
+// ----------------------------------------------------------------------------------------------------------------    
+//  ARK
+    template<class T> class ARK43 {
+    public:
+//      Constructor
+        ARK43(T& Yin): Yhv1(Yin), Yhv2(Yin), Yhv3(Yin), Yhv4(Yin), Yhv5(Yin), Yhv6(Yin),
+                        Yhc2(Yin), Yhc3(Yin), Yhc4(Yin), Yhc5(Yin), Yhc6(Yin), 
+                        Yt(Yin),
+        
+        ae21(0.5),
+        ae31(13861.0/62500.0), ae32(6889.0/62500.0),
+        ae41(-116923316275.0/2393684061468.0), ae42(-2731218467317.0/15368042101831.0), ae43(9408046702089.0/11113171139209.0),
+        ae51(-451086348788.0/2902428689909.0), ae52(-2682348792572.0/7519795681897.0), ae53(12662868775082.0/11960479115383.0), ae54(3355817975965.0/11060851509271.0),
+        ae61(647845179188.0/3216320057751.0), ae62(73281519250.0/8382639484533.0), ae63(552539513391.0/3454668386233.0), ae64(3354512671639.0/8306763924573.0), ae65(4040.0/17871.0),
+        
+        ai21(1.0/4.0), ai22(1.0/4.0),
+        ai31(8611.0/62500.0), ai32(-1743.0/31250.0), ai33(1.0/4.0),
+        ai41(5012029.0/34652500.0), ai42(-654441.0/2922500.0), ai43(174375.0/388108.0), ai44(1.0/4.0),
+        ai51(15267082809.0/155376265600.0), ai52(-71443401.0/120774400.0), ai53(730878875.0/902184768.0), ai54(2285395.0/8070912.0), ai55(1.0/4.0),
+        ai61(82889.0/524892.0), ai63(15625.0/83664.0), ai64(69875.0/102672.0), ai65(-2260.0/8211.0), ai66(1.0/4.0),
+
+        b1(82889.0/524892.0), b3(15625.0/83664.0), b4(69875.0/102672.0), b5(-2260.0/8211.0), b6(1.0/4.0),
+        b1_LO(4586570599.0/29645900160.0), b3_LO(178811875.0/945068544.0), b4_LO(814220225.0/1159782912.0), b5_LO(-3700637.0/11593932.0), b6_LO(61727.0/225920.0)
+        {}
+
+//      Main function
+        T& operator()(T& Y3, T&Y4, T& Yhc1, double time, double h, AbstFunctor<T>* vF,  AbstFunctor<T>* cF);
+
+    private:
+//      R-K copies for the data
+        T  Yhv1, Yhv2, Yhv3, Yhv4, Yhv5, Yhv6;
+        T  Yhc2, Yhc3, Yhc4, Yhc5, Yhc6, Yt;
+
+        double ae21;
+        double ae31,ae32;
+        double ae41,ae42,ae43;
+        double ae51,ae52,ae53,ae54;
+        double ae61,ae62,ae63,ae64,ae65;
+        
+        double ai21, ai22;
+        double ai31,ai32,ai33;
+        double ai41,ai42,ai43,ai44;
+        double ai51,ai52,ai53,ai54,ai55;
+        double ai61,ai62,ai63,ai64,ai65,ai66;
+    
+        double b1,b2,b3,b4,b5,b6;
+        double b1_LO,b3_LO,b4_LO,b5_LO,b6_LO;
+    };
+
+    template<class T> T& ARK43<T>::operator()
+            (T& Y3, T& Y4, T& Yhc1, double time, double h, AbstFunctor<T>* vF, AbstFunctor<T>* cF) {
+//      Take a step using ARK43
+
+//      Yh1, Stage 1
+        // z1 = Y2;
+
+        (*vF)(Y4,Yhv1);// PE.Neighbor_Communications(Yhv1);
+        Yhv1 *= ae21*h; Yhc1 *= ai21*h;
+        
+        Yt = Y4;
+        Yt += Yhv1; Yt += Yhc1;     
+        
+        
+
+        (*cF)(Yt,Yhc2,time,(ai22*h));   
+        Yhc2 *= (ai22*h);    Yt += Yhc2;
+        
+        // z2 = Yt;
+
+        (*vF)(Yt,Yhv2);// PE.Neighbor_Communications(Yhv2);
+        Yhv1 *= ae31/ae21;  Yhc1 *= ai31/ai21;  
+        Yhv2 *= ae32*h;     Yhc2 *= ai32/ai22;  
+
+        Yt = Y4;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        (*cF)(Yt,Yhc3,time,(ai33*h));
+
+        Yhc3 *= (ai33*h);   Yt += Yhc3;
+        
+        // z3 = Yt;
+
+        (*vF)(Yt,Yhv3);// PE.Neighbor_Communications(Yhv3);
+        Yhv1 *= ae41/ae31;  Yhc1 *= ai41/ai31;  
+        Yhv2 *= ae42/ae32;  Yhc2 *= ai42/ai32;  
+        Yhv3 *= ae43*h;     Yhc3 *= ai43/ai33;
+
+        Yt = Y4;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        Yt += Yhv3; Yt += Yhc3;
+
+        (*cF)(Yt,Yhc4,time,(ai44*h));
+
+        Yhc4 *= (ai44*h);   Yt += Yhc4;
+        
+        // z4 = Yt;
+        (*vF)(Yt,Yhv4);// PE.Neighbor_Communications(Yhv4);
+        Yhv1 *= ae51/ae41;  Yhc1 *= ai51/ai41;  
+        Yhv2 *= ae52/ae42;  Yhc2 *= ai52/ai42;  
+        Yhv3 *= ae53/ae43;  Yhc3 *= ai53/ai43;  
+        Yhv4 *= ae54*h;     Yhc4 *= ai54/ai44;
+
+        Yt = Y4;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        Yt += Yhv3; Yt += Yhc3;
+        Yt += Yhv4; Yt += Yhc4;
+
+        (*cF)(Yt,Yhc5,time,(ai55*h));
+
+        Yhc5 *= (ai55*h);   Yt += Yhc5;
+        
+        // z5 = Yt;
+        (*vF)(Yt,Yhv4);
+        Yhv1 *= ae61/ae51;  Yhc1 *= ai61/ai51;  
+        Yhv2 *= ae62/ae52;  Yhc2 *= ai62/ai52;  
+        Yhv3 *= ae63/ae53;  Yhc3 *= ai63/ai53;  
+        Yhv4 *= ae64/ae54;  Yhc4 *= ai64/ai54;  
+        Yhv5 *= ae65*h;     Yhc5 *= ai65/ai55;
+
+        Yt = Y4;
+        Yt += Yhv1; Yt += Yhc1;
+        Yt += Yhv2; Yt += Yhc2;
+        Yt += Yhv3; Yt += Yhc3;
+        Yt += Yhv4; Yt += Yhc4;
+        Yt += Yhv5; Yt += Yhc5;
+
+        (*cF)(Yt,Yhc6,time,(ai66*h));
+
+        Yhc5 *= (ai66*h);   Yt += Yhc6;
+
+        // z6 = Yt;
+        (*vF)(Yt,Yhv6);
+
+        //  Assemble 3rd order solution
+        Y3 = Y4;
+        Yhv1 *= b1/ae61;    Y3 += Yhv1;
+        Yhv3 *= b3/ae63;    Y3 += Yhv3;
+        Yhv4 *= b4/ae64;    Y3 += Yhv4;
+        Yhv5 *= b5/ae65;    Y3 += Yhv5;
+        Yhv6 *= b6*h;       Y3 += Yhv6;
+
+        Yhc1 *= b1/ai61;    Y3 += Yhc1;
+        Yhc3 *= b3/ai63;    Y3 += Yhc3;
+        Yhc4 *= b4/ai64;    Y3 += Yhc4;
+        Yhc5 *= b5/ai65;    Y3 += Yhc5;
+        Yhc6 *= b6/ai66;    Y3 += Yhc6;
+
+        //  Assemble 2nd order solution
+        Yhv1 *= b1_LO/b1;   Y4 += Yhv1;
+        Yhv3 *= b3_LO/b3;   Y4 += Yhv3;
+        Yhv4 *= b4_LO/b4;   Y4 += Yhv4;
+        Yhv5 *= b5_LO/b5;   Y4 += Yhv5;
+        Yhv6 *= b6_LO/b6;   Y4 += Yhv6;
+
+        Yhc1 *= b1_LO/b1;   Y4 += Yhc1;
+        Yhc3 *= b3_LO/b3;   Y4 += Yhc3;
+        Yhc4 *= b4_LO/b4;   Y4 += Yhc4;
+        Yhc5 *= b5_LO/b5;   Y4 += Yhc5;
+        Yhc6 *= b6_LO/b6;   Y4 += Yhc6;
+
+        Yhc4 *= 1./(b4_LO*h);
+        Yhc1 = Yhc4;
+
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        // return Y;
+    }
+
 //--------------------------------------------------------------
     //  Leapfrog space (Position verlet)
     template<class T> class LEAPs {
@@ -1372,7 +1661,57 @@ namespace Algorithms {
         return Y;
     }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        ///  IMEX BDF4
+    template<class T> class IMEXBDF4 {
+    public:
+//      Constructor
+        IMEXBDF4(T& Yin): Y(Yin), Yh(Yin),
+        a0(48./25.), a1(-36./25.), a2(16./25.), a3(-3./25.),
+        v0(48./25.), v1(-72./25.), v2(48./25.), v3(-12./25.),
+        c0(12./25.) { }
 
+//      Main function
+        T& operator()(T& Ym3, T& Ym2, T& Ym1, T& Yn, double time, double h, AbstFunctor<T>* vF, AbstFunctor<T>* cF);
+
+    private:
+//      R-K copies for the data
+        T  Y, Yh;
+        double a0,a1,a2,a3;
+        double v0,v1,v2,v3;
+        double c0;
+    };
+
+    template<class T> T& IMEXBDF4<T>::operator()
+            (T& Ym3, T& Ym2, T& Ym1, T& Yn, double time, double h, AbstFunctor<T>* vF, AbstFunctor<T>* cF){
+//      Take a step using IMEXBDF
+        Y  = Yn;
+
+        Yh = Yn;    Yh *= (a0-1.);  Y += Yh;       // Yn+1 = a0*Yn
+        Yh = Ym1;   Yh *= a1;       Y += Yh;
+        Yh = Ym2;   Yh *= a2;       Y += Yh;
+        Yh = Ym3;   Yh *= a3;       Y += Yh;
+        
+
+        (*vF)(Ym3,Yh);      Yh *= v3*h;            // df/dt at F_{n-3}
+        Y += Yh;
+        (*vF)(Ym2,Yh);      Yh *= v2*h;            // df/dt at F_{n-2}
+        Y += Yh;
+        (*vF)(Ym1,Yh);      Yh *= v1*h;            // df/dt at F_{n-1}
+        Y += Yh;
+        (*vF)(Yn,Yh);       Yh *= v0*h;            // df/dt at F_{n}
+        Y += Yh;
+
+        (*cF)(Yn, Yh, time, (c0*h));    Y += Yh;
+
+        Ym3 = Ym2;          // Update n - 3
+        Ym2 = Ym1;          // Update n - 2
+        Ym1 = Yn;           // Update n - 1
+        Yn = Y;            // Solution!
+
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+        return Y;
+    }
 }
 //**************************************************************
 

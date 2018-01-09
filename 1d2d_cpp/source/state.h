@@ -423,6 +423,7 @@ public:
 
 //      Debug
     void checknan();
+    void checknan() const;
 };
 //--------------------------------------------------------------------------------
 /** @} */
@@ -749,6 +750,7 @@ public:
     size_t Species() const {return ns;}
     size_t Fields() const  {return 6;}
     void   checknan();
+    void   checknan() const;
 
 //      Access to underlying structures
 //          Distributions

@@ -26,7 +26,7 @@ INCLUDE_DIRS = -L/usr/local/Cellar/hdf5/1.10.1_2/include -I/usr/local/opt/gcc/li
 EXEC_DIR = ../bin
 TMP_DIR = ../bin/tmp
 
-OBJECTS = input.o clock.o state.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o particletracker.o implicitE.o parallel.o export.o main.o
+OBJECTS = input.o clock.o state.o stepper.o formulary.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o particletracker.o implicitE.o parallel.o export.o parser.o main.o
 
 EXEC = oshun.e
 
@@ -55,6 +55,9 @@ ${TMP_DIR}/input.o: input.cpp
 
 ${TMP_DIR}/clock.o: clock.cpp
 	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/stepper.o: stepper.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<	
 
 ${TMP_DIR}/state.o: state.cpp
 	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<	
