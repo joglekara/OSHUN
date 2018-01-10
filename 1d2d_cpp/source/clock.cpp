@@ -97,7 +97,7 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
         while (_success == 0)
         {
             Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
-            if (current_time > 50.) 
+            if (current_time > Input::List().adaptive_tmin) 
                 update_dt(Y_old, Ystar, Y_new);
             else 
             {
