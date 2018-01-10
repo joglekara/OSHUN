@@ -66,7 +66,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
 //--------------------------------------------------------------
     bool debug(0);
 
-    Yslope = 0.0;
+    Yslope = static_cast<complex<double> > (0.0);
 
     for (size_t s(0); s < Yin.Species(); ++s) 
     {

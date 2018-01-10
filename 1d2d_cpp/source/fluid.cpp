@@ -76,7 +76,7 @@ void Fluid_Equation_1D::density(const Hydro1D& Hin, Hydro1D& Hslope){
     for (size_t ix(0);ix<szx;++ix)
         d_nvx[ix] = d_nvx[ix] * Hin.vx(ix);
 
-    d_nvx = df_4thorder(d_nvx);
+    // d_nvx = df_4thorder(d_nvx);
 
     Hslope.density(0)       -= idx * d_nvx[0];
 
@@ -95,7 +95,7 @@ void Fluid_Equation_1D::chargefraction(const Hydro1D& Hin, Hydro1D& Hslope){
     for (size_t ix(0);ix<szx;++ix)
         d_nZx[ix] = d_nZx[ix] * Hin.Z(ix);
 
-    d_nZx = df_4thorder(d_nZx);    
+    // d_nZx = df_4thorder(d_nZx);    
 
     Hslope.Z(0)       -= idx * d_nZx[0];
 
@@ -122,8 +122,8 @@ void Fluid_Equation_1D::velocity(const State1D& Yin , Hydro1D& Hslope,
         eventuallynetPovern[ix] = eventuallynetPovern[ix] * Yin.HYDRO().temperature(ix);
     }
 
-    eventuallynetPovern = df_4thorder(eventuallynetPovern);
-    eventuallychargeseparation = df_4thorder(eventuallychargeseparation);
+    // eventuallynetPovern = df_4thorder(eventuallynetPovern);
+    // eventuallychargeseparation = df_4thorder(eventuallychargeseparation);
 
     for (size_t ix(0);ix<szx;++ix){
 
@@ -139,9 +139,9 @@ void Fluid_Equation_1D::velocity(const State1D& Yin , Hydro1D& Hslope,
         eventuallychargeseparation[ix] = Yin.HYDRO().Z(ix)*Yin.HYDRO().charge()*Yin.HYDRO().density(ix)-electrondensity[ix];
     }
     
-    d_vx = df_4thorder(d_vx);
-    d_vy = df_4thorder(d_vy);
-    d_vz = df_4thorder(d_vz);
+    // d_vx = df_4thorder(d_vx);
+    // d_vy = df_4thorder(d_vy);
+    // d_vz = df_4thorder(d_vz);
 
 
     Hslope.vx(0)  += - idx * eventuallynetPovern[0] / Yin.HYDRO().mass()

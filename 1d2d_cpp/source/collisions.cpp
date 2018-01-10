@@ -37,23 +37,22 @@
 
 
 
-
+#pragma optimize("", off)
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 //*********************************************************************************************
 self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const double &pmax,
                             const valarray<double>& dp,
-                         const double &_mass, bool& _ib):
+                         const double _mass, bool _ib):
         mass(_mass), ib(_ib),
-        
-        vr(Algorithms::MakeCAxis(0.0,dp)), dvr(0.,dp.size()), // Non-uniform velocity grid
+        vr(0.,dp.size()), 
+        // #pragma novector
+        dvr(0.,dp.size()), // Non-uniform velocity grid
         
         vrh(0.0,dp.size()), oneoverv2(dp.size()),
-        p2dp(0.0,dp.size()),p2dpm1(0.0,dp.size()),phdp(0.0,dp.size()),phdpm1(0.0,dp.size()), p4dp(0.0,dp.size()), laser_Inv_Uav6(0.0,dp.size()),
+        p2dp(0.0,dp.size()), p2dpm1(0.0,dp.size()),phdp(0.0,dp.size()), phdpm1(0.0,dp.size()), p4dp(0.0,dp.size()), laser_Inv_Uav6(0.0,dp.size()),
         C_RB(0.0,dp.size()+1), D_RB(0.0,dp.size()+1), 
-
         I4_Lnee(0.0), 
-        // delta_CC(0.0,nump+1),c_kpre(0.),vw_coeff_cube(0.)                
         delta_CC(0.0,dp.size()+1),c_kpre(0.),vw_coeff_cube(0.)                
 {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -64,22 +63,32 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
     double kp(sqrt(4.0*M_PI*(Input::List().density_np)*re)); //< sqrt(4*pi*n_{e0}*re).
     c_kpre = re*kp; //< (4*pi*re)^1.5*sqrt(n_{e0})/3.
 
-    double omega_0(3.0e+10*2.0*M_PI/(1.0e-4*Input::List().lambda_0));
-    double omega_p(5.64 * 1.0e+4*sqrt(Input::List().density_np));
+    double omega_0(3.0e10*2.0*M_PI/(1.0e-4*Input::List().lambda_0));
+    double omega_p(5.64 * 1.0e4*sqrt(Input::List().density_np));
     vw_coeff_cube = omega_p/omega_0 * c_kpre;
     
+    vr[0] = 0.5*dp[0];
+    
+    for (size_t ip(1); ip < vr.size(); ++ip) 
+    {
+        vr[ip]  = dp[ip];
+        vr[ip] += vr[ip-1];
+
+        // std::cout << "vr00[" << ip << "] = " << vr[ip] <<"\n";
+    }
+
     
 
-
     for (size_t i(0); i < vr.size()-1; ++i) {
+        // std::cout << "vr0[" << i << "] = " << vr[i] <<"\n";
+
         vrh[i] = 0.5*(vr[i+1] - vr[i]);
         dvr[i] = (vr[i+1] - vr[i]); // Non-uniform velocity grid
     }
+    // exit(1);
     vrh[vrh.size()-1] = 0.0;
     dvr[vrh.size()-1] = dvr[vrh.size()-2]; // Non-uniform velocity grid
-                                           // 
     
-
     for (size_t i(1); i < vr.size(); ++i) {
         p2dp[i]   = 0.5 * vr[i]*vr[i]      * (vr[i]-vr[i-1]);
         p2dpm1[i] = 0.5 * vr[i-1]*vr[i-1]  * (vr[i]-vr[i-1]);
@@ -111,27 +120,33 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
 //*********************************************************************************************
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
+#pragma optimize("", on)
 void self_f00_implicit_step::update_C_Rosenbluth(valarray<double> &fin) {
     /// Remember that C is defined on the boundaries of the velocity grid
     /// Therefore, C[0] is C_{1/2} aka C(v=0)
     /// and, C[1] is C_{3/2} aka C(v[1st point, 0th index C style])
 
+    C_RB = p4dp*fin;
+    I4_Lnee = C_RB.sum();
+    
     C_RB[0] = 0.0;
-    I4_Lnee = 0.0;
+    // I4_Lnee = 0.0;
     for (size_t n(1); n < C_RB.size(); ++n) {
 //        C_RB[n]  = p2dp[n-1] * fin[n-1] + p2dpm1[n-1] * fin[n - 2];
         C_RB[n]  = vr[n - 1] * vr[n - 1] * dvr[n - 1] * fin[n - 1];
         C_RB[n] += C_RB[n - 1];
 
-        I4_Lnee  += p4dp[n - 1] * fin[n - 1];
+        // I4_Lnee  += p4dp[n - 1] * fin[n - 1];
     }
 
     C_RB *= 4.0 * M_PI;
     I4_Lnee *= 4.0 * M_PI;
 }
+
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
-double self_f00_implicit_step::update_D_Rosenbluth(const size_t& k, valarray<double>& fin, const double& delta) {
+
+double self_f00_implicit_step::update_D_Rosenbluth(const size_t& k, valarray<double>& fin, const double delta) {
 
     double answer(0.0);
 
@@ -146,6 +161,7 @@ double self_f00_implicit_step::update_D_Rosenbluth(const size_t& k, valarray<dou
 
     --n;
 
+    #pragma novector
     for (n =innersum.size()-2; n > -1; --n) {
         innersum[n] = (1.0 - delta) * fin[n + 1] + delta * fin[n];
         innersum[n] *= (vr[n + 1] * vr[n + 1] - vr[n] * vr[n]);
@@ -170,6 +186,7 @@ double self_f00_implicit_step::update_D_Rosenbluth(const size_t& k, valarray<dou
 }
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
+
 void self_f00_implicit_step::update_D_and_delta(valarray<double>& fin){
     size_t iterations(0);
     bool iteration_check(0);
@@ -223,9 +240,10 @@ void self_f00_implicit_step::update_D_and_delta(valarray<double>& fin){
     delta_CC[0]                  = 0.5;
     delta_CC[delta_CC.size()-1]  = 0.0;
 }
+
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
-double self_f00_implicit_step::calc_delta_ChangCooper(const size_t& k, const double& C, const double& D)
+double self_f00_implicit_step::calc_delta_ChangCooper(const size_t& k, const double C, const double D)
 {
     double answer(0.5);
     double W(0.5*(dvr[k-1]+dvr[k])*C/D);
@@ -235,9 +253,10 @@ double self_f00_implicit_step::calc_delta_ChangCooper(const size_t& k, const dou
     }
     return answer;
 }
+
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
-void self_f00_implicit_step::update_D_inversebremsstrahlung(const double& Z0, const double& heating_coefficient, const double& vos){
+void self_f00_implicit_step::update_D_inversebremsstrahlung(const double Z0, const double heating_coefficient, const double vos){
 
     double vw_cube;// = vw_coeff_cube; * ZLn_ei * 4.0*M_PI*I2;;
 
@@ -266,9 +285,10 @@ void self_f00_implicit_step::update_D_inversebremsstrahlung(const double& Z0, co
     }
 
 }
+
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
-void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &fh, const double& Z0, const double& vos, const double& step_size)//, const double& cooling) {
+void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &fh, const double Z0, const double vos, const double step_size)//, const double cooling) {
 {
 
     double collisional_coefficient;
@@ -300,52 +320,54 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
 
     /// Boundaries by hand -- This operates on f(0)
     LHS(ip, ip + 1) = - oneoverv2[ip] * collisional_coefficient
-                      * (C_RB[ip + 1] * (1.0 - delta_CC[ip + 1])
-                         + D_RB[ip + 1] / dvr[ip + 1]);
+          * (C_RB[ip + 1] * (1.0 - delta_CC[ip + 1])
+             + D_RB[ip + 1] / dvr[ip + 1]);
 
     LHS(ip    , ip) = 1.0 - oneoverv2[ip] * collisional_coefficient
-                            * (C_RB[ip + 1] * delta_CC[ip + 1] - D_RB[ip + 1] / dvr[ip + 1]
-                               - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
+                * (C_RB[ip + 1] * delta_CC[ip + 1] - D_RB[ip + 1] / dvr[ip + 1]
+                   - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
 
 
+    #pragma ivdep
     for (ip = 1; ip < fin.size() - 1; ++ip){
         LHS(ip, ip + 1) = - oneoverv2[ip] * collisional_coefficient
-                          * (C_RB[ip + 1] * (1.0 - delta_CC[ip + 1])
-                             + D_RB[ip + 1] / dvr[ip + 1]);
+                  * (C_RB[ip + 1] * (1.0 - delta_CC[ip + 1])
+                     + D_RB[ip + 1] / dvr[ip + 1]);
 
         LHS(ip    , ip) = 1.0 - oneoverv2[ip] * collisional_coefficient
-                                * (C_RB[ip + 1] * delta_CC[ip + 1] - D_RB[ip + 1] / dvr[ip + 1]
-                                   - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
+                        * (C_RB[ip + 1] * delta_CC[ip + 1] - D_RB[ip + 1] / dvr[ip + 1]
+                           - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
 
         LHS(ip, ip - 1) = oneoverv2[ip] * collisional_coefficient
-                          * (C_RB[ip] * delta_CC[ip]
-                             - D_RB[ip] / dvr[ip]);
+                  * (C_RB[ip] * delta_CC[ip]
+                     - D_RB[ip] / dvr[ip]);
 
     }
 
     ip = fin.size() - 1;
 
     LHS(ip    , ip) = 1.0 - oneoverv2[ip] * collisional_coefficient
-                            * (C_RB[ip + 1] * delta_CC[ip + 1]
-                               - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
+                * (C_RB[ip + 1] * delta_CC[ip + 1]
+                   - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
 
     LHS(ip, ip - 1) = oneoverv2[ip] * collisional_coefficient
-                      * (C_RB[ip] * delta_CC[ip]
-                         - D_RB[ip] / dvr[ip]);
+          * (C_RB[ip] * delta_CC[ip]
+             - D_RB[ip] / dvr[ip]);
 
-   // std::cout << "\n\n LHS = \n";
-   // for (size_t i(0); i < LHS.dim1(); ++i) {
-   //     std::cout << "i = " << i << " :::: ";
-   //     for (size_t j(0); j < LHS.dim2(); ++j) {
-   //         std::cout << LHS(i, j) << "   ";
-   //     }
-   //     std::cout << "\n";
-   // }
+    // std::cout << "\n\n LHS = \n";
+    // for (size_t i(0); i < LHS.dim1(); ++i) {
+    //     std::cout << "i = " << i << " :::: ";
+    //     for (size_t j(0); j < LHS.dim2(); ++j) {
+    //         std::cout << LHS(i, j) << "   ";
+    //     }
+    //     std::cout << "\n";
+    // }
 
-   // exit(1);
+    // fh = fin;
     Thomas_Tridiagonal(LHS,fin,fh);
 
 }
+
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
@@ -353,7 +375,7 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
 //---------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------
 self_f00_implicit_collisions::self_f00_implicit_collisions(
-    const valarray<double>& dp, const double& charge, const double& mass)
+    const valarray<double>& dp, const double charge, const double mass)
 //-------------------------------------------------------------------
 //  Constructor
 //-------------------------------------------------------------------
@@ -371,6 +393,7 @@ self_f00_implicit_collisions::self_f00_implicit_collisions(
 {
     
     Nbc = Input::List().BoundaryCells;
+    // Nbc = 0;
     // szx = Input::List().NxLocalnobnd[0];  // size of useful x axis
     // szy = Input::List().NxLocalnobnd[1];  // size of useful y axis
 
@@ -414,21 +437,22 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
             fin[ip] = (f00(ip,ix+Nbc)).real();
            // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
         }
-//
+
         // collide.takestep(fin,fout,Zarray[ix+Nbc],heatingprofile_1d[ix+Nbc],step_size);//,coolingprofile_1d[ix+Nbc]);
         collide.takestep(fin,fout,Zarray[ix+Nbc],heatingprofile_1d[ix+Nbc],step_size);//,coolingprofile_1d[ix+Nbc]);
 
         // Return updated data to the harmonic
         for (size_t ip(0); ip < fin.size(); ++ip)
         {
-            f00h(ip,ix+Nbc) = fout[ip];
+            f00h(ip,ix+Nbc) = static_cast<complex<double> >(fout[ip]);
+            // f00h(ip,ix+Nbc) = fin[ip];
             
             // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
         }
         
     }
     //-------------------------------------------------------------------
-
+    // exit(1);
 }
 
 //-------------------------------------------------------------------
@@ -476,7 +500,7 @@ void self_f00_implicit_collisions::loop(const SHarmonic2D& f00, const Array2D<do
             // Return updated data to the harmonic
             for (size_t ip(0); ip < fin.size(); ++ip)
             {
-                f00h(ip,ix+Nbc,iy+Nbc) = fout[ip];
+                f00h(ip,ix+Nbc,iy+Nbc) = static_cast<complex<double> >(fout[ip]);
                 // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
             }
         }
@@ -611,6 +635,8 @@ void self_f00_explicit_step::takestep(const valarray<double>& fin, valarray<doub
     }
 
     J1[J1.size()-1] = 0;
+
+    #pragma novector
     for (int n(J1.size()-2); n > -1; --n) {
         J1[n]  = U1[n+1]*fin[n+1]+U1m1[n+1]*fin[n];
         J1[n] += J1[n+1];
@@ -801,15 +827,15 @@ void self_f00_explicit_collisions::loop(const SHarmonic2D& f00, SHarmonic2D& f00
     }
 }
 //-------------------------------------------------------------------
-
+#pragma optimize("", off)
 //*******************************************************************
 //--------------------------------------------------------------
-self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, valarray<double> dp)
+self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const valarray<double>& dp)
 //--------------------------------------------------------------
 //  Constructor
 //--------------------------------------------------------------
         :
-            vr(Algorithms::MakeCAxis(0.0,dp)),
+            vr(0.,dp.size()),
             U4(0.0,  dp.size()),
             U4m1(0.0,dp.size()),
             U2(0.0,  dp.size()),
@@ -821,10 +847,21 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, valarray<
 {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     size_t totalnumberofspatiallocationstostore(numxtotal);
+    
+    vr[0] = 0.5*dp[0];
+    for (size_t ip(1); ip < vr.size(); ++ip) 
+    {
+        vr[ip]  = dp[ip];
+        vr[ip] += vr[ip-1];
+
+        
+
+    }
 
     if (Input::List().dim == 1)
     {
-        totalnumberofspatiallocationstostore /= (2+(2*Input::List().BoundaryCells));  // Correct for Ny = 2 + 2 * boundary cells
+        // totalnumberofspatiallocationstostore /= (2+(2*Input::List().BoundaryCells));  // Correct for Ny = 2 + 2 * boundary cells
+        totalnumberofspatiallocationstostore /= (Input::List().NxLocal[1]);  // Correct for Ny = 2 + 2 * boundary cells
     }
 
     for (size_t ix(0); ix < totalnumberofspatiallocationstostore; ++ix)
@@ -844,14 +881,17 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, valarray<
     // Determine U4, U4m1, U2, U2m1, U1, U1m1 for the integrals
     for (size_t i(1); i < U4.size(); ++i) 
     {
-        U4[i]   = 0.5 * pow(vr[i],4)     * (vr[i]-vr[i-1]);
-        U4m1[i] = 0.5 * pow(vr[i-1],4)   * (vr[i]-vr[i-1]);
+        // std::cout << "vr[" << i << "] = " << vr[i] <<"\n";
+
+        U4[i]   = 0.5 * pow(vr[i],4.)     * (vr[i]-vr[i-1]);
+        U4m1[i] = 0.5 * pow(vr[i-1],4.)   * (vr[i]-vr[i-1]);
         U2[i]   = 0.5 * vr[i]*vr[i]      * (vr[i]-vr[i-1]);
         U2m1[i] = 0.5 * vr[i-1]*vr[i-1]  * (vr[i]-vr[i-1]);
         U1[i]   = 0.5 * vr[i]            * (vr[i]-vr[i-1]);
         U1m1[i] = 0.5 * vr[i-1]          * (vr[i]-vr[i-1]);
     }
 }
+#pragma optimize("", on)
 //--------------------------------------------------------------
 //------------------------------------------------------------------------------
 /// @brief      Resets coefficients and integrals to use in the matrix solve.
@@ -859,11 +899,11 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, valarray<
 /// @param[in]  fin      Input distribution function
 /// @param[in]  Delta_t  timestep
 ///
-void  self_flm_implicit_step::reset_coeff(const valarray<double>& fin, const double Zvalue, const double Delta_t, size_t position) {
+void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zvalue, const double Delta_t, const size_t position) {
 //-------------------------------------------------------------------
 //  Reset the coefficients based on f_0^0 
 //-------------------------------------------------------------------
-
+    // std::cout << "ix = " << position << "\n";
     //          Constant
     double I0_density, I2_temperature;
     double _ZLOGei, _LOGee;
@@ -874,7 +914,8 @@ void  self_flm_implicit_step::reset_coeff(const valarray<double>& fin, const dou
     //          Define the integrals
     valarray<double>  J1m(0.,fin.size()), I0(0.,fin.size()), I2(0.,fin.size());
 
-
+    // std::cout << "I0_density = " << I0_density << "\n";
+    // std::cout << "I2_temperature = " << I2_temperature << "\n";
 //     Calculate Dt
     Dt = Delta_t;
 
@@ -886,12 +927,18 @@ void  self_flm_implicit_step::reset_coeff(const valarray<double>& fin, const dou
     I2[0] = 0;
     I0[0] = 0;
 
+    // #pragma novector
     for (size_t k(1); k < I2.size(); ++k) 
     {
-        I2[k]  = U4[k]*fin[k]+U4m1[k]*fin[k-1];
+        I2[k]  = U4[k]*fin[k];
+        I2[k] += U4m1[k]*fin[k-1];
         I2[k] += I2[k-1];
 
-        I0[k]  = U2[k]*fin[k]+U2m1[k]*fin[k-1];
+        // std::cout << "vr[" << k << "] = " << vr[k] <<"\n";
+        // std::cout << "U4m1[" << k << "] = " << U4m1[k] <<"\n";
+
+        I0[k]  = U2[k]*fin[k];
+        I0[k] += U2m1[k]*fin[k-1];
         I0[k] += I0[k-1];
     }
     
@@ -915,7 +962,8 @@ void  self_flm_implicit_step::reset_coeff(const valarray<double>& fin, const dou
     I0  *= 4.0 * M_PI;
     J1m *= 4.0 * M_PI * vr;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
+    // std::cout << "I0_density = " << I0_density << "\n";
+    // std::cout << "I2_temperature = " << I2_temperature << "\n";
 //     COULOMB LOGARITHMS
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     _LOGee  = Input::List().ee_bool*formulas.LOGee(I0_density,I2_temperature);
@@ -961,6 +1009,7 @@ void  self_flm_implicit_step::reset_coeff(const valarray<double>& fin, const dou
 
     double IvDnDm1, IvDnDp1, Ivsq2Dn;
     Alpha_Tri(0,0) = 8.0 * M_PI * fin[0];                                         //  8*pi*f0[0]
+    #pragma ivdep
     for (size_t i(1); i < TriI1.size()-1; ++i)
     {
         IvDnDm1 = 1.0 / (vr[i] * 0.5*(vr[i+1]-vr[i-1]) * (vr[i]   - vr[i-1]));       //  ( v*D_n*D_{n-1/2} )^(-1)
@@ -985,13 +1034,22 @@ void  self_flm_implicit_step::reset_coeff(const valarray<double>& fin, const dou
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt;         // (-1) because the matrix moves to the LHS in the equation
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+    // for (size_t ip(0); ip < fin.size(); ++ip)
+    // {
+        // std::cout << "fin[" << ip << "] = " << fin[ip] <<"\n";
+    // }
 
     //     Evaluate the derivative
+
+
     for (size_t n(1); n < fin.size()-1; ++n) {
         df0[n]  = fin[n+1]-fin[n-1];
+        
         df0[n] /= vr[n+1]-vr[n-1];
+        // std::cout << "df0[" << n << "] = " << df0[n] <<"\n";
     }
+
+    // exit(1);
 
 //     Evaluate the second derivative
 //        -df/dv_{n-1/2}
@@ -1031,7 +1089,21 @@ void  self_flm_implicit_step::reset_coeff(const valarray<double>& fin, const dou
     (ddf0_x)[position] = ddf0;
     //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    
+    // std::cout << "LOGee = " << _LOGee << "\n";
+    
+    // for (size_t ip(0); ip < fin.size(); ++ip)
+    // {
+    //     std::cout << "df0[" << ip << "] = " << df0[ip] <<"\n";
+    // }
 
+    // for (size_t ip(0); ip < fin.size(); ++ip)
+    // {
+    //     std::cout << "ddf0[" << ip << "] = " << ddf0[ip] <<"\n";
+    // }
+
+    // exit(1);
+    
 }
 //-------------------------------------------------------------------
 
@@ -1046,10 +1118,8 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
 //-------------------------------------------------------------------
 //  Collisions
 //-------------------------------------------------------------------
-    // Array2D<double> Alpha(Alpha_Tri_x[position]);
     Array2D<double> Alpha(Alpha_Tri_x[position]);
     valarray<complex<double> > fout(fin);
-
 
 //      ZEROTH CELL FOR TRIDIAGONAL ARRAY
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -1160,8 +1230,9 @@ self_flm_implicit_collisions::self_flm_implicit_collisions(const size_t _l0, con
             Nbc(Input::List().BoundaryCells),
             szx(Input::List().NxLocal[0]),
             szy(Input::List().NxLocal[1]),
-            implicit_step((szx*szy),dp)
+            implicit_step((szx*szy),dp),f1_m_upperlimit(1)
 {
+    // Nbc = 0;
     if (m0 == 0) {
         f1_m_upperlimit = 1;
     }
@@ -1208,7 +1279,7 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc1D& DF, const valarr
             for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
             {
 
-                valarray<complex<double> > fc(0.,DF(0,0).nump());
+                valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
                 // This harmonic --> Valarray
                 for (size_t ip(0); ip < fc.size(); ++ip){
                     fc[ip] = (DF(l,m))(ip,ix+Nbc);
@@ -1243,6 +1314,8 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
         valarray<double> f00(0.,DF(0,0).nump());
         for (size_t ip(0); ip < f00.size(); ++ip){
             f00[ip] = (DF(0,0)(ip,ix)).real();
+            // std::cout << "f00[" << ip << "] = " << f00[ip] <<"\n";
+
         }
         // Reset the integrals and coefficients
         implicit_step.reset_coeff(f00, Zarray[ix], step_size, ix);
@@ -1256,10 +1329,11 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
         // Loop over the harmonics for this (x,y)
         for(size_t m = 0; m < f1_m_upperlimit; ++m)
         {
-            valarray<complex<double> > fc(0.,DF(0,0).nump());
+            valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
             // This harmonic --> Valarray
             for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
                 fc[ip] = DF(1,m)(ip,ix);
+                // std::cout << "fin[" << ip << "] = " << fc[ip] <<"\n";
             }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
             // Take an implicit step
@@ -1268,8 +1342,11 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
 
             //  Valarray --> This harmonic
             for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
+                // std::cout << "fout[" << ip << "] = " << fc[ip] <<"\n";
                 DFh(1,m)(ip,ix) = fc[ip];
             }
+
+            // exit(1);
         }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     }
@@ -1312,7 +1389,7 @@ void self_flm_implicit_collisions::advancef1(const DistFunc2D& DF, const Array2D
             // Loop over the harmonics for this (x,y)
             for(size_t m = 0; m < f1_m_upperlimit; ++m)
             {
-                valarray<complex<double> > fc(0.,DF(0,0).nump());
+                valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
                 // This harmonic --> Valarray
                 for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
                     fc[ip] = DF(1,m)(ip,ix,iy);
@@ -1353,7 +1430,7 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc2D& DF, const Array2
             {
                 for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
                 {       
-                    valarray<complex<double> > fc(0.,DF(0,0).nump());
+                    valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
                     // This harmonic --> Valarray
                     for (size_t ip(0); ip < fc.size(); ++ip){
                         fc[ip] = (DF(l,m))(ip,ix+Nbc,iy+Nbc);
@@ -1376,11 +1453,11 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc2D& DF, const Array2
 ////*******************************************************************
 //-------------------------------------------------------------------
 self_collisions::self_collisions(const size_t _l0, const size_t _m0,
-                             const valarray<double>& dp, const double& charge, const double& mass)
+                             const valarray<double>& dp, const double charge, const double mass)
 //-------------------------------------------------------------------
 //  Constructor
 //-------------------------------------------------------------------
-        : self_f00_exp_collisions(dp),
+        : //self_f00_exp_collisions(dp),
           self_f00_imp_collisions(dp, charge, mass),
           self_flm_imp_collisions(_l0, _m0, dp){}
 //-------------------------------------------------------------------
@@ -1390,7 +1467,7 @@ void self_collisions::advancef00(const SHarmonic1D& f00, const valarray<double>&
 //-------------------------------------------------------------------
 {    
     if (Input::List().f00_implicitorexplicit == 2) self_f00_imp_collisions.loop(f00,Zarray,f00h,time,step_size);
-    else self_f00_exp_collisions.loop(f00,f00h,step_size);
+    // else self_f00_exp_collisions.loop(f00,f00h,step_size);
     
 }
 //-------------------------------------------------------------------
@@ -1413,7 +1490,7 @@ void self_collisions::advancef00(const SHarmonic2D& f00, const Array2D<double>& 
 //-------------------------------------------------------------------
 {    
     if (Input::List().f00_implicitorexplicit == 2) self_f00_imp_collisions.loop(f00,Zarray,f00h,time,step_size);
-    else self_f00_exp_collisions.loop(f00,f00h,step_size);
+    // else self_f00_exp_collisions.loop(f00,f00h,step_size);
     
 }
 //-------------------------------------------------------------------
@@ -1440,7 +1517,7 @@ collisions_1D::collisions_1D(const State1D& Yin):Yh(Yin)
 //  Constructor
 //-------------------------------------------------------------------
 {
-    Yh = complex<double>(0.0,0.0);
+    Yh = static_cast<complex<double> >(0.0,0.0);
     for(size_t s(0); s < Yin.Species(); ++s){
         self_coll.push_back( self_collisions(Yin.DF(s).l0(),
             Yin.DF(s).m0(),Yin.DF(s).getdp(),Yin.DF(s).q(),Yin.DF(s).mass())  );
@@ -1458,16 +1535,23 @@ void collisions_1D::advance(State1D& Yin, const double time, const double step_s
 //-------------------------------------------------------------------
 {
     // Yh = complex<double>(0.0,0.0);
+    // Yh = Yin;
     
     if (Input::List().f00_implicitorexplicit)
     {
-        advancef0(Yin,Yh,time,step_size);    
+        advancef0(Yin,Yh,time,step_size);
+        // std::cout << "\n 10 \n";    
+        // Yh.checknan();
     }
     
     if (Input::List().flm_collisions )
     {
         advancef1(Yin,Yh,step_size);
+        // std::cout << "\n 11 \n";
+        // Yh.checknan();
         advanceflm(Yin,Yh);
+        // std::cout << "\n 12 \n";
+        // Yh.checknan();
     }
     
     // if (Input::List().filterdistribution) Yh.DF(s) = Yh.DF(s).Filterp();

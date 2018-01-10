@@ -23,12 +23,15 @@ class self_f00_implicit_step {
 private:
 
     double mass;
-    double dt;
     bool   ib;
     ///     Define the velocity axis
+    
     valarray<double>  vr;
+    
     valarray<double>  dvr;
+    
     valarray<double>  vrh;
+    
     valarray<double>  oneoverv2;
 
     ///     Various coefficients for the integrals
@@ -48,17 +51,15 @@ private:
     Formulary formulas;
 
     void   update_C_Rosenbluth( valarray<double>& fin);
-    double update_D_Rosenbluth(const size_t& k, valarray<double>& fin, const double& delta);
+    double update_D_Rosenbluth(const size_t& k, valarray<double>& fin, const double delta);
     void   update_D_and_delta(valarray<double>& fin);
-    void   update_D_inversebremsstrahlung(const double& Z0, const double& heatingcoefficient, const double& vos);
-    double calc_delta_ChangCooper(const size_t& k, const double& C, const double& D);
+    void   update_D_inversebremsstrahlung(const double Z0, const double heatingcoefficient, const double vos);
+    double calc_delta_ChangCooper(const size_t& k, const double C, const double D);
 
 public:
+    self_f00_implicit_step(const valarray<double>& dp, const double _mass, bool _ib);
 
-    // self_f00_implicit_step(const size_t &nump, const double &pmax, const double &_mass, const double &_deltat, bool& _ib);
-    self_f00_implicit_step(const valarray<double> &dp, const double &_mass, bool& _ib);
-
-    void takestep(valarray<double> &fin, valarray<double> &fh, const double& Z0, const double& heating, const double& step_size);//, const double& cooling);
+    void takestep(valarray<double> &fin, valarray<double> &fh, const double Z0, const double heating, const double step_size);//, const double& cooling);
 };
 
 //-------------------------------------------------------------------
@@ -75,7 +76,7 @@ class self_f00_implicit_collisions {
 //--------------------------------------------------------------
 public:
     /// Constructors/Destructors
-    self_f00_implicit_collisions(const valarray<double>& dp, const double& charge, const double& mass);
+    self_f00_implicit_collisions(const valarray<double>& dp, const double charge, const double mass);
 
     /// This loop calls the RK4_f00 private member that is
     /// responsible for setting up the RK4 algorithm to advance
@@ -246,7 +247,6 @@ class self_f00_explicit_step {
             // Array2D<double> Alpha_Tri;
 
             bool if_tridiagonal;
-            double mass;
 
 //          Constant
 
@@ -262,10 +262,10 @@ class self_f00_explicit_step {
         public:
 //          Constructors/Destructors
             // self_flm_implicit_step(double pmax, size_t nump, double mass); 
-            self_flm_implicit_step(const size_t numxtotal, valarray<double> dp); 
+            self_flm_implicit_step(const size_t numxtotal, const valarray<double>& dp); 
          
 //          Calculate the coefficients
-            void reset_coeff(const valarray<double>& f00, double Zvalue, const double Delta_t, size_t position);
+            void reset_coeff(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
 
 //          Implicit Advance
             void advance(valarray<complex<double> >& fin, const int el, size_t position);    
@@ -310,7 +310,6 @@ class self_f00_explicit_step {
             
 ///         The object that is responsible for performing the algebra required for the integrals.
             self_flm_implicit_step  implicit_step;
-            double Dt;
 
             Formulary formulas;
 /// ---------------------------------------------------------------------------- ///
@@ -331,7 +330,7 @@ class self_f00_explicit_step {
         public:
         /// Constructors/Destructors
             self_collisions(const size_t _l0, const size_t _m0,
-                             const valarray<double>& dp, const double& charge, const double& mass); 
+                             const valarray<double>& dp, const double charge, const double mass); 
             // ~self_collisions();
             void advancef00(const SHarmonic1D& f00, const valarray<double>& Zarray, SHarmonic1D& f00h, const double time, const double step_size);
             void advancef1(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh, const double step_size);
@@ -344,7 +343,7 @@ class self_f00_explicit_step {
 
         private:
         //  Variables
-            self_f00_explicit_collisions self_f00_exp_collisions;
+            // self_f00_explicit_collisions self_f00_exp_collisions;
             self_f00_implicit_collisions self_f00_imp_collisions;
             self_flm_implicit_collisions self_flm_imp_collisions;
         };

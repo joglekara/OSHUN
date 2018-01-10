@@ -1004,8 +1004,6 @@ Output_Data::fulldistvsposition::fulldistvsposition( const Grid_Info& _G): grid(
 
         pout3D.push_back( Array3D<double>( _G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
     }
-    
-    
 
     double py_sq, pz_sqppy_sq;
     size_t pindlt;
@@ -1041,7 +1039,6 @@ Output_Data::fulldistvsposition::fulldistvsposition( const Grid_Info& _G): grid(
         dpy.push_back(_G.axis.dpy(s));
         dpz.push_back(_G.axis.dpz(s));
     }
-        
 }
 //-------------------------------------------------------------
 /**

@@ -43,7 +43,7 @@ Clock::Clock(double starttime, double __dt, double abs_tol, double rel_tol, size
     current_time(starttime), dt_next(0.1*__dt), _dt(0.1*__dt),
     atol(abs_tol), rtol(rel_tol), 
     acceptability(0.), err_val(0.), 
-    failed_steps(0), max_failures(_maxfails), _success(false),
+    failed_steps(0), max_failures(_maxfails), _success(0),
     Nbc(Input::List().BoundaryCells), world_rank(0), world_size(1),
     Solver(Y)
     {
@@ -100,17 +100,28 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
             if (current_time > 50.) 
                 update_dt(Y_old, Ystar, Y_new);
             else 
+            {
+                Y_old = Y_new;
                 _success = 1;
+            }                
         }
-        cF.advance(Y_new,current_time,_dt);
-        PE.Neighbor_Communications(Y_new);
+        if (Input::List().collisions)  
+        {
+            cF.advance(Y_new,current_time,_dt);
+            PE.Neighbor_Communications(Y_new);
+        }
+        
     }
 
     else 
     {   
         Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
-        cF.advance(Y_new,current_time,_dt);
-        PE.Neighbor_Communications(Y_new);
+        if (Input::List().collisions)   
+        {
+            cF.advance(Y_new,current_time,_dt);
+            PE.Neighbor_Communications(Y_new);
+        }
+        
     }
 
 }
@@ -130,8 +141,8 @@ void Clock::update_dt(State1D& Y_old, const State1D& Ystar, State1D& Y_new){
     if (acceptability > 1) _success = 0;
     else _success = 1;
 
-    std::cout << "\n acc = " << acceptability;
-    std::cout << "\n dt = " << _dt;
+    // std::cout << "\n acc = " << acceptability;
+    // std::cout << "\n dt = " << _dt;
 
     /// Error is shared so that global timestep can be determined on rank 0
     MPI_Gather(&acceptability, 1, MPI_DOUBLE, acceptabilitylist, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);

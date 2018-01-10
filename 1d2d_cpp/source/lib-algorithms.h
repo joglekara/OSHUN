@@ -18,7 +18,7 @@
 namespace Algorithms {
 
 
-
+#pragma optimize("", off)
 //--------------------------------------------------------------
     template<typename T>
     valarray<T> MakeAxis(const T min, const T max, const size_t N){
@@ -57,9 +57,10 @@ namespace Algorithms {
     template<typename T>
     valarray<T> MakeCAxis(const T min, const valarray<T> delta_grid)
     {
-        size_t N = delta_grid.size();
+        size_t N(delta_grid.size());
         valarray<T> v(N);
         v[0] = min + 0.5*delta_grid[0];
+
         for (size_t i(1); i < N; ++i) {
             v[i]  = delta_grid[i];
             v[i] += v[i-1];
@@ -398,7 +399,7 @@ namespace Algorithms {
         return P_Legendre;
     }
 //--------------------------------------------------------------
-
+#pragma optimize("", on)
 //--------------------------------------------------------------
 // MOMENTS
 // p-th moment of a quantity q(x)

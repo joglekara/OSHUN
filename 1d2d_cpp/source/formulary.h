@@ -107,23 +107,23 @@ class Formulary {
 //    Physical constants
 
       // double oneover_atomic_Z = 1.0/Input::List().Zeta;
-      static constexpr double pi=3.141592653589793238;
+      static const double pi=3.141592653589793238;
 
-      static constexpr double cL = 299792458;//3e8; // speed of light over v electron thermal
-      static constexpr double eps0=8.854187817e-12;//8.85e-12;
-      static constexpr double qe = -1.60217662e-19; //1.6e-19 // electron charge.
-      static constexpr double me = 9.10938356e-31; //9.11e-31 //electron mass
-      static constexpr double me_over_mp = 0.000544617024;
-      static constexpr double keVnorm = 510.9989461; //to be multiplied by v^2/c^2
+      static const double cL = 299792458;//3e8; // speed of light over v electron thermal
+      static const double eps0=8.854187817e-12;//8.85e-12;
+      static const double qe = -1.60217662e-19; //1.6e-19 // electron charge.
+      static const double me = 9.10938356e-31; //9.11e-31 //electron mass
+      static const double me_over_mp = 0.000544617024;
+      static const double keVnorm = 510.9989461; //to be multiplied by v^2/c^2
 
-      static constexpr double c = 2.99792458*1.0e+10;    // cm/sec
-      static constexpr double e = 4.80320425*1.0e-10;    // Franklin or statC 
-      static constexpr double m = 9.10938215*1.0e-28;    // gr
+      static const double c = 2.99792458*1.0e+10;    // cm/sec
+      static const double e = 4.80320425*1.0e-10;    // Franklin or statC 
+      static const double m = 9.10938215*1.0e-28;    // gr
        
     private:
       map<string,units> D;
 
-      static constexpr double nmin = 1.0e-8;
+      static const double nmin = 1.0e-8;
 };
 //--------------------------------------------------------------
 

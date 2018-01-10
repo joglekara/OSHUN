@@ -179,116 +179,36 @@
                 ++conv;
             } 
 
-            //----> Output for testing
-            //--------------------------------
-            //cout << "iteration = " << iteration << "    ";
-            //for (size_t i(0); i < b.size(); ++i){
-            //    cout << xk[i] << "        ";
-            //}
-            //cout << "\n";
-            //--------------------------------
+//             //----> Output for testing
+//             //--------------------------------
+//             //cout << "iteration = " << iteration << "    ";
+//             //for (size_t i(0); i < b.size(); ++i){
+//             //    cout << xk[i] << "        ";
+//             //}
+//             //cout << "\n";
+//             //--------------------------------
 
         }
 
-        //----> Output for testing
-        //--------------------------------
-        // cout << "Iterations = " << iteration-1  <<"\n";
-        //for (size_t i(0); i < b.size(); ++i) {
-        //    cout << "Error |Dx| = " << abs(xold[i]) 
-        //         << ",    " 
-        //         << "Tolerance * |x| = " << tol*abs(xk[i]) <<"\n";
-        //}
-        //--------------------------------
+//         //----> Output for testing
+//         //--------------------------------
+//         // cout << "Iterations = " << iteration-1  <<"\n";
+//         //for (size_t i(0); i < b.size(); ++i) {
+//         //    cout << "Error |Dx| = " << abs(xold[i]) 
+//         //         << ",    " 
+//         //         << "Tolerance * |x| = " << tol*abs(xk[i]) <<"\n";
+//         //}
+//         //--------------------------------
 
         return true;
     }
 //-------------------------------------------------------------------
 //*******************************************************************
-//*******************************************************************
-//-------------------------------------------------------------------
-void TridiagonalSolve (size_t calculations_per_loop,
-                            const valarray<double>& a, 
-                            const valarray<double>& b, 
-                                  valarray<double>& c,      
-                                  valarray<complex<double> >& d,
-                                  valarray<complex<double> >& x) 
-{
-//-------------------------------------------------------------------
-//   Fills solution into x. Warning: will modify c and d! 
-//-------------------------------------------------------------------
-    size_t total_loops(x.size()/calculations_per_loop);
-    size_t offset(0);
-    for (size_t i(0); i < total_loops; ++i)
-    {
-        // Modify the coefficients. 
-        c[offset+0] /= b[offset+0];                            // Division by zero risk. 
-        d[offset+0] /= b[offset+0];                            // Division by zero would imply a singular matrix. 
-        
-        for (size_t i(1); i < calculations_per_loop; ++i)
-        {
-            double id(1.0/(b[offset+i]-c[offset+i-1]*a[offset+i]));   // Division by zero risk. 
-                                                 
-            c[offset+i] *= id;                          // Last value calculated is redundant.
-            d[offset+i] -= d[offset+i-1] * a[offset+i];
-            d[offset+i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id 
-        }
-     
-        // Now back substitute. 
-        x[offset+calculations_per_loop-1] = d[offset+calculations_per_loop-1];
-        
-        for (int i(calculations_per_loop-2); i > -1; --i)
-        {
-            x[offset+i]  = d[offset+i];
-            x[offset+i] -= c[offset+i] * x[offset+i+1];               // x[i] = d[i] - c[i] * x[i + 1];
-        }
-    }
-    offset+=calculations_per_loop;
-}
-//*******************************************************************
-//-------------------------------------------------------------------
-void TridiagonalSolve (size_t calculations_per_loop,
-                            const valarray<double>& a, 
-                            const valarray<double>& b, 
-                                  valarray<double>& c,      
-                                  valarray<double>& d,
-                                  valarray<double>& x) 
-{
-//-------------------------------------------------------------------
-//   Fills solution into x. Warning: will modify c and d! 
-//-------------------------------------------------------------------
-    size_t total_loops(x.size()/calculations_per_loop);
-    size_t offset(0);
-    for (size_t i(0); i < total_loops; ++i)
-    {
-        // Modify the coefficients. 
-        c[offset+0] /= b[offset+0];                            // Division by zero risk. 
-        d[offset+0] /= b[offset+0];                            // Division by zero would imply a singular matrix. 
-                                                               // 
-        for (size_t i(1); i < calculations_per_loop; ++i)
-        {
-            double id(1.0/(b[offset+i]-c[offset+i-1]*a[offset+i]));   // Division by zero risk. 
-                                                 
-            c[offset+i] *= id;                          // Last value calculated is redundant.
-            d[offset+i] -= d[offset+i-1] * a[offset+i];
-            d[offset+i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id 
-        }
-     
-        // Now back substitute. 
-        x[offset+calculations_per_loop-1] = d[offset+calculations_per_loop-1];
-        for (int i(calculations_per_loop-2); i > -1; --i)
-        {
-            x[offset+i]  = d[offset+i];
-            x[offset+i] -= c[offset+i] * x[offset+i+1];               // x[i] = d[i] - c[i] * x[i + 1];
-        }
-    }
-    offset+=calculations_per_loop;
-}
-//*******************************************************************
 //-------------------------------------------------------------------
      void TridiagonalSolve (const valarray<double>& a, 
                             const valarray<double>& b, 
                                   valarray<double>& c,      
-                                  valarray<complex<double> >  d,
+                                  valarray<complex<double> >&  d,
                                   valarray<complex<double> >& x) {
 //-------------------------------------------------------------------
 //   Fills solution into x. Warning: will modify c and d! 
@@ -307,10 +227,10 @@ void TridiagonalSolve (size_t calculations_per_loop,
      
     	// Now back substitute. 
     	x[n-1] = d[n-1];
-    	for (int i(n-2); i > -1; --i)
+        for (int i(2); i < n+1; ++i)
         {
-            x[i]  = d[i];
-            x[i] -= c[i] * x[i+1];               // x[i] = d[i] - c[i] * x[i + 1];
+            x[n-i]  = d[n-i];
+            x[n-i] -= c[n-i] * x[n-i+1];               // x[i] = d[i] - c[i] * x[i + 1];
         }
     }
 //-------------------------------------------------------------------
@@ -320,13 +240,13 @@ void TridiagonalSolve (size_t calculations_per_loop,
 void TridiagonalSolve ( valarray<double>& a,
                         valarray<double>& b,
                        valarray<double>& c,
-                       valarray<double>  d,
+                       valarray<double>& d,
                        valarray<double>& x) {
 //-------------------------------------------------------------------
 //   Fills solution into x. Warning: will modify c and d!
 //-------------------------------------------------------------------
-    size_t n(x.size());
-    // Modify the coefficients.
+    size_t n(d.size());
+    // // Modify the coefficients.
     c[0] /= b[0];                            // Division by zero risk.
     d[0] /= b[0];                            // Division by zero would imply a singular matrix.
     for (size_t i(1); i < n; ++i){
@@ -336,137 +256,48 @@ void TridiagonalSolve ( valarray<double>& a,
         d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id
     }
 
-    // Now back substitute.
-    x[n-1] = d[n-1];
-    for (int i(n-2); i > -1; --i){
-        x[i]  = d[i];
-        x[i] -= c[i] * x[i+1];               // x[i] = d[i] - c[i] * x[i + 1];
-    }
-    
-}
-//-------------------------------------------------------------------
-//-------------------------------------------------------------------
-//*******************************************************************
-//-------------------------------------------------------------------
-void TridiagonalSolve ( valarray<complex<double> >& a,
-                        valarray<complex<double> >& b,
-                       valarray<complex<double> >& c,
-                       valarray<complex<double> >  d,
-                       valarray<complex<double> >& x) {
-//-------------------------------------------------------------------
-//   Fills solution into x. Warning: will modify c and d!
-//-------------------------------------------------------------------
-    size_t n(x.size());
-    // Modify the coefficients.
-    c[0] /= b[0];                            // Division by zero risk.
-    d[0] /= b[0];                            // Division by zero would imply a singular matrix.
-    for (size_t i(1); i < n; ++i){
-        complex<double>  id(1.0/(b[i]-c[i-1]*a[i]));   // Division by zero risk.
-        c[i] *= id;                          // Last value calculated is redundant.
-        d[i] -= d[i-1] * a[i];
-        d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id
-    }
 
     // Now back substitute.
     x[n-1] = d[n-1];
-    for (int i(n-2); i > -1; --i){
-        x[i]  = d[i];
-        x[i] -= c[i] * x[i+1];               // x[i] = d[i] - c[i] * x[i + 1];
+    for (int i(2); i < n+1; ++i)
+    {
+        x[n-i]  = d[n-i];
+        x[n-i] -= c[n-i] * x[n-i+1];               // x[i] = d[i] - c[i] * x[i + 1];
     }
+}
+//-------------------------------------------------------------------
+//-------------------------------------------------------------------
+//*******************************************************************
+//-------------------------------------------------------------------
+// void TridiagonalSolve ( valarray<complex<double> >& a,
+//                         valarray<complex<double> >& b,
+//                        valarray<complex<double> >& c,
+//                        valarray<complex<double> >  d,
+//                        valarray<complex<double> >& x) {
+// //-------------------------------------------------------------------
+// //   Fills solution into x. Warning: will modify c and d!
+// //-------------------------------------------------------------------
+//     size_t n(x.size());
+//     // Modify the coefficients.
+//     c[0] /= b[0];                            // Division by zero risk.
+//     d[0] /= b[0];                            // Division by zero would imply a singular matrix.
+//     for (size_t i(1); i < n; ++i){
+//         complex<double>  id(1.0/(b[i]-c[i-1]*a[i]));   // Division by zero risk.
+//         c[i] *= id;                          // Last value calculated is redundant.
+//         d[i] -= d[i-1] * a[i];
+//         d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id
+//     }
+
+//     // Now back substitute.
+//     x[n-1] = d[n-1];
+//     for (int i(n-2); i > -1; --i){
+//         x[i]  = d[i];
+//         x[i] -= c[i] * x[i+1];               // x[i] = d[i] - c[i] * x[i + 1];
+//     }
     
-}
+// }
 //-------------------------------------------------------------------
 //*******************************************************************
-//-------------------------------------------------------------------
-bool Thomas_Tridiagonal(size_t calculations_per_loop,
-                        Array2D<double>& A,
-                        valarray<double> & d,
-                        valarray<double> & xk) {
-//-------------------------------------------------------------------
-//   Fills solution into xk. The other matrices are not modified
-//   The function returns "false" if the matrix A is not diagonally
-//   dominant
-//-------------------------------------------------------------------
-
-//      The Matrices all have the right dimensions
-//      -------------------------------------------------------------
-    if ( ( A.dim1() != A.dim2()  ) ||
-         ( A.dim1() != d.size()  ) ||
-         ( A.dim1() != xk.size() )    )  {
-        cout << "Error: The Matrices don't have the right dimensions!" << endl;
-        exit(1);
-    }
-//      -------------------------------------------------------------
-
-    valarray<double> a(d.size()), b(d.size()), c(d.size());
-
-    for (size_t i(0); i < A.dim1()-1; ++i){
-        a[i+1] = A(i+1,i);
-        // std::cout << "\n a[" << i+1 << "] = " << a[i+1];
-    }
-    for (size_t i(0); i < A.dim1(); ++i){
-        b[i] = A(i,i);
-        // std::cout << "\n b[" << i << "] = " << b[i];
-    }
-    for (size_t i(0); i < A.dim1()-1; ++i){
-        c[i] = A(i,i+1);
-        // std::cout << "\n c[" << i << "] = " << c[i];
-        // std::cout << "\n d[" << i << "] = " << d[i];
-    }
-
-//        valarray< double > dcopy(d);
-    TridiagonalSolve(calculations_per_loop,a,b,c,d,xk);
-
-    return true;
-}
-
-//-------------------------------------------------------------------
-//-------------------------------------------------------------------
-//*******************************************************************
-//*******************************************************************
-//-------------------------------------------------------------------
-bool Thomas_Tridiagonal(size_t calculations_per_loop,
-                        Array2D<double>& A,
-                        valarray<complex<double> > & d,
-                        valarray<complex<double> > & xk) {
-//-------------------------------------------------------------------
-//   Fills solution into xk. The other matrices are not modified
-//   The function returns "false" if the matrix A is not diagonally
-//   dominant
-//-------------------------------------------------------------------
-
-//      The Matrices all have the right dimensions
-//      -------------------------------------------------------------
-    if ( ( A.dim1() != A.dim2()  ) ||
-         ( A.dim1() != d.size()  ) ||
-         ( A.dim1() != xk.size() )    )  {
-        cout << "Error: The Matrices don't have the right dimensions!" << endl;
-        exit(1);
-    }
-//      -------------------------------------------------------------
-
-    valarray<double> a(d.size()), b(d.size()), c(d.size());
-
-    for (size_t i(0); i < A.dim1()-1; ++i){
-        a[i+1] = A(i+1,i);
-        // std::cout << "\n a[" << i+1 << "] = " << a[i+1];
-    }
-    for (size_t i(0); i < A.dim1(); ++i){
-        b[i] = A(i,i);
-        // std::cout << "\n b[" << i << "] = " << b[i];
-    }
-    for (size_t i(0); i < A.dim1()-1; ++i){
-        c[i] = A(i,i+1);
-        // std::cout << "\n c[" << i << "] = " << c[i];
-        // std::cout << "\n d[" << i << "] = " << d[i];
-    }
-
-//        valarray< double > dcopy(d);
-    TridiagonalSolve(calculations_per_loop,a,b,c,d,xk);
-
-    return true;
-}
-
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
 //*******************************************************************
@@ -503,11 +334,25 @@ bool Thomas_Tridiagonal(Array2D<double>& A,
     for (size_t i(0); i < A.dim1()-1; ++i){
         c[i] = A(i,i+1);
         // std::cout << "\n c[" << i << "] = " << c[i];
-        // std::cout << "\n d[" << i << "] = " << d[i];
+        
     }
 
-//        valarray< double > dcopy(d);
+    // for (size_t i(0); i < A.dim1(); ++i)
+    // {
+    //     std::cout << "\n d[" << i << "] = " << d[i];
+    // }
+
     TridiagonalSolve(a,b,c,d,xk);
+
+
+    // for (size_t i(0); i < A.dim1(); ++i)
+    // {
+    //     std::cout << "\n xk[" << i << "] = " << xk[i];
+    // }
+
+    // exit(1);
+
+
 
     return true;
 }
@@ -546,48 +391,48 @@ bool Thomas_Tridiagonal(Array2D<double>& A,
 
 //        valarray< double > dcopy(d);
     TridiagonalSolve(a,b,c,d,xk);
-
+    // xk = d;
     return true;
 }
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
-bool Thomas_Tridiagonal(Array2D<complex<double> >& A,
-                        valarray<complex<double> >& d,
-                        valarray<complex<double> >& xk) {
-//-------------------------------------------------------------------
-//   Fills solution into xk. The other matrices are not modified
-//   The function returns "false" if the matrix A is not diagonally
-//   dominant
-//-------------------------------------------------------------------
+// bool Thomas_Tridiagonal(Array2D<complex<double> >& A,
+//                         valarray<complex<double> >& d,
+//                         valarray<complex<double> >& xk) {
+// //-------------------------------------------------------------------
+// //   Fills solution into xk. The other matrices are not modified
+// //   The function returns "false" if the matrix A is not diagonally
+// //   dominant
+// //-------------------------------------------------------------------
 
-//      The Matrices all have the right dimensions
-//      -------------------------------------------------------------
-    if ( ( A.dim1() != A.dim2()  ) ||
-         ( A.dim1() != d.size()  ) ||
-         ( A.dim1() != xk.size() )    )  {
-        cout << "Error: The Matrices don't have the right dimensions!" << endl;
-        exit(1);
-    }
-//      -------------------------------------------------------------
+// //      The Matrices all have the right dimensions
+// //      -------------------------------------------------------------
+//     if ( ( A.dim1() != A.dim2()  ) ||
+//          ( A.dim1() != d.size()  ) ||
+//          ( A.dim1() != xk.size() )    )  {
+//         cout << "Error: The Matrices don't have the right dimensions!" << endl;
+//         exit(1);
+//     }
+// //      -------------------------------------------------------------
 
-    valarray<complex<double> > a(d.size()), b(d.size()), c(d.size());
+//     valarray<complex<double> > a(d.size()), b(d.size()), c(d.size());
 
-    for (size_t i(0); i < A.dim1()-1; ++i){
-        a[i+1] = A(i+1,i);
-    }
-    for (size_t i(0); i < A.dim1(); ++i){
-        b[i] = A(i,i);
-    }
-    for (size_t i(0); i < A.dim1()-1; ++i){
-        c[i] = A(i,i+1);
-    }
+//     for (size_t i(0); i < A.dim1()-1; ++i){
+//         a[i+1] = A(i+1,i);
+//     }
+//     for (size_t i(0); i < A.dim1(); ++i){
+//         b[i] = A(i,i);
+//     }
+//     for (size_t i(0); i < A.dim1()-1; ++i){
+//         c[i] = A(i,i+1);
+//     }
 
-//        valarray< double > dcopy(d);
-    TridiagonalSolve(a,b,c,d,xk);
+// //        valarray< double > dcopy(d);
+//     TridiagonalSolve(a,b,c,d,xk);
 
-    return true;
-}
+//     return true;
+// }
 //*******************************************************************
 //
 //*******************************************************************
@@ -631,75 +476,6 @@ bool Thomas_Tridiagonal(Array2D<complex<double> >& A,
     }
 //-------------------------------------------------------------------
 
-// Convert data structure to float structure
-//
-// @param[in]  vDouble  The v double
-//
-// @return     float structure
-//
-valarray<float> vfloat(const valarray<double>& vDouble) {
-    valarray<float> vf(vDouble.size());
-    for (size_t i(0); i < vf.size(); ++i) {
-        vf[i] = static_cast<float>(vDouble[i]);
-    }
-    return vf;
-}
-
-valarray<complex <float> > vfloat(const valarray<complex<double> >& vDouble) {
-    valarray<complex<float> > vf(vDouble.size());
-    for (size_t i(0); i < vf.size(); ++i) {
-        vf[i] = static_cast<complex<float> >(vDouble[i]);
-    }
-    return vf;
-}
-
-valarray<float> vfloat_real(const valarray<complex<double> >& vDouble) {
-    valarray<float> vf;
-    for (size_t i(0); i < vDouble.size(); ++i) {
-       vf[i] = static_cast<float>(vDouble[i].real());
-    }
-    return vf;
-}
-
-valarray<float> vfloat_complex(const valarray<complex<double> >& vDouble) {
-    valarray<float> vf;
-    for (size_t i(0); i < vDouble.size(); ++i) {
-        vf[i] = static_cast<float>(vDouble[i].imag());
-    }
-    return vf;
-}
-//////// --- //////// --- //////// Vectors //////// --- //////// --- ////////
-vector<float> vfloat(const vector<double>& vDouble) {
-    vector<float> vf;
-    for (size_t i(0); i < vDouble.size(); ++i) {
-        vf.push_back(static_cast<float>(vDouble[i]));
-    }
-    return vf;
-}
-
-vector<complex<float> > vfloat(const vector<complex<double> >& vDouble) {
-    vector<complex<float> > vf;
-    for (size_t i(0); i < vDouble.size(); ++i) {
-        vf.push_back(static_cast<complex<float> >(vDouble[i].real()));
-    }
-    return vf;
-}
-
-vector<float> vfloat_real(const vector<complex<double> >& vDouble) {
-    vector<float> vf;
-    for (size_t i(0); i < vDouble.size(); ++i) {
-        vf.push_back(static_cast<float>(vDouble[i].real()));
-    }
-    return vf;
-}
-
-vector<float> vfloat_complex(const vector<complex<double> >& vDouble) {
-    vector<float> vf;
-    for (size_t i(0); i < vDouble.size(); ++i) {
-        vf.push_back(static_cast<float>(vDouble[i].imag()));
-    }
-    return vf;
-}
 
 /**
  * @brief      Convert data structure to float structure
@@ -708,38 +484,6 @@ vector<float> vfloat_complex(const vector<complex<double> >& vDouble) {
  *
  * @return     float structure
  */
-valarray<double> vdouble(const valarray<float>& vFloat) {
-    valarray<double> vd(vFloat.size());
-    for (size_t i(0); i < vd.size(); ++i) {
-        vd[i] = static_cast<double>(vFloat[i]);
-    }
-    return vd;
-}
-
-
-valarray<complex<double> > vdouble(const valarray<complex<float> >& vFloat) {
-    valarray<complex<double> > vd(vFloat.size());
-    for (size_t i(0); i < vd.size(); ++i) {
-        vd[i] = static_cast<complex<double> >(vFloat[i]);
-    }
-    return vd;
-}
-
-
-vector<double> vdouble(const vector<float>& vFloat) {
-    vector<double> vd;
-    for (size_t i(0); i < vFloat.size(); ++i) {
-        vd.push_back(static_cast<double>(vFloat[i]));
-    }
-    return vd;
-}
-vector<complex<double> > vdouble(const vector<complex<float> >& vFloat) {
-    vector<complex<double> > vd;
-    for (size_t i(0); i < vFloat.size(); ++i) {
-        vd.push_back(static_cast<complex<double> >(vFloat[i].real()));
-    }
-    return vd;
-}
 
 vector<double> vdouble_real(const vector<complex<double> >& vDouble) {
     vector<double> vd;
@@ -765,100 +509,100 @@ vector<double> valtovec(const valarray<double>& vDouble) {
     return vf;
 }
 
-valarray<complex<double> > vdoubletocomplex(const valarray<double>& vDouble) {
-    valarray<complex<double> > vcmplx(vDouble.size());
-    for (size_t i(0); i < vcmplx.size(); ++i) {
-        vcmplx[i] = static_cast<complex<double> >(vDouble[i]);
-    }
-    return vcmplx;
-}
+// valarray<complex<double> > vdoubletocomplex(const valarray<double>& vDouble) {
+//     valarray<complex<double> > vcmplx(vDouble.size());
+//     for (size_t i(0); i < vcmplx.size(); ++i) {
+//         vcmplx[i] = static_cast<complex<double> >(vDouble[i]);
+//     }
+//     return vcmplx;
+// }
 //--------------------------------------------------------------
 
-valarray<double> df_4thorder(const valarray<double>& f) {
-    valarray<double> df(f.size());
+// valarray<double> df_4thorder(const valarray<double>& f) {
+//     valarray<double> df(f.size());
 
-    df[0] = f[1]-f[0];
-    df[1] = 1.0/12.0*(f[4]-6.0*f[3]+18.0*f[2]-10.0*f[1]-3.0*f[0]);
+//     df[0] = f[1]-f[0];
+//     df[1] = 1.0/12.0*(f[4]-6.0*f[3]+18.0*f[2]-10.0*f[1]-3.0*f[0]);
 
-    for (size_t i(2); i < df.size()-2; ++i) {
-        df[i] = 1.0/12.0*(-f[i+2]+8.0*f[i+1]-8.0*f[i-1]+f[i-2]);
-    }
+//     for (size_t i(2); i < df.size()-2; ++i) {
+//         df[i] = 1.0/12.0*(-f[i+2]+8.0*f[i+1]-8.0*f[i-1]+f[i-2]);
+//     }
 
-    df[df.size()-2] = 1.0/12.0*(3.0*f[df.size()-1]+10.0*f[df.size()-2]-18.0*f[df.size()-3]+6.0*f[df.size()-4]-f[df.size()-5]);
-    df[df.size()-1] = f[df.size()-1]-f[df.size()-2];
+//     df[df.size()-2] = 1.0/12.0*(3.0*f[df.size()-1]+10.0*f[df.size()-2]-18.0*f[df.size()-3]+6.0*f[df.size()-4]-f[df.size()-5]);
+//     df[df.size()-1] = f[df.size()-1]-f[df.size()-2];
 
-    return df;
-}
+//     return df;
+// }
 
-valarray<double> df_4thorder(valarray<double>& f) {
-    valarray<double> df(f.size());
+// valarray<double> df_4thorder(valarray<double>& f) {
+//     valarray<double> df(f.size());
 
-    df[0] = f[1]-f[0];
-    df[1] = 1.0/12.0*(f[4]-6.0*f[3]+18.0*f[2]-10.0*f[1]-3.0*f[0]);
+//     df[0] = f[1]-f[0];
+//     df[1] = 1.0/12.0*(f[4]-6.0*f[3]+18.0*f[2]-10.0*f[1]-3.0*f[0]);
 
-    for (size_t i(2); i < df.size()-2; ++i) {
-        df[i] = 1.0/12.0*(-f[i+2]+8.0*f[i+1]-8.0*f[i-1]+f[i-2]);
-    }
+//     for (size_t i(2); i < df.size()-2; ++i) {
+//         df[i] = 1.0/12.0*(-f[i+2]+8.0*f[i+1]-8.0*f[i-1]+f[i-2]);
+//     }
 
-    df[df.size()-2] = 1.0/12.0*(3.0*f[df.size()-1]+10.0*f[df.size()-2]-18.0*f[df.size()-3]+6.0*f[df.size()-4]-f[df.size()-5]);
-    df[df.size()-1] = f[df.size()-1]-f[df.size()-2];
+//     df[df.size()-2] = 1.0/12.0*(3.0*f[df.size()-1]+10.0*f[df.size()-2]-18.0*f[df.size()-3]+6.0*f[df.size()-4]-f[df.size()-5]);
+//     df[df.size()-1] = f[df.size()-1]-f[df.size()-2];
 
-    return df;
-}
+//     return df;
+// }
 
-valarray<complex<double> > df_4thorder(const valarray<complex<double> >& f) {
-    valarray<complex<double> > df(f.size());
+// valarray<complex<double> > df_4thorder(const valarray<complex<double> >& f) {
+//     valarray<complex<double> > df(f.size());
 
-    df[0] = f[1]-f[0];
-    df[1] = 1.0/12.0*(f[4]-6.0*f[3]+18.0*f[2]-10.0*f[1]-3.0*f[0]);
+//     df[0] = f[1]-f[0];
+//     df[1] = 1.0/12.0*(f[4]-6.0*f[3]+18.0*f[2]-10.0*f[1]-3.0*f[0]);
 
-    for (size_t i(2); i < df.size()-2; ++i) {
-        df[i] = 1.0/12.0*(-f[i+2]+8.0*f[i+1]-8.0*f[i-1]+f[i-2]);
-    }
+//     for (size_t i(2); i < df.size()-2; ++i) {
+//         df[i] = 1.0/12.0*(-f[i+2]+8.0*f[i+1]-8.0*f[i-1]+f[i-2]);
+//     }
 
-    df[df.size()-2] = 1.0/12.0*(3.0*f[df.size()-1]+10.0*f[df.size()-2]-18.0*f[df.size()-3]+6.0*f[df.size()-4]-f[df.size()-5]);
-    df[df.size()-1] = f[df.size()-1]-f[df.size()-2];
+//     df[df.size()-2] = 1.0/12.0*(3.0*f[df.size()-1]+10.0*f[df.size()-2]-18.0*f[df.size()-3]+6.0*f[df.size()-4]-f[df.size()-5]);
+//     df[df.size()-1] = f[df.size()-1]-f[df.size()-2];
 
-    return df;
-}
+//     return df;
+// }
 
-    Array2D<complex<double> > df1_4thorder(Array2D<complex<double> >& f) {
-    Array2D<complex<double> > df(f.dim1(),f.dim2());
+//     Array2D<complex<double> > df1_4thorder(Array2D<complex<double> >& f) {
+//     Array2D<complex<double> > df(f.dim1(),f.dim2());
 
-    for (size_t i2(0); i2<f.dim1();++i2){
+//     for (size_t i2(0); i2<f.dim1();++i2){
 
-        df(0,i2) = f(1,i2)-f(0,i2);
-        df(1,i2) = 1.0/12.0*(f(4,i2)-6.0*f(3,i2)+18.0*f(2,i2)-10.0*f(1,i2)-3.0*f(0,i2));
+//         df(0,i2) = f(1,i2)-f(0,i2);
+//         df(1,i2) = 1.0/12.0*(f(4,i2)-6.0*f(3,i2)+18.0*f(2,i2)-10.0*f(1,i2)-3.0*f(0,i2));
 
-        for (size_t i1(2); i1<f.dim1()-2;++i1){
-            df(i1,i2) = 1.0/12.0*(-f(i1+2,i2)+8.0*f(i1+1,i2)-8.0*f(i1-1,i2)+f(i1-2,i2));
-        }
+//         for (size_t i1(2); i1<f.dim1()-2;++i1){
+//             df(i1,i2) = 1.0/12.0*(-f(i1+2,i2)+8.0*f(i1+1,i2)-8.0*f(i1-1,i2)+f(i1-2,i2));
+//         }
 
-        df(f.dim1()-2,i2) = 1.0/12.0*(3.0*f(f.dim2()-1,i2)+10.0*f(f.dim2()-2,i2)-18.0*f(f.dim2()-3,i2)+6.0*f(f.dim2()-4,i2)-f(f.dim2()-5,i2));
-        df(f.dim1()-1,i2) = f(f.dim2()-1,i2)-f(f.dim2()-2,i2);
+//         df(f.dim1()-2,i2) = 1.0/12.0*(3.0*f(f.dim2()-1,i2)+10.0*f(f.dim2()-2,i2)-18.0*f(f.dim2()-3,i2)+6.0*f(f.dim2()-4,i2)-f(f.dim2()-5,i2));
+//         df(f.dim1()-1,i2) = f(f.dim2()-1,i2)-f(f.dim2()-2,i2);
 
-    }
+//     }
 
-    return df;
-}
+//     return df;
+// }
 
-    Array2D<complex<double> > df2_4thorder(Array2D<complex<double> >& f) {
-    Array2D<complex<double> > df(f.dim1(),f.dim2());
+//     Array2D<complex<double> > df2_4thorder(Array2D<complex<double> >& f) {
+//     Array2D<complex<double> > df(f.dim1(),f.dim2());
 
-    for (size_t i1(0); i1<f.dim1();++i1){
+//     for (size_t i1(0); i1<f.dim1();++i1){
 
-        df(i1,0) = f(i1,1)-f(i1,0);
-        df(i1,1) = 1.0/12.0*(f(i1,4)-6.0*f(i1,3)+18.0*f(i1,2)-10.0*f(i1,1)-3.0*f(i1,0));
+//         df(i1,0) = f(i1,1)-f(i1,0);
+//         df(i1,1) = 1.0/12.0*(f(i1,4)-6.0*f(i1,3)+18.0*f(i1,2)-10.0*f(i1,1)-3.0*f(i1,0));
 
-        for (size_t i2(2); i2<f.dim2()-2;++i2){
-            df(i1,i2) = 1.0/12.0*(-f(i1,i2+2)+8.0*f(i1,i2+1)-8.0*f(i1,i2-1)+f(i1,i2-2));
-        }
+//         for (size_t i2(2); i2<f.dim2()-2;++i2){
+//             df(i1,i2) = 1.0/12.0*(-f(i1,i2+2)+8.0*f(i1,i2+1)-8.0*f(i1,i2-1)+f(i1,i2-2));
+//         }
 
-        df(i1,f.dim2()-2) = 1.0/12.0*(3.0*f(i1,f.dim2()-1)+10.0*f(i1,f.dim2()-2)-18.0*f(i1,f.dim2()-3)+6.0*f(i1,f.dim2()-4)-f(i1,f.dim2()-5));
-        df(i1,f.dim2()-1) = f(i1,f.dim2()-1)-f(i1,f.dim2()-2);
+//         df(i1,f.dim2()-2) = 1.0/12.0*(3.0*f(i1,f.dim2()-1)+10.0*f(i1,f.dim2()-2)-18.0*f(i1,f.dim2()-3)+6.0*f(i1,f.dim2()-4)-f(i1,f.dim2()-5));
+//         df(i1,f.dim2()-1) = f(i1,f.dim2()-1)-f(i1,f.dim2()-2);
 
-    }
+//     }
 
-    return df;
-}
+//     return df;
+// }
 
