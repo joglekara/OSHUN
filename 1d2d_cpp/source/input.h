@@ -56,7 +56,7 @@ namespace Input{
         bool implicit_E;
         size_t dbydx_order, dbydy_order;
         bool adaptive_dt;
-        double abs_tol, rel_tol;
+        double adaptive_tmin, abs_tol, rel_tol;
         size_t max_fails;
         bool relativity;
         bool implicit_B;

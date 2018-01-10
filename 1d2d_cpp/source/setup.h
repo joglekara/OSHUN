@@ -43,7 +43,40 @@ public:
 };
 //--------------------------------------------------------------
 //--------------------------------------------------------------
+class WaveDriver {
 
+    public:
+        WaveDriver(Grid_Info& grid);
+        // WaveDriver(Grid_Info& grid);
+        ~WaveDriver();
+        void applyexternalfields(State1D& Y, double time);
+        void applyexternalfields(State2D& Y, double time);
+        void applytravelingwave(State1D& Y, double time, double stepsize);
+        void applytravelingwave(State2D& Y, double time, double stepsize);
+
+    private:
+
+        valarray<double> Ex_profile_ext, Ex_profile_drive; 
+        valarray<double> Ey_profile_ext, Ey_profile_drive; 
+        valarray<double> Ez_profile_ext, Ez_profile_drive; 
+        valarray<double> Bx_profile_ext, Bx_profile_drive; 
+        valarray<double> By_profile_ext, By_profile_drive; 
+        valarray<double> Bz_profile_ext, Bz_profile_drive; 
+
+        Array2D<double> Ex_profile_ext_2D, Ex_profile_drive_2D; 
+        Array2D<double> Ey_profile_ext_2D, Ey_profile_drive_2D; 
+        Array2D<double> Ez_profile_ext_2D, Ez_profile_drive_2D; 
+        Array2D<double> Bx_profile_ext_2D, Bx_profile_drive_2D; 
+        Array2D<double> By_profile_ext_2D, By_profile_drive_2D; 
+        Array2D<double> Bz_profile_ext_2D, Bz_profile_drive_2D; 
+
+        valarray<double> xaxis, yaxis;
+
+        double time_coeff, pulse_start, pulse_end, normalized_time;
+
+        double ex_time_coeff, ey_time_coeff, ez_time_coeff, bx_time_coeff, by_time_coeff, bz_time_coeff;
+        
+    };
 
 namespace Setup_Y {
     // void startmessages(State1D& Y);

@@ -50,7 +50,7 @@ Input::Input_List::Input_List():
     if_tridiagonal(1),
     implicit_E(1),
     dbydx_order(2),dbydy_order(2),
-    adaptive_dt(false),abs_tol(1e-16),rel_tol(1e-6),max_fails(20),
+    adaptive_dt(false),adaptive_tmin(1000.),abs_tol(1e-16),rel_tol(1e-6),max_fails(20),
     relativity(0),
     implicit_B(0),
     collisions(1),
@@ -657,6 +657,15 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> deckstringbool;
                 adaptive_dt = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "adaptive_tmin") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> adaptive_tmin;
+                
             }
             if (deckstring == "adaptive_time_step_abs_tol") {
                 deckfile >> deckequalssign;

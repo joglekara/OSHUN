@@ -43,24 +43,17 @@ bool Gauss_Seidel(Array2D<double>& A,
  * @param      x     solution
  */
 
-void TridiagonalSolve (const valarray<double>& a,
-                       const valarray<double>& b,
+void TridiagonalSolve (valarray<double>& a,
+                       valarray<double>& b,
                        valarray<double>& c,
                        valarray<complex<double> >&  d,
                        valarray<complex<double> >& x);
 
-void TridiagonalSolve (const valarray<double>& a,
-                       const valarray<double>& b,
+void TridiagonalSolve (valarray<double>& a,
+                       valarray<double>& b,
                        valarray<double>& c,
                        valarray<double>& d,
                        valarray<double>& x);
-
-// void TridiagonalSolve (const valarray<complex<double> >& a,
-//                        const valarray<complex<double> >& b,
-//                        valarray<complex<double> >& c,
-//                        valarray<complex<double> >  d,
-//                        valarray<complex<double> >& x);
-
 //-------------------------------------------------------------------
 
 
@@ -80,10 +73,6 @@ bool Thomas_Tridiagonal(Array2D<double>& A,
 bool Thomas_Tridiagonal(Array2D<double>& A,
                         valarray<complex<double> >& d,
                         valarray<complex<double> >& xk);
-// bool Thomas_Tridiagonal(Array2D<complex<double> >& A,
-//                         valarray<complex<double> >& d,
-//                         valarray<complex<double> >& xk);
-
 //-------------------------------------------------------------------
 
 
@@ -107,30 +96,11 @@ complex<double> Detz33(valarray<complex <double> >& D,
 //-------------------------------------------------------------------
 
 
-
-// Conver float to double
-// 
-// valarray<double>            vdouble(const valarray<float>& vFloat);
-// valarray<complex<double> >  vdouble(const valarray<complex<float> >& vFloat);
-
-// vector<double>              vdouble(const vector<float>& vFloat);
-// vector<complex<double> >    vdouble(const vector<complex<float> >& vFloat);
-
-
 // Convert double to double
 vector<double>    valtovec(const valarray<double>& vDouble);
 vector<double>    vdouble_real(const vector<complex<double> >& vDouble);
 vector<double>    vdouble_imag(const vector<complex<double> >& vDouble);
 
 
-// valarray<complex<double> >  vdoubletocomplex(const valarray<double>& vDouble);
-//// Gradients
-
-
-// valarray<double> df_4thorder(const valarray<double>& f);
-// valarray<double> df_4thorder(valarray<double>& f);
-
-// Array2D<complex<double> > df1_4thorder(Array2D<complex<double> >& f);
-// Array2D<complex<double> > df2_4thorder(Array2D<complex<double> >& f);
 
 #endif

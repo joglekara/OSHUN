@@ -46,9 +46,7 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
                          const double _mass, bool _ib):
         mass(_mass), ib(_ib),
         vr(0.,dp.size()), 
-        // #pragma novector
         dvr(0.,dp.size()), // Non-uniform velocity grid
-        
         vrh(0.0,dp.size()), oneoverv2(dp.size()),
         p2dp(0.0,dp.size()), p2dpm1(0.0,dp.size()),phdp(0.0,dp.size()), phdpm1(0.0,dp.size()), p4dp(0.0,dp.size()), laser_Inv_Uav6(0.0,dp.size()),
         C_RB(0.0,dp.size()+1), D_RB(0.0,dp.size()+1), 

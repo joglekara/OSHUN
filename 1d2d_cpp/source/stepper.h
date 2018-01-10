@@ -1,6 +1,6 @@
 /*!\brief  Functors for various time-integration methodds - Declarations
  * \author PICKSC
- * \file   clock.h
+ * \file   stepper.h
  *
  * Includes functors for fully explicit, implicit B, implicit E
  *

@@ -34,16 +34,235 @@
 
 //**************************************************************
 //**************************************************************
+WaveDriver::WaveDriver(Grid_Info& grid):
+
+    Ex_profile_ext(grid.axis.Nx(0)), Ex_profile_drive(grid.axis.Nx(0)),
+    Ey_profile_ext(grid.axis.Nx(0)), Ey_profile_drive(grid.axis.Nx(0)), 
+    Ez_profile_ext(grid.axis.Nx(0)), Ez_profile_drive(grid.axis.Nx(0)), 
+    Bx_profile_ext(grid.axis.Nx(0)), Bx_profile_drive(grid.axis.Nx(0)), 
+    By_profile_ext(grid.axis.Nx(0)), By_profile_drive(grid.axis.Nx(0)), 
+    Bz_profile_ext(grid.axis.Nx(0)), Bz_profile_drive(grid.axis.Nx(0)),
+
+    Ex_profile_ext_2D(grid.axis.Nx(0),grid.axis.Nx(1)), Ex_profile_drive_2D(grid.axis.Nx(0),grid.axis.Nx(1)),
+    Ey_profile_ext_2D(grid.axis.Nx(0),grid.axis.Nx(1)), Ey_profile_drive_2D(grid.axis.Nx(0),grid.axis.Nx(1)), 
+    Ez_profile_ext_2D(grid.axis.Nx(0),grid.axis.Nx(1)), Ez_profile_drive_2D(grid.axis.Nx(0),grid.axis.Nx(1)), 
+    Bx_profile_ext_2D(grid.axis.Nx(0),grid.axis.Nx(1)), Bx_profile_drive_2D(grid.axis.Nx(0),grid.axis.Nx(1)), 
+    By_profile_ext_2D(grid.axis.Nx(0),grid.axis.Nx(1)), By_profile_drive_2D(grid.axis.Nx(0),grid.axis.Nx(1)), 
+    Bz_profile_ext_2D(grid.axis.Nx(0),grid.axis.Nx(1)), Bz_profile_drive_2D(grid.axis.Nx(0),grid.axis.Nx(1)),
+
+    xaxis(grid.axis.x(0)), yaxis(grid.axis.x(1)),
+
+    time_coeff(0.),pulse_start(0.),pulse_end(0.),normalized_time(0.),
+    ex_time_coeff(0.),ey_time_coeff(0.),ez_time_coeff(0.),bx_time_coeff(0.), by_time_coeff(0.), bz_time_coeff(0.)
+{}
+/// ------------------------------------------------
+WaveDriver::~WaveDriver(){}
+/// ------------------------------------------------
+void WaveDriver::applyexternalfields(State1D& Y, double time)
+{
+    Parser::parseprofile(xaxis, Input::List().ex_profile_str, Ex_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().ey_profile_str, Ey_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().ez_profile_str, Ez_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().bx_profile_str, Bx_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().by_profile_str, By_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().bz_profile_str, Bz_profile_ext);
+
+    Parser::parseprofile(time, Input::List().ex_time_profile_str, ex_time_coeff);
+    Parser::parseprofile(time, Input::List().ey_time_profile_str, ey_time_coeff);
+    Parser::parseprofile(time, Input::List().ez_time_profile_str, ez_time_coeff);
+    Parser::parseprofile(time, Input::List().bx_time_profile_str, bx_time_coeff);
+    Parser::parseprofile(time, Input::List().by_time_profile_str, by_time_coeff);
+    Parser::parseprofile(time, Input::List().bz_time_profile_str, bz_time_coeff);
+
+    for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+    {
+        if (ex_time_coeff > 1e-20) Y.EMF().Ex()(ix) = Ex_profile_ext[ix]*ex_time_coeff;
+        if (ey_time_coeff > 1e-20) Y.EMF().Ey()(ix) = Ey_profile_ext[ix]*ey_time_coeff;
+        if (ez_time_coeff > 1e-20) Y.EMF().Ez()(ix) = Ez_profile_ext[ix]*ez_time_coeff;
+        if (bx_time_coeff > 1e-20) Y.EMF().Bx()(ix) = Bx_profile_ext[ix]*bx_time_coeff;
+        if (by_time_coeff > 1e-20) Y.EMF().By()(ix) = By_profile_ext[ix]*by_time_coeff;
+        if (bz_time_coeff > 1e-20) Y.EMF().Bz()(ix) = Bz_profile_ext[ix]*bz_time_coeff;
+
+    }
+}
+/// ------------------------------------------------
+void WaveDriver::applyexternalfields(State2D& Y, double time)
+{
+    Parser::parseprofile(xaxis, yaxis, Input::List().ex_profile_str, Ex_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().ey_profile_str, Ey_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().ez_profile_str, Ez_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().bx_profile_str, Bx_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().by_profile_str, By_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().bz_profile_str, Bz_profile_ext_2D);
+
+    Parser::parseprofile(time, Input::List().ex_time_profile_str, ex_time_coeff);
+    Parser::parseprofile(time, Input::List().ey_time_profile_str, ey_time_coeff);
+    Parser::parseprofile(time, Input::List().ez_time_profile_str, ez_time_coeff);
+    Parser::parseprofile(time, Input::List().bx_time_profile_str, bx_time_coeff);
+    Parser::parseprofile(time, Input::List().by_time_profile_str, by_time_coeff);
+    Parser::parseprofile(time, Input::List().bz_time_profile_str, bz_time_coeff);
+
+    for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+    {
+        for (size_t iy(0);iy<Y.SH(0,0,0).numy();++iy)
+        {
+            if (ex_time_coeff > 1e-20) Y.EMF().Ex()(ix,iy) = Ex_profile_ext_2D(ix,iy)*ex_time_coeff;
+            if (ey_time_coeff > 1e-20) Y.EMF().Ey()(ix,iy) = Ey_profile_ext_2D(ix,iy)*ey_time_coeff;
+            if (ez_time_coeff > 1e-20) Y.EMF().Ez()(ix,iy) = Ez_profile_ext_2D(ix,iy)*ez_time_coeff;
+            if (bx_time_coeff > 1e-20) Y.EMF().Bx()(ix,iy) = Bx_profile_ext_2D(ix,iy)*bx_time_coeff;
+            if (by_time_coeff > 1e-20) Y.EMF().By()(ix,iy) = By_profile_ext_2D(ix,iy)*by_time_coeff;
+            if (bz_time_coeff > 1e-20) Y.EMF().Bz()(ix,iy) = Bz_profile_ext_2D(ix,iy)*bz_time_coeff;
+        }
+
+    }
+}
+/// ------------------------------------------------
+void WaveDriver::applytravelingwave(State1D& Y, double time, double stepsize)
+{
+
+    for (size_t n(0); n < Input::List().num_waves; ++n)
+    {
+        /// Parser::parse the strings
+        Parser::parseprofile(xaxis, time, Input::List().ex_wave_profile_str[n], Ex_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().ey_wave_profile_str[n], Ey_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().ez_wave_profile_str[n], Ez_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().bx_wave_profile_str[n], Bx_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().by_wave_profile_str[n], By_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().bz_wave_profile_str[n], Bz_profile_drive);
+
+
+        time_coeff = -1.0;
+
+        pulse_start = Input::List().trav_wave_center[n] -
+                        Input::List().trav_wave_flat[n]*0.5 -
+                        Input::List().trav_wave_rise[n];
+
+        pulse_end = Input::List().trav_wave_center[n] +
+                        Input::List().trav_wave_flat[n]*0.5 +
+                        Input::List().trav_wave_fall[n] ;
+
+        normalized_time = 0.0;
+        
+        if (time >= pulse_start && time <= pulse_end)
+        {
+        
+            if (time < Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - pulse_start)/ Input::List().trav_wave_rise[n];
+
+                time_coeff  = 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 15.0 * pow(normalized_time,4.0);
+                time_coeff += 10.0 * pow(normalized_time,3.0);
+            }
+            else if (time >= Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n] &&
+                time <= Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                time_coeff = 1.0;
+            }
+            else if (time > Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - (Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n]))
+                / Input::List().trav_wave_fall[n];
+
+                time_coeff  = 15.0 * pow(normalized_time,4.0);
+                time_coeff -= 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 10.0 * pow(normalized_time,3.0);
+                time_coeff += 1.0;
+            }
+
+            for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+            {
+                Y.EMF().Ex()(ix) += Ex_profile_drive[ix]*time_coeff*stepsize;
+                Y.EMF().Ey()(ix) += Ey_profile_drive[ix]*time_coeff*stepsize;
+                Y.EMF().Ez()(ix) += Ez_profile_drive[ix]*time_coeff*stepsize;
+                Y.EMF().Bx()(ix) += Bx_profile_drive[ix]*time_coeff*stepsize;
+                Y.EMF().By()(ix) += By_profile_drive[ix]*time_coeff*stepsize;
+                Y.EMF().Bz()(ix) += Bz_profile_drive[ix]*time_coeff*stepsize;
+            }
+        }
+    }
+}
+//---------------------------------------------------------------------------
+void WaveDriver::applytravelingwave(State2D& Y, double time, double stepsize)
+{
+
+    for (size_t n(0); n < Input::List().num_waves; ++n)
+    {
+
+        /// Parser::parse the strings
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().ex_wave_profile_str[n], Ex_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().ey_wave_profile_str[n], Ey_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().ez_wave_profile_str[n], Ez_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().bx_wave_profile_str[n], Bx_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().by_wave_profile_str[n], By_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().bz_wave_profile_str[n], Bz_profile_drive_2D);
+
+
+        time_coeff = -1.0;
+
+        pulse_start = Input::List().trav_wave_center[n] -
+                        Input::List().trav_wave_flat[n]*0.5 -
+                        Input::List().trav_wave_rise[n];
+
+        pulse_end = Input::List().trav_wave_center[n] +
+                        Input::List().trav_wave_flat[n]*0.5 +
+                        Input::List().trav_wave_fall[n] ;
+
+        normalized_time = 0.0;
+        
+        
+        if (time >= pulse_start && time <= pulse_end)
+        {
+        
+            if (time < Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - pulse_start)/ Input::List().trav_wave_rise[n];
+
+                time_coeff  = 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 15.0 * pow(normalized_time,4.0);
+                time_coeff += 10.0 * pow(normalized_time,3.0);
+            }
+            else if (time >= Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n] &&
+                time <= Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                time_coeff = 1.0;
+            }
+            else if (time > Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - (Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n]))
+                / Input::List().trav_wave_fall[n];
+
+                time_coeff  = 15.0 * pow(normalized_time,4.0);
+                time_coeff -= 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 10.0 * pow(normalized_time,3.0);
+                time_coeff += 1.0;
+            }
+
+            for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+            {
+                for (size_t iy(0);iy<Y.SH(0,0,0).numy();++iy)
+                {
+                    Y.EMF().Ex()(ix,iy) += Ex_profile_drive_2D(ix,iy)*time_coeff*stepsize;
+                    Y.EMF().Ey()(ix,iy) += Ey_profile_drive_2D(ix,iy)*time_coeff*stepsize;
+                    Y.EMF().Ez()(ix,iy) += Ez_profile_drive_2D(ix,iy)*time_coeff*stepsize;
+                    Y.EMF().Bx()(ix,iy) += Bx_profile_drive_2D(ix,iy)*time_coeff*stepsize;
+                    Y.EMF().By()(ix,iy) += By_profile_drive_2D(ix,iy)*time_coeff*stepsize;
+                    Y.EMF().Bz()(ix,iy) += Bz_profile_drive_2D(ix,iy)*time_coeff*stepsize;
+                }
+            }
+        }
+    }
+}
 //--------------------------------------------------------------
 void Setup_Y::applyexternalfields(Grid_Info &grid, State1D& Y, double time)
 {
 
-    valarray<double> Ex_profile( grid.axis.Nx(0));
-    valarray<double> Ey_profile( grid.axis.Nx(0));
-    valarray<double> Ez_profile( grid.axis.Nx(0));
-    valarray<double> Bx_profile( grid.axis.Nx(0));
-    valarray<double> By_profile( grid.axis.Nx(0));
-    valarray<double> Bz_profile( grid.axis.Nx(0));
+    valarray<double> Ex_profile( grid.axis.Nx(0) );
+    valarray<double> Ey_profile( grid.axis.Nx(0) );
+    valarray<double> Ez_profile( grid.axis.Nx(0) );
+    valarray<double> Bx_profile( grid.axis.Nx(0) );
+    valarray<double> By_profile( grid.axis.Nx(0) );
+    valarray<double> Bz_profile( grid.axis.Nx(0) );
 
     double ex_time_coeff(0.0);
     double ey_time_coeff(0.0);
