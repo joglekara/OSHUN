@@ -52,8 +52,8 @@ class WaveDriver {
         ~WaveDriver();
         void applyexternalfields(State1D& Y, double time);
         void applyexternalfields(State2D& Y, double time);
-        void applytravelingwave(EMF1D& fields, double time, double stepsize);
-        void applytravelingwave(State2D& Y, double time, double stepsize);
+        void applytravelingwave(EMF1D& fields, const double time);
+        void applytravelingwave(State2D& Y, const double time);
 
     private:
 

@@ -180,7 +180,7 @@ void WaveDriver::applytravelingwave(EMF1D& fields, const double time)
     }
 }
 //---------------------------------------------------------------------------
-void WaveDriver::applytravelingwave(State2D& Y, double time)
+void WaveDriver::applytravelingwave(State2D& Y, const double time)
 {
 
     for (size_t n(0); n < Input::List().num_waves; ++n)
