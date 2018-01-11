@@ -29,6 +29,7 @@
 #include "formulary.h"
 #include "collisions.h"
 #include "vlasov.h"
+#include "setup.h"
 #include "functors.h"
 #include "parallel.h"
 #include "stepper.h"
@@ -110,9 +111,7 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
             cF.advance(Y_new,current_time,_dt);
             PE.Neighbor_Communications(Y_new);
         }
-        
     }
-
     else 
     {   
         Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
