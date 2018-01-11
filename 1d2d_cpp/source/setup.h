@@ -46,12 +46,13 @@ public:
 class WaveDriver {
 
     public:
-        WaveDriver(Grid_Info& grid);
+        WaveDriver(double xmin, double xmax, size_t Nx,
+            double ymin, double ymax, size_t Ny);
         // WaveDriver(Grid_Info& grid);
         ~WaveDriver();
         void applyexternalfields(State1D& Y, double time);
         void applyexternalfields(State2D& Y, double time);
-        void applytravelingwave(State1D& Y, double time, double stepsize);
+        void applytravelingwave(EMF1D& fields, double time, double stepsize);
         void applytravelingwave(State2D& Y, double time, double stepsize);
 
     private:

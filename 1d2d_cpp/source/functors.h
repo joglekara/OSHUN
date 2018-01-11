@@ -25,16 +25,19 @@ public:
 //          Collect all the operators and apply on Yin
     void operator()(const State1D& Yin, State1D& Yslope);
     void operator()(const State1D& Yin, State1D& Yslope, double time, double dt);
+    // void advance(const State1D& Yin, State1D& Yslope, double time, double dt);
     void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
 
 private:
     vector<Spatial_Advection> SA;
     vector<Electric_Field>    EF;
     vector<Current>           JX;
-    
-    vector<Ampere>    		 AM;
     vector<Magnetic_Field>    BF;
+
+    vector<Ampere>    		 AM;
     vector<Faraday>    		 FA;
+
+    WaveDriver               WD;
 
 //            vector<Hydro_Advection>   HA;
 

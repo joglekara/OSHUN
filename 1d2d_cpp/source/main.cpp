@@ -446,8 +446,8 @@ int main(int argc, char** argv) {
 
                 if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
                 
-                if (Input::List().trav_wave) 
-                    Setup_Y::applytravelingwave(grid, Y, theclock.time(), theclock.dt());
+                // if (Input::List().trav_wave) 
+                //     Setup_Y::applytravelingwave(grid, Y, theclock.time(), theclock.dt());
     
                 theclock.do_step(Y_star, Y, Y_old, rkF, collide, PE);
             

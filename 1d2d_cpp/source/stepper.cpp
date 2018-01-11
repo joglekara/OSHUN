@@ -30,6 +30,7 @@
 #include "collisions.h"
 #include "parallel.h"
 #include "vlasov.h"
+#include "setup.h"
 #include "functors.h"
 #include "stepper.h"
 
@@ -504,38 +505,38 @@ void RKCK45::take_step(State1D& Y5, State1D& Y4, double time, double h, VlasovFu
 
 //      Yh1, Stage 1
     // z1 = Y2;
-    vF(Y4,Yh1); Yh1 *= h;
+    vF(Y4,Yh1,time,h); Yh1 *= h;
     Yh1 *= a21;
     PE.Neighbor_Communications(Yh1);
     Yt = Y4;    Yt  += Yh1;                              // Y1 = Y1 + (h/5)*Yh
 
     //      Step 2
     // vF(Yt,Yh2);                                   // f(Y1)
-    vF(Yt,Y5); Y5 *= h;                                   // f(Y1)
+    vF(Yt,Y5,time,h); Y5 *= h;                                   // f(Y1)
     Yh1 *= a31/a21; Y5 *= a32; 
     PE.Neighbor_Communications(Y5); 
     Yt = Y4;    Yt += Yh1;  Yt += Y5;
 
     //      Step 3
-    vF(Yt,Yh3); Yh3 *= h;
+    vF(Yt,Yh3,time,h); Yh3 *= h;
     Yh1 *= a41/a31; Y5 *= a42/a32;   Yh3 *= a43;
     PE.Neighbor_Communications(Yh3);
     Yt = Y4;    Yt += Yh1;  Yt += Y5; Yt += Yh3;
     
     //      Step 4
-    vF(Yt,Yh4); Yh4 *= h;
+    vF(Yt,Yh4,time,h); Yh4 *= h;
     Yh1 *= a51/a41; Y5 *= a52/a42;   Yh3 *= a53/a43;    Yh4 *= a54;
     PE.Neighbor_Communications(Yh4);
     Yt = Y4;    Yt += Yh1;  Yt += Y5; Yt += Yh3; Yt += Yh4;
     
     //      Step 5
-    vF(Yt,Yh5); Yh5 *= h;
+    vF(Yt,Yh5,time,h); Yh5 *= h;
     Yh1 *= a61/a51; Y5 *= a62/a52;   Yh3 *= a63/a53;    Yh4 *= a64/a54; Yh5 *= a65;
     PE.Neighbor_Communications(Yh5);
     Yt = Y4;    Yt += Yh1;  Yt += Y5; Yt += Yh3; Yt += Yh4; Yt += Yh5;
     
     //      Step 6
-    vF(Yt,Yh6); Yh6 *= h;
+    vF(Yt,Yh6,time,h); Yh6 *= h;
     PE.Neighbor_Communications(Yh6);
 
 

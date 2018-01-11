@@ -33,6 +33,7 @@
     #include "collisions.h"
     #include "fluid.h"
     #include "vlasov.h"
+    #include "setup.h"
     #include "functors.h"
     #include "implicitE.h"
 //**************************************************************

@@ -23,7 +23,8 @@
 
 //  Declerations
 #include "state.h"
-// #include "input.h"
+#include "setup.h"
+#include "input.h"
 #include "fluid.h"
 #include "vlasov.h"
 #include "functors.h"
@@ -38,7 +39,7 @@
 //--------------------------------------------------------------
 //  Constructor
 VlasovFunctor1D_explicitE::VlasovFunctor1D_explicitE(vector<size_t> Nl,vector<size_t> Nm,vector<valarray<double> > dp,
-                                                     double xmin, double xmax, size_t Nx)
+                                                     double xmin, double xmax, size_t Nx):WD(xmin, xmax, Nx, 0., 1., 1)
 {
 //--------------------------------------------------------------
 
@@ -56,6 +57,8 @@ VlasovFunctor1D_explicitE::VlasovFunctor1D_explicitE(vector<size_t> Nl,vector<si
     AM.push_back( Ampere(xmin, xmax, Nx, 0., 1., 1) );
 
     FA.push_back( Faraday(xmin, xmax, Nx, 0., 1., 1) );
+
+    
 }
 //--------------------------------------------------------------
 
@@ -151,11 +154,101 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
     AM[0](Yin.EMF(),Yslope.EMF());
     FA[0](Yin.EMF(),Yslope.EMF());
 
+
             
 }
 
 void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, size_t direction){}
-void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, double time, double dt){}
+void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, double time, double dt){
+    bool debug(0);
+
+    Yslope = static_cast<complex<double> > (0.0);
+
+    for (size_t s(0); s < Yin.Species(); ++s) 
+    {
+
+        if (Yin.DF(s).m0() == 0) {
+
+            // GA[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
+            
+            // if (debug) 
+            // {
+            //     std::cout << "\n\n f at start:";
+            //     for (size_t ip(0); ip < Yin.SH(0,0,0).nump(); ++ip){
+            //         std::cout << "\nf(" << ip << ") = " << Yin.SH(0,1,0)(ip,4);
+            //     }
+
+            //     std::cout << "\n\n E at start:";
+            //     for (size_t ix(0); ix < Yin.SH(0,0,0).numx(); ++ix){
+            //         std::cout << "\nEx(" << ix << ") = " << Yin.EMF().Ex()(ix);
+            //     }            
+            // }
+            EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+
+
+            // if (debug) 
+            // {
+            //     std::cout << "\n\nf after E:";
+            //     for (size_t ip(0); ip < Yin.SH(0,0,0).nump(); ++ip){
+            //         std::cout << "\nf(" << ip << ") = " << Yslope.SH(0,1,0)(ip,4);
+            //     }
+            // }
+            JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
+
+
+
+            // if (debug) 
+            // {
+            //     std::cout << "\n\n after J:";
+            //     for (size_t ix(0); ix < Yin.SH(0,0,0).numx(); ++ix){
+            //         std::cout << "\nEx(" << ix << ") = " << Yslope.EMF().Ex()(ix);
+            //     }            
+            // }
+            
+            SA[s].es1d(Yin.DF(s),Yslope.DF(s));
+
+            // if (debug) 
+            // {
+            //     std::cout << "\n\n after SA:";
+            //     for (size_t ip(0); ip < Yin.SH(0,0,0).nump(); ++ip){
+            //         std::cout << "\nf(" << ip << ") = " << Yslope.SH(0,1,0)(ip,4);
+            //     }
+            // }
+            // 
+            // collide.advance(Yin,Yslope,time,dt);
+        }
+        else
+        {
+            if (Yin.DF(s).l0() == 1) 
+            {
+                SA[s].f1only(Yin.DF(s),Yslope.DF(s));
+
+                EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+
+                BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+
+                JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+
+            }
+
+            else 
+            {
+                SA[s](Yin.DF(s),Yslope.DF(s));
+
+                EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+
+                BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+
+                JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+            }
+        }
+    }
+    
+    AM[0](Yin.EMF(),Yslope.EMF());
+    FA[0](Yin.EMF(),Yslope.EMF());
+
+    if (Input::List().trav_wave) WD.applytravelingwave(Yslope.EMF(),time,dt);
+}
 
 // //**************************************************************
 // //--------------------------------------------------------------
