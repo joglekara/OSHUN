@@ -55,7 +55,16 @@ WaveDriver::WaveDriver(double xmin, double xmax, size_t Nx,
 
     time_coeff(0.),pulse_start(0.),pulse_end(0.),normalized_time(0.),
     ex_time_coeff(0.),ey_time_coeff(0.),ez_time_coeff(0.),bx_time_coeff(0.), by_time_coeff(0.), bz_time_coeff(0.)
-{}
+{
+    // for (size_t ix(0); ix < Nx; ++ix)
+    // {
+    //     std::cout << "\n xaxis[" << ix << "] = " << xaxis[ix];
+    
+    // }
+
+    // exit(1);
+
+}
 /// ------------------------------------------------
 WaveDriver::~WaveDriver(){}
 /// ------------------------------------------------
@@ -120,9 +129,10 @@ void WaveDriver::applyexternalfields(State2D& Y, double time)
 /// ------------------------------------------------
 void WaveDriver::applytravelingwave(EMF1D& fields, const double time)
 {
-
+    // std::cout << "\n time = " << time;
     for (size_t n(0); n < Input::List().num_waves; ++n)
     {
+        // std::cout << "\n10\n";
         /// Parser::parse the strings
         Parser::parseprofile(xaxis, time, Input::List().ex_wave_profile_str[n], Ex_profile_drive);
         Parser::parseprofile(xaxis, time, Input::List().ey_wave_profile_str[n], Ey_profile_drive);
@@ -688,6 +698,8 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
             // New formulation for temperature distribution and super-Gaussians
             h(k,j) = coefftemp*exp(-1.0*pow((p[k])/alpha/sqrt(2.0*temperature[j]*mass),m));
             h(k,j)+= pedestal[j];
+
+            // h(k,j) = sin(2*M_PI*k/7.);
             // std::cout << "f0[" << p[k] << "] = " << exp(-1.0*pow((p[k])/alpha/sqrt(2.0*temperature[j]*mass),m)) << "\n";
             // 
             // Maxwell-Jutner distribution
@@ -733,6 +745,9 @@ void Setup_Y:: init_f0(size_t s, SHarmonic2D& h, const valarray<double>& p, cons
                 // New formulation for temperature distribution and super-Gaussians
                 h(k,ix,iy) = coefftemp*exp(-1.0*pow((p[k])/alpha/sqrt(2.0*temperature(ix,iy)*mass),m));
                 h(k,ix,iy)+= pedestal(ix,iy);
+
+                // h(k,ix,iy) = 1+k;
+                // h(k,ix,iy)+= pedestal(ix,iy);
                 // std::cout << "f0[" << ix << "," << iy << "," << p[k] << "] = " << h(k,ix,iy) << "\n";
                 // 
                 // Maxwell-Jutner distribution

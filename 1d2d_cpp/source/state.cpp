@@ -36,6 +36,7 @@
 #include "lib-algorithms.h"
 
 // Declerations
+#include "nmethods.h"
 #include "state.h"
 
 //--------------------------------------------------------------
@@ -139,26 +140,47 @@ SHarmonic1D& SHarmonic1D::Dp(){
 
     //--------------------------------------------------------//
     //--------------------------------------------------------//
-    /// 4th order
-    // Array2D<complex<double> > df((*this).nump(),(*this).numx());
+    ///
+    
+    // {
+    //     double minusonethird(1./6.), minusfourthirds(2./3.);
 
-    // for (long i2(0); i2<numx();++i2){
+    //     valarray<complex<double> > input(nump()+1);
+    //     valarray<complex<double> > output(nump()+1);
+    //     valarray<double> a(minusonethird,nump()+1), b(minusfourthirds,nump()+1), c(minusonethird,nump()+1);
 
-    //     df(0,i2) = (*this)(1,i2)-(*this)(0,i2);
-    //     df(1,i2) = 1.0/12.0*((*this)(4,i2)-6.0*(*this)(3,i2)+18.0*(*this)(2,i2)-10.0*(*this)(1,i2)-3.0*(*this)(0,i2));
+    //     for (size_t ix(2); ix < numx()-2; ++ix)
+    //     {
+    //         // a[a.size()-1] = 0. ; c[0] = 0.;
+            
+            
+    //         // input[nump()-1] = static_cast<complex<double> > (2.)*((*this)(nump()-1,ix)-(*this)(nump()-2,ix));
+            
+            
+    //         for (size_t ip(1); ip < nump()-1; ++ip)
+    //         {
+    //             input[ip] = (*this)(ip+1,ix)-(*this)(ip-1,ix);
 
-    //     for (long i1(2); i1<nump()-2;++i1){
-    //         df(i1,i2) = 1.0/12.0*(-(*this)(i1+2,i2)+8.0*(*this)(i1+1,i2)-8.0*(*this)(i1-1,i2)+(*this)(i1-2,i2));
-    //     }
 
-    //     df(nump()-2,i2) = 0.0; //1.0/12.0*(3.0*(*this)(nump()-1,i2)+10.0*(*this)(nump()-2,i2)-18.0*(*this)(nump()-3,i2)+6.0*(*this)(nump()-4,i2)-(*this)(nump()-5,i2));
-    //     df(nump()-1,i2) = 0.0; //(*this)(nump()-1,i2)-(*this)(nump()-2,i2);
+    //             std::cout << "\n input[" << ip << "] = " << input[ip];//(*this)(ip,ix);
+    //         }
+            
+    //         input[0] = (*this)(1,ix)-(*this)(nump()-2,ix);
+    //         input[nump()-1] = (*this)(nump()-2,ix)-(*this)(1,ix);
+            
+    //         std::cout << "\n input[" << 0 << "] = " << input[0];
+    //         std::cout << "\n input[" << nump()-1 << "] = " << input[nump()-1];
 
-    // }
+    //         TridiagonalSolve(a,b,c,input,output);
 
-    // for (long i2(0); i2<numx();++i2) {
-    //     for (long i1(0); i1 < nump(); ++i1) {
-    //         (*this)(i1, i2) = -2.0*df(i1, i2);
+    //         for (size_t ip(0); ip < nump(); ++ip)
+    //         {
+    //             (*this)(ip,ix) = output[ip];
+
+    //             std::cout << "\n output[" << ip << "] = " << output[ip];
+    //         }
+    //         exit(1);
+    //         a = minusonethird; b = minusfourthirds, c = minusonethird;
     //     }
     // }
 
@@ -179,7 +201,7 @@ SHarmonic1D& SHarmonic1D::Dx(size_t order){
     // }
     if (order == 2) *sh = (*sh).Dd2_2nd_order();                          // Worry about boundaries elsewhere
     if (order == 4) *sh = (*sh).Dd2_4th_order();                          // Worry about boundaries elsewhere
-
+    
 
     
     
