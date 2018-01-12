@@ -8,16 +8,16 @@
  * 2) default values for input variables.
  */
 //  Standard libraries
+#include <omp.h>
 #include <iostream>
-#include <vector>
 #include <valarray>
+#include <vector>
 #include <complex>
 #include <algorithm>
 #include <cstdlib>
 #include <cfloat>
 #include <fstream>
 #include <cstring>
-#include <omp.h>
 #include <math.h>
 #include <map>
 
@@ -49,7 +49,7 @@ Input::Input_List::Input_List():
     filterdistribution(0),filter_dp(0.0001),filter_pmax(0.0002),
     if_tridiagonal(1),
     implicit_E(1),
-    dbydx_order(2),dbydy_order(2),
+    dbydx_order(2),dbydy_order(2),dbydv_order(2),
     adaptive_dt(false),adaptive_tmin(1000.),abs_tol(1e-16),rel_tol(1e-6),max_fails(20),
     relativity(0),
     implicit_B(0),
@@ -632,6 +632,14 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> deckstringbool;
                 implicit_E = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "dbydv_order") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> dbydv_order;
             }
             if (deckstring == "dbydx_order") {
                 deckfile >> deckequalssign;

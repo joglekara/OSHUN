@@ -38,6 +38,7 @@
 // Declerations
 #include "nmethods.h"
 #include "state.h"
+#include "input.h"
 
 //--------------------------------------------------------------
 //  Definition of the 1D spherical harmonic
@@ -126,23 +127,27 @@ SHarmonic1D& SHarmonic1D::Dp(){
     //--------------------------------------------------------//
     //--------------------------------------------------------//
     /// 2nd order
-        // valarray  <complex<double> >  plast(this->numx());
-
-        // for (size_t i(0); i < plast.size(); ++i) {
-        //     plast[i] = (*sh)(nump()-2,i) - (*sh)(nump()-1,i);
-        // }
-        // *sh = (*sh).Dd1();
-        // for (size_t i(0); i < plast.size(); ++i) {
-        //   // TODO                The Dp at the zeroth cell is taken care off
-        //   (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
-        //     (*sh)(nump()-1,i) = 2.0*plast[i];
-        // }
+        
+    if (Input::List().dbydv_order == 2)
+    {
+        valarray  <complex<double> >  plast(this->numx());
+    
+        for (size_t i(0); i < plast.size(); ++i) {
+            plast[i] = (*sh)(nump()-2,i) - (*sh)(nump()-1,i);
+        }
+        *sh = (*sh).Dd1();
+        for (size_t i(0); i < plast.size(); ++i) {
+          // TODO                The Dp at the zeroth cell is taken care off
+          (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
+            (*sh)(nump()-1,i) = 2.0*plast[i];
+        }
+    }
 
     //--------------------------------------------------------//
     //--------------------------------------------------------//
     ///
-    // if (Input::List().dfbydv_order == 4)
-    // {
+    if (Input::List().dbydv_order == 4)
+    {
         complex<double> seventeensixth(static_cast<complex<double> >(17./6.));
         complex<double> onesixth(static_cast<complex<double> >(1./6.));
 
@@ -151,17 +156,6 @@ SHarmonic1D& SHarmonic1D::Dp(){
         
         Array2D<double> amat(nump(),nump());
 
-        
-        // for (size_t ip(1); ip < nump()-1; ++ip)
-        // {
-            
-        // }        
-        
-        // valarray<double> a(0.25,nump()), b(1.,nump()), c(0.25,nump());
-        
-        // c[nump()-1] = 3.;
-        // a[0] = 3.;
-
         for (size_t ix(0); ix < numx(); ++ix)
         {
             input[0]  = -seventeensixth*(*this)(0,ix);
@@ -169,10 +163,9 @@ SHarmonic1D& SHarmonic1D::Dp(){
             input[0] += static_cast<complex<double> >(1.5)*(*this)(2,ix);
             input[0] -= onesixth*(*this)(3,ix);
 
-            // std::cout << "\n input[" << 0 << "] = " << input[0];
-
             amat(0,0) = 1.;
             amat(0,1) = 3.;
+            // std::cout << "\n input[" << 0 << "] = " << input[0];
 
             for (size_t ip(1); ip < nump()-1; ++ip)
             {
@@ -181,16 +174,90 @@ SHarmonic1D& SHarmonic1D::Dp(){
                 amat(ip,ip-1) = 0.25;
                 amat(ip,ip+1) = 0.25;
                 amat(ip,ip) = 1.;
-
                 // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix); //input[ip];//
             }
 
+            
             input[nump()-1]  = seventeensixth*(*this)(nump()-1,ix);
             input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-2,ix);
             input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-3,ix);
             input[nump()-1] += onesixth*(*this)(nump()-4,ix);
             amat(nump()-1,nump()-1) = 1.;
             amat(nump()-1,nump()-2) = 3.;
+
+            Thomas_Tridiagonal(amat,input,output);
+
+            for (size_t ip(0); ip < nump(); ++ip)
+            {
+                (*this)(ip,ix) = static_cast<complex<double> > (-2.)*output[ip];
+            }
+        }
+    }
+
+    if (Input::List().dbydv_order == 6)
+    {
+        valarray<complex<double> > input(nump());
+        valarray<complex<double> > output(nump());
+        
+        Array2D<double> amat(nump(),nump());
+
+        for (size_t ix(0); ix < numx(); ++ix)
+        {
+            input[0]  = static_cast<complex<double> >(-197./60.)*(*this)(0,ix);
+            input[0] += static_cast<complex<double> >(-5./12.)*(*this)(1,ix);
+            input[0] += static_cast<complex<double> >(5.)*(*this)(2,ix);
+            input[0] += static_cast<complex<double> >(-5./3.)*(*this)(3,ix);
+            input[0] += static_cast<complex<double> >(5./12.)*(*this)(4,ix);
+            input[0] += static_cast<complex<double> >(-1./20.)*(*this)(5,ix);
+            
+            input[1]  = static_cast<complex<double> >(-43./96.)*(*this)(0,ix);
+            input[1] += static_cast<complex<double> >(-5./6.)*(*this)(1,ix);
+            input[1] += static_cast<complex<double> >(9./8.)*(*this)(2,ix);
+            input[1] += static_cast<complex<double> >(1./6.)*(*this)(3,ix);
+            input[1] += static_cast<complex<double> >(-1./96.)*(*this)(4,ix);
+
+            amat(0,0) = 1.;
+            amat(0,1) = 5.;
+            amat(1,0) = 0.125;
+            amat(1,1) = 1.;
+            amat(1,2) = 0.25;
+
+
+            // std::cout << "\n input[" << 0 << "] = " << input[0];
+
+            for (size_t ip(2); ip < nump()-2; ++ip)
+            {
+                input[ip]  = static_cast<complex<double> > (14./18.)*(*this)(ip+1,ix);
+                input[ip] -= static_cast<complex<double> > (14./18.)*(*this)(ip-1,ix);
+                input[ip] += static_cast<complex<double> > (1./36.)*(*this)(ip+2,ix);
+                input[ip] -= static_cast<complex<double> > (1./36.)*(*this)(ip-2,ix);
+                
+                amat(ip,ip-1) = 1./3.;
+                amat(ip,ip+1) = 1./3.;
+                amat(ip,ip)   = 1.;
+
+                // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix); //input[ip];//
+            }
+
+            input[nump()-2]  = static_cast<complex<double> >(43./96.)*(*this)(nump()-1,ix);
+            input[nump()-2] += static_cast<complex<double> >(5./6.)*(*this)(nump()-2,ix);
+            input[nump()-2] += static_cast<complex<double> >(-9./8.)*(*this)(nump()-3,ix);
+            input[nump()-2] += static_cast<complex<double> >(-1./6.)*(*this)(nump()-4,ix);
+            input[nump()-2] += static_cast<complex<double> >(1./96.)*(*this)(nump()-5,ix);
+
+            input[nump()-1]  = static_cast<complex<double> >(197./60.)*(*this)(nump()-1,ix);
+            input[nump()-1] += static_cast<complex<double> >(5./12.)*(*this)(nump()-2,ix);
+            input[nump()-1] += static_cast<complex<double> >(-5.)*(*this)(nump()-3,ix);
+            input[nump()-1] += static_cast<complex<double> >(5./3.)*(*this)(nump()-4,ix);
+            input[nump()-1] += static_cast<complex<double> >(-5./12.)*(*this)(nump()-5,ix);
+            input[nump()-1] += static_cast<complex<double> >(1./20.)*(*this)(nump()-6,ix);
+
+            amat(nump()-2,nump()-1) = 0.125;
+            amat(nump()-2,nump()-2) = 1.;
+            amat(nump()-2,nump()-3) = 0.25;
+            amat(nump()-1,nump()-1) = 1.;
+            amat(nump()-1,nump()-2) = 5.;
+            
 
             // std::cout << "\n input[" << nump()-1 << "] = " << input[nump()-1];
 
@@ -203,11 +270,8 @@ SHarmonic1D& SHarmonic1D::Dp(){
                 (*this)(ip,ix) = static_cast<complex<double> > (-2.)*output[ip];
                 // std::cout << "\n output[" << ip << "] = " << output[ip];
             }
-            // exit(1);
-
-            // a = 0.25; b = 1., c = 0.25; c[0] = 3.; a[nump()-1] = 3.;
         }
-    // }
+    }        
 
     return *this;
 }

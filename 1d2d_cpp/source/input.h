@@ -54,7 +54,7 @@ namespace Input{
 //          Algorithms
         bool if_tridiagonal;
         bool implicit_E;
-        size_t dbydx_order, dbydy_order;
+        size_t dbydx_order, dbydy_order, dbydv_order;
         bool adaptive_dt;
         double adaptive_tmin, abs_tol, rel_tol;
         size_t max_fails;
