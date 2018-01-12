@@ -596,38 +596,18 @@ template<class T> Array2D<T>& Array2D<T>::Dd2_4th_order(){
     complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
     complex<double> eight(static_cast<complex<double> >(8.));
 
-    // complex<double> onefifth(static_cast<complex<double> >(1.0/5.0));
-    // complex<double> two(static_cast<complex<double> >(2.));
-
-
-
     for (long i1(0); i1<long(d1);++i1)
     {
-        // temp(i1,0) = -2.0*((*this)(i1,1)-(*this)(i1,0));
-        // temp(i1,1) = -1.0*((*this)(i1,2)-(*this)(i1,0));
-
         for (long i2(2); i2<long(d2)-2;++i2)
         {
             temp(i1,i2)  = ((*this)(i1,i2+2));
             temp(i1,i2) -= eight*(*this)(i1,i2+1);
             temp(i1,i2) += eight*(*this)(i1,i2-1);
             temp(i1,i2) -= (*this)(i1,i2-2);         
-
-
-            // temp(i1,i2)  = two*((*this)(i1,i2-2));
-            // temp(i1,i2) -= (*this)(i1,i2-1);
-            // temp(i1,i2) += (*this)(i1,i2+1);
-            // temp(i1,i2) += two*(*this)(i1,i2+2);         
         }
-
-        // temp(i1,long(d2)-2) = -1.0*((*this)(i1,long(d2)-1)-(*this)(i1,long(d2)-3));
-        // temp(i1,long(d2)-1) = -2.0*((*this)(i1,long(d2)-1)-(*this)(i1,long(d2)-2));
    }
 
-
    temp *= onesixth;
-
-   // temp *= onefifth;
 
    *this = temp; 
     return *this;

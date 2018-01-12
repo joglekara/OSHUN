@@ -56,8 +56,10 @@ private:
     // ARK32 Solver;
     // ARK43 Solver;
 
-    RKCK45 Solver;
-    // RKT54 Solver;
+    // RKCK45 Solver;
+    // RKDP85 Solver;
+    RK4C Solver;
+    
 
     double* acceptabilitylist;
 };

@@ -120,6 +120,51 @@ private:
 
 };
 //--------------------------------------------------------------
+class RK4C {
+public:
+//      Constructor
+    RK4C(State1D& Yin);
+    ~RK4C();
+
+    void take_step(State1D& Y5, State1D& Y4, double time, double h, 
+        VlasovFunctor1D_explicitE& vF, collisions_1D& cF, Parallel_Environment_1D& PE);
+private:
+
+    State1D  Y0, Y1, Y2, Yh;
+
+    double onethird, twothird;
+};
+//--------------------------------------------------------------
+class RKDP85 {
+public:
+//      Constructor
+    RKDP85(State1D& Yin);
+    ~RKDP85();
+
+    void take_step(State1D& Y5, State1D& Y4, double time, double h, 
+        VlasovFunctor1D_explicitE& vF, collisions_1D& cF, Parallel_Environment_1D& PE);
+private:
+
+    State1D Yh1, Yh2, Yh3, Yh4, Yh5, Yh6;
+    State1D Yh7, Yh8, Yh9, Yh10, Yt;
+
+    double a0201;
+    double a0301, a0302;
+    double a0401, a0403;
+    double a0501, a0503, a0504;
+    double a0601, a0604, a0605;
+    double a0701, a0704, a0705, a0706;
+    double a0801, a0804, a0805, a0806, a0807;
+    double a0901, a0904, a0905, a0906, a0907, a0908;
+    double a1001, a1004, a1005, a1006, a1007, a1008, a1009;
+    double a1101, a1104, a1105, a1106, a1107, a1108, a1109, a1110;
+    double a1201, a1204, a1205, a1206, a1207, a1208, a1209, a1210, a1211;
+    
+    double b1, b6, b7, b8, b9, b10, b11, b12;
+    double bhh1, bhh2, bhh3;
+    double er1, er6, er7, er8, er9, er10, er11, er12;
+
+};
 //--------------------------------------------------------------
 /*class RKT54 {
 public:

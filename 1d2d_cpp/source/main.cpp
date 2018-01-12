@@ -452,11 +452,13 @@ int main(int argc, char** argv) {
                 theclock.do_step(Y_star, Y, Y_old, rkF, collide, PE);
             
 
-                // RK(Y,0.5*theclock.dt(),&rkF);
+                // Y = RK(Y,0.5*theclock.dt(),&rkF);
                 // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
 
-                // if (Input::List().collisions)
+                // if (Input::List().collisions){
                 //     collide.advance(Y,theclock.time(),theclock.dt());                                           ///  Fokker-Planck   //
+                //     PE.Neighbor_Communications(Y); 
+                // }
 
                 // RK(Y,0.5*theclock.dt(),&rkF);
                 // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //

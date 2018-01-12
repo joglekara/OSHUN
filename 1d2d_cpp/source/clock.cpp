@@ -81,6 +81,7 @@ void Clock::end_of_loop_time_updates()
 {
     dt_next = min(dt_next,1.01*_dt);
     dt_next = min(dt_next,Input::List().dt);
+    dt_next = max(0.01,dt_next);
     failed_steps = 0;
     current_time += _dt;
 
@@ -114,12 +115,13 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
     }
     else 
     {   
-        Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
+        Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
         if (Input::List().collisions)   
         {
             cF.advance(Y_new,current_time,_dt);
             PE.Neighbor_Communications(Y_new);
         }
+        Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
         
     }
 
@@ -140,8 +142,8 @@ void Clock::update_dt(State1D& Y_old, const State1D& Ystar, State1D& Y_new){
     if (acceptability > 1) _success = 0;
     else _success = 1;
 
-    // std::cout << "\n acc = " << acceptability;
-    // std::cout << "\n dt = " << _dt;
+    std::cout << "\n acc = " << acceptability;
+    std::cout << "\n dt = " << _dt;
 
     /// Error is shared so that global timestep can be determined on rank 0
     MPI_Gather(&acceptability, 1, MPI_DOUBLE, acceptabilitylist, 1, MPI_DOUBLE, 0, MPI_COMM_WORLD);
