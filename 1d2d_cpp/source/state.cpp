@@ -126,62 +126,87 @@ SHarmonic1D& SHarmonic1D::Dp(){
     //--------------------------------------------------------//
     //--------------------------------------------------------//
     /// 2nd order
-        valarray  <complex<double> >  plast(this->numx());
+        // valarray  <complex<double> >  plast(this->numx());
 
-        for (size_t i(0); i < plast.size(); ++i) {
-            plast[i] = (*sh)(nump()-2,i) - (*sh)(nump()-1,i);
-        }
-        *sh = (*sh).Dd1();
-        for (size_t i(0); i < plast.size(); ++i) {
-          // TODO                The Dp at the zeroth cell is taken care off
-          (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
-            (*sh)(nump()-1,i) = 2.0*plast[i];
-        }
+        // for (size_t i(0); i < plast.size(); ++i) {
+        //     plast[i] = (*sh)(nump()-2,i) - (*sh)(nump()-1,i);
+        // }
+        // *sh = (*sh).Dd1();
+        // for (size_t i(0); i < plast.size(); ++i) {
+        //   // TODO                The Dp at the zeroth cell is taken care off
+        //   (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
+        //     (*sh)(nump()-1,i) = 2.0*plast[i];
+        // }
 
     //--------------------------------------------------------//
     //--------------------------------------------------------//
     ///
-    
+    // if (Input::List().dfbydv_order == 4)
     // {
-    //     double minusonethird(1./6.), minusfourthirds(2./3.);
+        complex<double> seventeensixth(static_cast<complex<double> >(17./6.));
+        complex<double> onesixth(static_cast<complex<double> >(1./6.));
 
-    //     valarray<complex<double> > input(nump()+1);
-    //     valarray<complex<double> > output(nump()+1);
-    //     valarray<double> a(minusonethird,nump()+1), b(minusfourthirds,nump()+1), c(minusonethird,nump()+1);
+        valarray<complex<double> > input(nump());
+        valarray<complex<double> > output(nump());
+        
+        Array2D<double> amat(nump(),nump());
 
-    //     for (size_t ix(2); ix < numx()-2; ++ix)
-    //     {
-    //         // a[a.size()-1] = 0. ; c[0] = 0.;
+        
+        // for (size_t ip(1); ip < nump()-1; ++ip)
+        // {
             
-            
-    //         // input[nump()-1] = static_cast<complex<double> > (2.)*((*this)(nump()-1,ix)-(*this)(nump()-2,ix));
-            
-            
-    //         for (size_t ip(1); ip < nump()-1; ++ip)
-    //         {
-    //             input[ip] = (*this)(ip+1,ix)-(*this)(ip-1,ix);
+        // }        
+        
+        // valarray<double> a(0.25,nump()), b(1.,nump()), c(0.25,nump());
+        
+        // c[nump()-1] = 3.;
+        // a[0] = 3.;
 
+        for (size_t ix(0); ix < numx(); ++ix)
+        {
+            input[0]  = -seventeensixth*(*this)(0,ix);
+            input[0] += static_cast<complex<double> >(1.5)*(*this)(1,ix);
+            input[0] += static_cast<complex<double> >(1.5)*(*this)(2,ix);
+            input[0] -= onesixth*(*this)(3,ix);
 
-    //             std::cout << "\n input[" << ip << "] = " << input[ip];//(*this)(ip,ix);
-    //         }
-            
-    //         input[0] = (*this)(1,ix)-(*this)(nump()-2,ix);
-    //         input[nump()-1] = (*this)(nump()-2,ix)-(*this)(1,ix);
-            
-    //         std::cout << "\n input[" << 0 << "] = " << input[0];
-    //         std::cout << "\n input[" << nump()-1 << "] = " << input[nump()-1];
+            // std::cout << "\n input[" << 0 << "] = " << input[0];
 
-    //         TridiagonalSolve(a,b,c,input,output);
+            amat(0,0) = 1.;
+            amat(0,1) = 3.;
 
-    //         for (size_t ip(0); ip < nump(); ++ip)
-    //         {
-    //             (*this)(ip,ix) = output[ip];
+            for (size_t ip(1); ip < nump()-1; ++ip)
+            {
+                input[ip]  = static_cast<complex<double> > (0.75)*(*this)(ip+1,ix);
+                input[ip] -= static_cast<complex<double> > (0.75)*(*this)(ip-1,ix);
+                amat(ip,ip-1) = 0.25;
+                amat(ip,ip+1) = 0.25;
+                amat(ip,ip) = 1.;
 
-    //             std::cout << "\n output[" << ip << "] = " << output[ip];
-    //         }
-    //         exit(1);
-    //         a = minusonethird; b = minusfourthirds, c = minusonethird;
-    //     }
+                // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix); //input[ip];//
+            }
+
+            input[nump()-1]  = seventeensixth*(*this)(nump()-1,ix);
+            input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-2,ix);
+            input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-3,ix);
+            input[nump()-1] += onesixth*(*this)(nump()-4,ix);
+            amat(nump()-1,nump()-1) = 1.;
+            amat(nump()-1,nump()-2) = 3.;
+
+            // std::cout << "\n input[" << nump()-1 << "] = " << input[nump()-1];
+
+            // TridiagonalSolve(a,b,c,input,output);
+
+            Thomas_Tridiagonal(amat,input,output);
+
+            for (size_t ip(0); ip < nump(); ++ip)
+            {
+                (*this)(ip,ix) = static_cast<complex<double> > (-2.)*output[ip];
+                // std::cout << "\n output[" << ip << "] = " << output[ip];
+            }
+            // exit(1);
+
+            // a = 0.25; b = 1., c = 0.25; c[0] = 3.; a[nump()-1] = 3.;
+        }
     // }
 
     return *this;
