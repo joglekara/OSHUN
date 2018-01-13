@@ -45,7 +45,7 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
                             const valarray<double>& dp,
                          const double _mass, bool _ib):
         mass(_mass), ib(_ib),
-        vr(0.,dp.size()), 
+        vr(Algorithms::MakeCAxis(0.,dp)), 
         dvr(0.,dp.size()), // Non-uniform velocity grid
         vrh(0.0,dp.size()), oneoverv2(dp.size()),
         p2dp(0.0,dp.size()), p2dpm1(0.0,dp.size()),phdp(0.0,dp.size()), phdpm1(0.0,dp.size()), p4dp(0.0,dp.size()), laser_Inv_Uav6(0.0,dp.size()),
@@ -65,20 +65,20 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
     double omega_p(5.64 * 1.0e4*sqrt(Input::List().density_np));
     vw_coeff_cube = omega_p/omega_0 * c_kpre;
     
-    vr[0] = 0.5*dp[0];
+    // vr[0] = 0.5*dp[0];
     
-    for (size_t ip(1); ip < vr.size(); ++ip) 
-    {
-        vr[ip]  = dp[ip];
-        vr[ip] += vr[ip-1];
+    // for (size_t ip(1); ip < vr.size(); ++ip) 
+    // {
+    //     vr[ip]  = dp[ip];
+    //     vr[ip] += vr[ip-1];
 
-        // std::cout << "vr00[" << ip << "] = " << vr[ip] <<"\n";
-    }
+    //     // std::cout << "vr00[" << ip << "] = " << vr[ip] <<"\n";
+    // }
 
     
 
     for (size_t i(0); i < vr.size()-1; ++i) {
-        // std::cout << "vr0[" << i << "] = " << vr[i] <<"\n";
+        std::cout << "vr0[" << i << "] = " << vr[i] <<"\n";
 
         vrh[i] = 0.5*(vr[i+1] - vr[i]);
         dvr[i] = (vr[i+1] - vr[i]); // Non-uniform velocity grid
@@ -833,7 +833,7 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const val
 //  Constructor
 //--------------------------------------------------------------
         :
-            vr(0.,dp.size()),
+            vr(Algorithms::MakeCAxis(0.,dp)), 
             U4(0.0,  dp.size()),
             U4m1(0.0,dp.size()),
             U2(0.0,  dp.size()),
@@ -846,15 +846,12 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const val
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     size_t totalnumberofspatiallocationstostore(numxtotal);
     
-    vr[0] = 0.5*dp[0];
-    for (size_t ip(1); ip < vr.size(); ++ip) 
-    {
-        vr[ip]  = dp[ip];
-        vr[ip] += vr[ip-1];
-
-        
-
-    }
+    // vr[0] = 0.5*dp[0];
+    // for (size_t ip(1); ip < vr.size(); ++ip) 
+    // {
+    //     vr[ip]  = dp[ip];
+    //     vr[ip] += vr[ip-1];
+    // }
 
     if (Input::List().dim == 1)
     {
@@ -912,8 +909,6 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
     //          Define the integrals
     valarray<double>  J1m(0.,fin.size()), I0(0.,fin.size()), I2(0.,fin.size());
 
-    // std::cout << "I0_density = " << I0_density << "\n";
-    // std::cout << "I2_temperature = " << I2_temperature << "\n";
 //     Calculate Dt
     Dt = Delta_t;
 
@@ -950,12 +945,6 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
         J1m[k] += J1m[k+1];
     }
 
-    // for (size_t k(0); k < J1m.size(); ++k){
-    //     I2[k]  /=  vr[k] * vr[k] / 4.0 / M_PI;
-    //     I0[k]  *= 4.0 * M_PI;
-    //     J1m[k] *= 4.0 * M_PI * vr[k];
-    // }
-    // 
     I2  /=  vr * vr / 4.0 / M_PI;
     I0  *= 4.0 * M_PI;
     J1m *= 4.0 * M_PI * vr;
@@ -975,12 +964,6 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
 
     TriI1 = I0 + (2.0*J1m - I2)/3.0;
     TriI2 = (I2 + J1m)/3.0;
-    // for (size_t i(0); i < TriI1.size(); ++i){
-    //     TriI1[i] = I0[i] + (2.0*J1m[i] - I2[i]) / 3.0 ;   // (-I2 + 2*J_{-1} + 3*I0) / 3
-    //     TriI2[i] = ( I2[i] + J1m[i] ) / 3.0 ;             // ( I2 + J_{-1} ) / 3
-    //                                                       // 
-    //     // std::cout << "\nTriI1[" << i << "] = " << TriI1[i] << "\n";
-    // }
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 
@@ -999,11 +982,9 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
     Scattering_Term *=  kpre * Dt;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-
 //     MAKE TRIDIAGONAL ARRAY
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     Alpha_Tri = 0.0;
-
 
     double IvDnDm1, IvDnDp1, Ivsq2Dn;
     Alpha_Tri(0,0) = 8.0 * M_PI * fin[0];                                         //  8*pi*f0[0]
@@ -1017,35 +998,23 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
         Alpha_Tri(i, i  ) = 8.0 * M_PI * fin[i] - TriI2[i] * (IvDnDm1 + IvDnDp1);
         Alpha_Tri(i, i-1) = TriI2[i] * IvDnDm1 - TriI1[i] * Ivsq2Dn;
         Alpha_Tri(i, i+1) = TriI2[i] * IvDnDp1 + TriI1[i] * Ivsq2Dn;                                                                             //  
-                                                                                     //  
-        // IDnDm1 = 1.0 / (0.5*(vr[i+1]-vr[i-1]) * (vr[i]   - vr[i-1]));       //  ( v*D_n*D_{n-1/2} )^(-1)
-        // IDnDp1 = 1.0 / (0.5*(vr[i+1]-vr[i-1]) * (vr[i+1] - vr[i]  ));       //  ( v*D_n*D_{n+1/2} )^(-1)
-        // IDn = 1.0 / ((vr[i+1] - vr[i-1]));       //  ( v^2 * 2*D_n )^(-1)
-
-        // Alpha_Tri(i, i  ) = 8.0 * M_PI * fin[i] - vr[i] * (IDnDm1 + IDnDp1);
-        // Alpha_Tri(i, i-1) = vr[i] * IDnDm1 - I2_temperature[i] * IDn;
-        // Alpha_Tri(i, i+1) = vr[i] * IDnDp1 + I2_temperature[i] * IDn;
-
-        
     }
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt;         // (-1) because the matrix moves to the LHS in the equation
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // for (size_t ip(0); ip < fin.size(); ++ip)
-    // {
-        // std::cout << "fin[" << ip << "] = " << fin[ip] <<"\n";
-    // }
 
     //     Evaluate the derivative
 
 
     for (size_t n(1); n < fin.size()-1; ++n) {
         df0[n]  = fin[n+1]-fin[n-1];
-        
         df0[n] /= vr[n+1]-vr[n-1];
         // std::cout << "df0[" << n << "] = " << df0[n] <<"\n";
     }
+    
+    df0[fin.size()-1]  = fin[fin.size()-1]-fin[fin.size()-2];
+    df0[fin.size()-1] /= vr[fin.size()-1]-vr[fin.size()-2];
 
     // exit(1);
 
@@ -1068,15 +1037,8 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
     df0[0] = ddf0[0] * vr[0];
 
 //     Calculate 1/(2v)*(d^2f)/(dv^2),  1/v^2*df/dv
-    // for (size_t n(0); n < fin.size()-1; ++n) {
-    //     df0[n]  /= vr[n]*vr[n];
-    //     ddf0[n] /= 2.0  *vr[n];
-    // }
-
-    // for (size_t n(0); n < fin.size()-1; ++n) {
     df0  /= vr*vr;
     ddf0 /= 2.0*vr;
-    // }
     
     //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     // Collect all terms to share with matrix solve routine
@@ -1087,21 +1049,6 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
     (ddf0_x)[position] = ddf0;
     //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    
-    // std::cout << "LOGee = " << _LOGee << "\n";
-    
-    // for (size_t ip(0); ip < fin.size(); ++ip)
-    // {
-    //     std::cout << "df0[" << ip << "] = " << df0[ip] <<"\n";
-    // }
-
-    // for (size_t ip(0); ip < fin.size(); ++ip)
-    // {
-    //     std::cout << "ddf0[" << ip << "] = " << ddf0[ip] <<"\n";
-    // }
-
-    // exit(1);
-    
 }
 //-------------------------------------------------------------------
 

@@ -394,7 +394,7 @@ int main(int argc, char** argv) {
                                           grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0));
             // --------------------------------------------------------------------------------------------------------------------------------
 
-            Algorithms::RK4<State1D> RK(Y);
+            // Algorithms::RK4<State1D> RK(Y);
             State1D Y_star(Y), Y_old(Y);
             Y_old = static_cast<complex<double> >(0.0);
             

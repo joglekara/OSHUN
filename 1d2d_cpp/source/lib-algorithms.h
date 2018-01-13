@@ -17,8 +17,6 @@
 //**************************************************************
 namespace Algorithms {
 
-
-#pragma optimize("", off)
 //--------------------------------------------------------------
     template<typename T>
     valarray<T> MakeAxis(const T min, const T max, const size_t N){
@@ -62,7 +60,9 @@ namespace Algorithms {
         v[0] = min + 0.5*delta_grid[0];
 
         for (size_t i(1); i < N; ++i) {
-            v[i]  = delta_grid[i];
+            v[i]  = delta_grid[i-1];
+            v[i] += delta_grid[i];
+            v[i] *= 0.5;
             v[i] += v[i-1];
             // std::cout << "\n vR[" << i << "] = " << v[i] << std::endl;
         }
@@ -161,7 +161,7 @@ namespace Algorithms {
 //  Global axes px(0) --> species1, px(1) --> species2 ...
         valarray<T> px(size_t i)    const  { return *(_px[i].v); }
         size_t      Npx(size_t i)   const  { return (*(_px[i].v)).size(); }
-        T           pxmin(size_t i) const  { return (*(_px[i].v))[0]; }
+        T           pxmin(size_t i) const  { return (*(_px[i].v))[0]-0.5*_dpx[0]; }
         T           pxmax(size_t i) const  { return (*(_px[i].v))[Npx(i)-1]+0.5*_dpx[i][Npx(i)-1]; }
         size_t      pxdim()         const  { return _px.size();  }
         valarray<T> dpx(size_t i)    const  { return (_dpx[i]); }
@@ -169,7 +169,7 @@ namespace Algorithms {
         //  Global axes py(0) --> species1, py(1) --> species2 ...
         valarray<T> py(size_t i)    const  { return *(_py[i].v); }
         size_t      Npy(size_t i)   const  { return (*(_py[i].v)).size(); }
-        T           pymin(size_t i) const  { return (*(_py[i].v))[0]; }
+        T           pymin(size_t i) const  { return (*(_py[i].v))[0]-0.5*_dpy[0]; }
         T           pymax(size_t i) const  { return (*(_py[i].v))[Npy(i)-1]+0.5*_dpy[i][Npy(i)-1]; }
         size_t      pydim()         const  { return _py.size();  }
         valarray<T> dpy(size_t i)    const  { return (_dpy[i]); }
@@ -177,7 +177,7 @@ namespace Algorithms {
         //  Global axes py(0) --> species1, py(1) --> species2 ...
         valarray<T> pz(size_t i)    const  { return *(_pz[i].v); }
         size_t      Npz(size_t i)   const  { return (*(_pz[i].v)).size(); }
-        T           pzmin(size_t i) const  { return (*(_pz[i].v))[0]; }
+        T           pzmin(size_t i) const  { return (*(_pz[i].v))[0]-0.5*_dpz[0];; }
         T           pzmax(size_t i) const  { return (*(_pz[i].v))[Npz(i)-1]+0.5*_dpz[i][Npz(i)-1]; }
         size_t      pzdim()         const  { return _pz.size();  }
         valarray<T> dpz(size_t i)    const  { return (_dpz[i]); }
@@ -392,14 +392,8 @@ namespace Algorithms {
             }
         }
 
-        // std::cout << "\n leaving \n ";
-
-        // exit(1);
-
         return P_Legendre;
     }
-//--------------------------------------------------------------
-#pragma optimize("", on)
 //--------------------------------------------------------------
 // MOMENTS
 // p-th moment of a quantity q(x)
@@ -417,27 +411,9 @@ namespace Algorithms {
       integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
                       * (x[q.size()-1]-x[q.size()-2]);
       return integral*0.5;
-
-        // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-        //             * (0.5*((x[1]-x[0])+x[0]));
-        // for (size_t i(1); i < q.size(); ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-        //     integral += 0.5*(q[i] * pow(x[i], p) + q[i-1] * pow(x[i-1], p))
-        //                 *(x[i] - x[i-1]);
-        // }
-        // return integral;
-        
-// 
-        // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-        //             * (x[1]-x[0]);
-        // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-        //     integral += q[i] * pow(x[i], p)
-        //                 * 0.5*(x[i+1] - x[i-1]);
-        // }
-        // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-        //             * (x[q.size()-1]-x[q.size()-2]);
-        // return integral;
     }
-
+//--------------------------------------------------------------
+//--------------------------------------------------------------
     template<class T>
     T moment(const vector<T> q, const valarray<T> x, const int p){
 
@@ -452,26 +428,9 @@ namespace Algorithms {
       integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
                       * (x[q.size()-1]-x[q.size()-2]);
       return integral*0.5;
-
-
-      // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-      //               * (0.5*((x[1]-x[0])+x[0]));
-      //   for (size_t i(1); i < q.size(); ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-      //       integral += 0.5*(q[i] * pow(x[i], p) + q[i-1] * pow(x[i-1], p))
-      //                   *(x[i] - x[i-1]);
-      //   }
-      //   return integral;
-
-        // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-        //             * (x[1]-x[0]);
-        // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-        //     integral += q[i] * pow(x[i], p)
-        //                 * 0.5*(x[i+1] - x[i-1]);
-        // }
-        // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-        //             * (x[q.size()-1]-x[q.size()-2]);
-        // return integral;
     }
+//--------------------------------------------------------------
+//--------------------------------------------------------------
     template<class T>
     T moment(const valarray<T> q, const valarray<T> x, const int p){
 
@@ -487,25 +446,25 @@ namespace Algorithms {
                       * (x[q.size()-1]-x[q.size()-2]);
       return integral*0.5;
 
-
-      // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-      //               * (0.5*((x[1]-x[0])+x[0]));
-      //   for (size_t i(1); i < q.size(); ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-      //       integral += 0.5*(q[i] * pow(x[i], p) + q[i-1] * pow(x[i-1], p))
-      //                   *(x[i] - x[i-1]);
-      //   }
-      //   return integral;
-
-    //     integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-    //                 * (x[1]-x[0]);
-    //     for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-    //         integral += q[i] * pow(x[i], p)
-    //                     * 0.5*(x[i+1] - x[i-1]);
-    //     }
-    //     integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-    //                 * (x[q.size()-1]-x[q.size()-2]);
-    //     return integral;
     }
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+    template<class T>
+    T moment(const vector<T> q, const valarray<T> x, const valarray<T> dx, const int p){
+
+        T integral(0.0);
+        integral = 5./12. * q[0] * pow(x[0],p) * dx[0];
+        integral += 13./12. * q[1] * pow(x[1],p) * dx[1];
+
+        for (size_t i(2); i < q.size()-2; ++i)
+        {  
+            integral += q[i] * pow(x[i],p) * dx[i];
+        }
+
+        integral += 13./12. * q[q.size()-2] * pow(x[q.size()-2],p) * dx[q.size()-2];
+        integral += 5./12. * q[q.size()-1] * pow(x[q.size()-1],p) * dx[q.size()-1];      
+    }
+
 //--------------------------------------------------------------
 // relativistic moments for inverse gamma and gamma
 //--------------------------------------------------------------
@@ -526,21 +485,9 @@ namespace Algorithms {
                       * (x[q.size()-1]-x[q.size()-2])
                       / sqrt(1.0+x[q.size()-1]*x[q.size()-1]);
       return integral*0.5;
-
-        // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-        //             * (x[1]-x[0])
-        //             / sqrt(1.0+x[0]*x[0]);
-        // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-        //     integral += q[i] * pow(x[i], p)
-        //                 * 0.5*(x[i+1] - x[i-1])
-        //                 / sqrt(1.0+x[i]*x[i]);
-        // }
-        // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-        //             * (x[q.size()-1]-x[q.size()-2])
-        //             / sqrt(1.0+x[q.size()-1]*x[q.size()-1]);
-        // return integral;
     }
-
+//--------------------------------------------------------------
+//--------------------------------------------------------------    
     template<class T>
     T relativistic_invg_moment(const valarray<T> q, const valarray<T> x, const int p){
 
@@ -558,19 +505,8 @@ namespace Algorithms {
                       * (x[q.size()-1]-x[q.size()-2])
                       / sqrt(1.0+x[q.size-1]*x[q.size-1]);
       return integral*0.5;
-        // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-        //             * (x[1]-x[0])
-        //             / sqrt(1.0+x[0]*x[0]);
-        // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-        //     integral += q[i] * pow(x[i], p)
-        //                 * 0.5*(x[i+1] - x[i-1])
-        //                 / sqrt(1.0+x[i]*x[i]);
-        // }
-        // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-        //             * (x[q.size()-1]-x[q.size()-2])
-        //             / sqrt(1.0+x[q.size-1]*x[q.size-1]);
-        // return integral;
     }
+//--------------------------------------------------------------
 //--------------------------------------------------------------
     template<class T>
     T relativistic_gamma_moment(const valarray<T> q, const valarray<T> x, const int p){
@@ -589,18 +525,6 @@ namespace Algorithms {
                       * (x[q.size()-1]-x[q.size()-2])
                       * sqrt(1.0+x[q.size-1]*x[q.size-1]);
       return integral*0.5;
-        // integral += q[0] * pow(x[0], p)                   // += Q_0*x_0^p * (x_1-x_0)
-        //             * (x[1]-x[0])
-        //             * sqrt(1.0+x[0]*x[0]);
-        // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-        //     integral += q[i] * pow(x[i], p)
-        //                 * 0.5*(x[i+1] - x[i-1])
-        //                 * sqrt(1.0+x[i]*x[i]);
-        // }
-        // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-        //             * (x[q.size()-1]-x[q.size()-2])
-        //             * sqrt(1.0+x[q.size-1]*x[q.size-1]);
-        // return integral;
     }
 //--------------------------------------------------------------
 

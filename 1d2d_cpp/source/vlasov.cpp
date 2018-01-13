@@ -114,10 +114,13 @@ Electric_Field::Electric_Field(size_t Nl, size_t Nm, valarray<double> dp)
     // ------------------------------------------------------------------------ // 
     // Non-uniform velocity grids
     // ------------------------------------------------------------------------ //  
-    pr[0] = 0.5*dp[0];
+    pr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        pr[ip] = pr[ip-1] + dp[ip];
+        pr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        pr[ip] += static_cast<complex<double> > (dp[ip]);
+        pr[ip] *= static_cast<complex<double> > (0.5);
+        pr[ip] += pr[ip-1];
             // std::cout << "\n Epr[" << ip << "] = " << pr[ip] << std::endl;
     }
     // ------------------------------------------------------------------------ // 
@@ -133,12 +136,11 @@ Electric_Field::Electric_Field(size_t Nl, size_t Nm, valarray<double> dp)
     invdp[0] =  -1.0/((dp[1]+dp[0]));
     for (size_t i(1); i < pr.size()-1; ++i)
     {
-        invdp[i] = -1.0/(dp[i]+dp[i+1]);
+        // invdp[i] = -1.0/(dp[i]+dp[i+1]);
+        invdp[i] = -1./(pr[i+1]-pr[i-1]);
     }
     invdp[pr.size()-1] = -1.0/((dp[pr.size()-1]+dp[pr.size()-2]));
     // ------------------------------------------------------------------------ // 
-    
-    
     
     // ------------------------------------------------------------------------ // 
     //       Inverted momentum axis
@@ -1285,17 +1287,17 @@ void Electric_Field::es1d(const DistFunc1D& Din,
 //      m = 1, l = 1
         MakeGH(Din(1,1),G,H,1);
         Ep *= B211;             H = H.mxaxis(Ep); Dh(0,0) += H.Re();
-    }
+    }   
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
 //  Make derivatives -(l+1/l)*G and H for a given f , used in openMP routine
-    void Electric_Field::MakeGH(const SHarmonic1D& f, SHarmonic1D& G, SHarmonic1D& H, size_t el)
-    {
+void Electric_Field::MakeGH(const SHarmonic1D& f, SHarmonic1D& G, SHarmonic1D& H, size_t el)
+{
 //--------------------------------------------------------------
-        valarray<complex<double> > invpax(invpr);
-        valarray<complex<double> > invdp_local(invdp);
-        complex<double> ld(el);
+    valarray<complex<double> > invpax(invpr);
+    valarray<complex<double> > invdp_local(invdp);
+    complex<double> ld(el);
 
     // invpax *= (-2.0)*(ld+1.0) * (pr[1]-pr[0]);
     invpax *= (ld+1.0);   // Non-uniform grid
@@ -1308,8 +1310,8 @@ void Electric_Field::es1d(const DistFunc1D& Din,
     G += H;
 
     for (size_t i(0); i < G.numx(); ++i) G(0,i) = 0.0;
-        for (size_t i(0); i < H.numx(); ++i) H(0,i) = f(1,i) * Hp0[el];
-    }
+    for (size_t i(0); i < H.numx(); ++i) H(0,i) = f(1,i) * Hp0[el];
+}
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 //  Make derivatives -(l+1/l)*G and H for a given f , used in openMP routine
@@ -2840,12 +2842,14 @@ Spatial_Advection::Spatial_Advection(size_t Nl, size_t Nm,
     // ------------------------------------------------------------------------ // 
     // Make velocity grid
     // ------------------------------------------------------------------------ // 
-            vr[0] = 0.5*dp[0];
+            vr[0] = static_cast<complex<double> > (0.5*dp[0]);
             for (size_t ip(1); ip < dp.size(); ++ip)
             {
-                vr[ip]  = dp[ip];
+                vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+                vr[ip] += static_cast<complex<double> > (dp[ip]);
+                vr[ip] *= static_cast<complex<double> > (0.5);
                 vr[ip] += vr[ip-1];
-            // std::cout << "\n Spr[" << ip << "] = " << vr[ip] << std::endl;
+                    // std::cout << "\n Epr[" << ip << "] = " << pr[ip] << std::endl;
             }
 
             if (Input::List().relativity)

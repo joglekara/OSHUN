@@ -142,11 +142,10 @@ SHarmonic1D& SHarmonic1D::Dp(){
             (*sh)(nump()-1,i) = 2.0*plast[i];
         }
     }
-
     //--------------------------------------------------------//
     //--------------------------------------------------------//
     ///
-    if (Input::List().dbydv_order == 4)
+    else if (Input::List().dbydv_order == 4)
     {
         complex<double> seventeensixth(static_cast<complex<double> >(17./6.));
         complex<double> onesixth(static_cast<complex<double> >(1./6.));
@@ -193,8 +192,7 @@ SHarmonic1D& SHarmonic1D::Dp(){
             }
         }
     }
-
-    if (Input::List().dbydv_order == 6)
+    else if (Input::List().dbydv_order == 6)
     {
         valarray<complex<double> > input(nump());
         valarray<complex<double> > output(nump());
@@ -435,24 +433,157 @@ void SHarmonic1D::checknan(){
 //--------------------------------------------------------------
 //  P-difference with derivative at #0 set to 0, and f at #np equal to #np-1  
 //--------------------------------------------------------------
-        Array2D< complex<double> > plast(numx(), numy());
-        plast = 0.0;
+        if (Input::List().dbydv_order == 2)
+        {
+            Array2D< complex<double> > plast(numx(), numy());
+            plast = 0.0;
 
-        for (size_t ix(0); ix < numx(); ++ix) {
-            for (size_t iy(0); iy < numy(); ++iy) {
-                plast(ix,iy) = (*sh)(nump()-2,ix,iy) - (*sh)(nump()-1,ix,iy); 
+            for (size_t ix(0); ix < numx(); ++ix) {
+                for (size_t iy(0); iy < numy(); ++iy) {
+                    plast(ix,iy) = (*sh)(nump()-2,ix,iy) - (*sh)(nump()-1,ix,iy); 
+                }
             }
-        }
-        *sh = (*sh).Dd1();
-        for (size_t ix(0); ix < numx(); ++ix) {
-            for (size_t iy(0); iy < numy(); ++iy) {
-           // TODO                The Dp at the zeroth cell is taken care off
-                (*sh)(0,ix,iy) = 0.0;   //separately, both for the E-field and the collisions.                     
-                (*sh)(nump()-1,ix,iy) = 2.0*plast(ix,iy); 
+            *sh = (*sh).Dd1();
+            for (size_t ix(0); ix < numx(); ++ix) {
+                for (size_t iy(0); iy < numy(); ++iy) {
+               // TODO                The Dp at the zeroth cell is taken care off
+                    (*sh)(0,ix,iy) = 0.0;   //separately, both for the E-field and the collisions.                     
+                    (*sh)(nump()-1,ix,iy) = 2.0*plast(ix,iy); 
+                }
             }
         }
         
+        else if (Input::List().dbydv_order == 4)
+        {
+            complex<double> seventeensixth(static_cast<complex<double> >(17./6.));
+            complex<double> onesixth(static_cast<complex<double> >(1./6.));
 
+            valarray<complex<double> > input(nump());
+            valarray<complex<double> > output(nump());
+            
+            Array2D<double> amat(nump(),nump());
+
+            for (size_t ix(0); ix < numx(); ++ix)
+            {
+                for (size_t iy(0); iy < numy(); ++iy)
+                {
+                    input[0]  = -seventeensixth*(*this)(0,ix,iy);
+                    input[0] += static_cast<complex<double> >(1.5)*(*this)(1,ix,iy);
+                    input[0] += static_cast<complex<double> >(1.5)*(*this)(2,ix,iy);
+                    input[0] -= onesixth*(*this)(3,ix,iy);
+
+                    amat(0,0) = 1.;
+                    amat(0,1) = 3.;
+                    // std::cout << "\n input[" << 0 << "] = " << input[0];
+
+                    for (size_t ip(1); ip < nump()-1; ++ip)
+                    {
+                        input[ip]  = static_cast<complex<double> > (0.75)*(*this)(ip+1,ix,iy);
+                        input[ip] -= static_cast<complex<double> > (0.75)*(*this)(ip-1,ix,iy);
+                        amat(ip,ip-1) = 0.25;
+                        amat(ip,ip+1) = 0.25;
+                        amat(ip,ip) = 1.;
+                        // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix,iy); //input[ip];//
+                    }
+
+                    
+                    input[nump()-1]  = seventeensixth*(*this)(nump()-1,ix,iy);
+                    input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-2,ix,iy);
+                    input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-3,ix,iy);
+                    input[nump()-1] += onesixth*(*this)(nump()-4,ix,iy);
+                    amat(nump()-1,nump()-1) = 1.;
+                    amat(nump()-1,nump()-2) = 3.;
+
+                    Thomas_Tridiagonal(amat,input,output);
+
+                    for (size_t ip(0); ip < nump(); ++ip)
+                    {
+                        (*this)(ip,ix,iy) = static_cast<complex<double> > (-2.)*output[ip];
+                    }
+                }
+            }
+        }
+        else if (Input::List().dbydv_order == 6)
+        {
+            valarray<complex<double> > input(nump());
+            valarray<complex<double> > output(nump());
+            
+            Array2D<double> amat(nump(),nump());
+
+            for (size_t ix(0); ix < numx(); ++ix)
+            {
+                for (size_t iy(0); iy < numy(); ++iy)
+                {
+                    input[0]  = static_cast<complex<double> >(-197./60.)*(*this)(0,ix,iy);
+                    input[0] += static_cast<complex<double> >(-5./12.)*(*this)(1,ix,iy);
+                    input[0] += static_cast<complex<double> >(5.)*(*this)(2,ix,iy);
+                    input[0] += static_cast<complex<double> >(-5./3.)*(*this)(3,ix,iy);
+                    input[0] += static_cast<complex<double> >(5./12.)*(*this)(4,ix,iy);
+                    input[0] += static_cast<complex<double> >(-1./20.)*(*this)(5,ix,iy);
+                    
+                    input[1]  = static_cast<complex<double> >(-43./96.)*(*this)(0,ix,iy);
+                    input[1] += static_cast<complex<double> >(-5./6.)*(*this)(1,ix,iy);
+                    input[1] += static_cast<complex<double> >(9./8.)*(*this)(2,ix,iy);
+                    input[1] += static_cast<complex<double> >(1./6.)*(*this)(3,ix,iy);
+                    input[1] += static_cast<complex<double> >(-1./96.)*(*this)(4,ix,iy);
+
+                    amat(0,0) = 1.;
+                    amat(0,1) = 5.;
+                    amat(1,0) = 0.125;
+                    amat(1,1) = 1.;
+                    amat(1,2) = 0.25;
+
+
+                    // std::cout << "\n input[" << 0 << "] = " << input[0];
+
+                    for (size_t ip(2); ip < nump()-2; ++ip)
+                    {
+                        input[ip]  = static_cast<complex<double> > (14./18.)*(*this)(ip+1,ix,iy);
+                        input[ip] -= static_cast<complex<double> > (14./18.)*(*this)(ip-1,ix,iy);
+                        input[ip] += static_cast<complex<double> > (1./36.)*(*this)(ip+2,ix,iy);
+                        input[ip] -= static_cast<complex<double> > (1./36.)*(*this)(ip-2,ix,iy);
+                        
+                        amat(ip,ip-1) = 1./3.;
+                        amat(ip,ip+1) = 1./3.;
+                        amat(ip,ip)   = 1.;
+
+                        // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix,iy); //input[ip];//
+                    }
+
+                    input[nump()-2]  = static_cast<complex<double> >(43./96.)*(*this)(nump()-1,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(5./6.)*(*this)(nump()-2,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(-9./8.)*(*this)(nump()-3,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(-1./6.)*(*this)(nump()-4,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(1./96.)*(*this)(nump()-5,ix,iy);
+
+                    input[nump()-1]  = static_cast<complex<double> >(197./60.)*(*this)(nump()-1,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(5./12.)*(*this)(nump()-2,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(-5.)*(*this)(nump()-3,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(5./3.)*(*this)(nump()-4,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(-5./12.)*(*this)(nump()-5,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(1./20.)*(*this)(nump()-6,ix,iy);
+
+                    amat(nump()-2,nump()-1) = 0.125;
+                    amat(nump()-2,nump()-2) = 1.;
+                    amat(nump()-2,nump()-3) = 0.25;
+                    amat(nump()-1,nump()-1) = 1.;
+                    amat(nump()-1,nump()-2) = 5.;
+                    
+
+                    // std::cout << "\n input[" << nump()-1 << "] = " << input[nump()-1];
+
+                    // TridiagonalSolve(a,b,c,input,output);
+
+                    Thomas_Tridiagonal(amat,input,output);
+
+                    for (size_t ip(0); ip < nump(); ++ip)
+                    {
+                        (*this)(ip,ix,iy) = static_cast<complex<double> > (-2.)*output[ip];
+                        // std::cout << "\n output[" << ip << "] = " << output[ip];
+                    }
+                }
+            }
+        }        
 
         // GSlice_iter< complex<double> > it1(p0(nump()-2)), it2(p0(nump()-1));  
         // for(int i=0; i< numx()*numy(); ++i){ 
@@ -1132,15 +1263,22 @@ valarray<double> DistFunc1D::getdensity(){
     valarray<double> out((*df)[0].numx());
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
     static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+    valarray<complex<double> > dvr(vr);
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
+    dvr[0] = static_cast<complex<double> >(dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
+    dvr[0] = static_cast<complex<double> >(dp[0]);
 
     for (size_t i(0); i<(*df)[0].numx();++i){
-        out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,2.0)).real();
+        // out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,2.0)).real();
+        out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,dvr,2.0)).real();
     }
 
     return out;
@@ -1152,11 +1290,17 @@ valarray<double> DistFunc1D::getdensity() const {
 
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+    valarray<complex<double> > dvr(vr);
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
+    dvr[0] = static_cast<complex<double> >(dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        dvr[ip] = static_cast<complex<double> >(dp[ip]);
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     for (size_t i(0); i<(*df)[0].numx();++i){
@@ -1173,11 +1317,13 @@ valarray<double> DistFunc1D::getcurrent(size_t dir){
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
-        
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     if (dir == 0)
@@ -1216,11 +1362,15 @@ valarray<double> DistFunc1D::getcurrent(size_t dir) const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
+
     if (dir == 0)
     {
         for (size_t i(0); i<(*df)[0].numx();++i){
@@ -1258,10 +1408,13 @@ Array2D<double> DistFunc1D::getcurrent() const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     double current_c1(4.0/3.0*M_PI*charge/ma);
@@ -1287,10 +1440,13 @@ valarray<double> DistFunc1D::getrelativisticcurrent(size_t dir){
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     if (dir == 0)
@@ -1326,10 +1482,13 @@ valarray<double> DistFunc1D::getrelativisticcurrent(size_t dir) const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     if (dir == 0)
@@ -1368,10 +1527,13 @@ Array2D<double> DistFunc1D::getrelativisticcurrent() const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     double current_c1(4.0/3.0*M_PI*charge/ma);
@@ -1402,10 +1564,13 @@ valarray<double> DistFunc1D::getpressure(){
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     for (size_t i(0); i<(*df)[0].numx();++i){
