@@ -192,10 +192,10 @@ int main(int argc, char** argv) {
         size_t t_out(tout_start+1);
         double start_time(0.);
     
-        double dt_out(Input::List().t_stop / (Input::List().n_outsteps+1));
-        double dt_dist_out(Input::List().t_stop / (Input::List().n_distoutsteps+1));
-        double dt_big_dist_out(Input::List().t_stop / (Input::List().n_bigdistoutsteps+1));
-        double dt_restart(Input::List().t_stop / (Input::List().n_restarts+1));
+        double dt_out(Input::List().t_stop / (Input::List().n_outsteps));
+        double dt_dist_out(Input::List().t_stop / (Input::List().n_distoutsteps));
+        double dt_big_dist_out(Input::List().t_stop / (Input::List().n_bigdistoutsteps));
+        double dt_restart(Input::List().t_stop / (Input::List().n_restarts));
         
         double next_out(dt_out);
         double next_dist_out(dt_dist_out);

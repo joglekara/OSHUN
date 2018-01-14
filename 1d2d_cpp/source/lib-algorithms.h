@@ -16,7 +16,7 @@
 
 //**************************************************************
 namespace Algorithms {
-
+#pragma optimize("", off)
 //--------------------------------------------------------------
     template<typename T>
     valarray<T> MakeAxis(const T min, const T max, const size_t N){
@@ -316,7 +316,7 @@ namespace Algorithms {
         // vector<valarray<T>> _dx, _dp;
     };
 //--------------------------------------------------------------
-
+#pragma optimize("", on)
 //--------------------------------------------------------------
 // LEGENDRE POLYNOMIALS
 // Calculate the legendre polynomials using the recurrance relations

@@ -1397,8 +1397,6 @@ valarray<double> DistFunc1D::getcurrent(size_t dir) const{
     }
 
     return out;
-
-
 }
 //--------------------------------------------------------------------------------------------------------------------------    
 Array2D<double> DistFunc1D::getcurrent() const{
