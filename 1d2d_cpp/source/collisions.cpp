@@ -128,6 +128,7 @@ void self_f00_implicit_step::update_C_Rosenbluth(valarray<double> &fin) {
     
     C_RB[0] = 0.0;
     // I4_Lnee = 0.0;
+    #pragma novector
     for (size_t n(1); n < C_RB.size(); ++n) {
 //        C_RB[n]  = p2dp[n-1] * fin[n-1] + p2dpm1[n-1] * fin[n - 2];
         C_RB[n]  = vr[n - 1] * vr[n - 1] * dvr[n - 1] * fin[n - 1];
@@ -939,6 +940,7 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
 
     //     Integral J_(-1) = 4*pi * v * int_0^v f(u)*u^4du
     J1m[J1m.size()-1] = 0;
+    #pragma novector
     for (int k(J1m.size()-2); k > -1; --k) {
         J1m[k]  = U1[k+1]*fin[k+1]+U1m1[k+1]*fin[k];
         J1m[k] += J1m[k+1];
