@@ -78,8 +78,7 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
     
 
     for (size_t i(0); i < vr.size()-1; ++i) {
-        std::cout << "vr0[" << i << "] = " << vr[i] <<"\n";
-
+        // std::cout << "vr0[" << i << "] = " << vr[i] <<"\n";
         vrh[i] = 0.5*(vr[i+1] - vr[i]);
         dvr[i] = (vr[i+1] - vr[i]); // Non-uniform velocity grid
     }
