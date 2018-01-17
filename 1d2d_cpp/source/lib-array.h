@@ -559,26 +559,29 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_2nd_order(){
 template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 
     Array2D<T> temp(*this);
+    // temp = static_cast<complex<double> > (0.);
 
     complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
     complex<double> eight(static_cast<complex<double> >(8.));
 
     for (long i2(0); i2<long(d2);++i2)
     {
-        temp(0,i2) = -2.0*((*this)(1,i2)-(*this)(0,i2));
-        temp(1,i2) = -1.0*((*this)(2,i2)-(*this)(0,i2));
+        // temp(0,i2) = -2.0*((*this)(1,i2)-(*this)(0,i2));
+        temp(1,i2) = ((*this)(0,i2)-(*this)(2,i2))/onesixth;
 
         for (long i1(2); i1<long(d1)-2;++i1)
         {
             temp(i1,i2)  = ((*this)(i1+2,i2));
             temp(i1,i2) -= eight*(*this)(i1+1,i2);
             temp(i1,i2) += eight*(*this)(i1-1,i2);
-            temp(i1,i2) -= (*this)(i1-2,i2);    
+            temp(i1,i2) -= (*this)(i1-2,i2);
         }
         
-        temp(long(d1)-2,i2) = -1.0*((*this)(long(d1)-1,i2)-(*this)(long(d1)-3,i2));
-        temp(long(d1)-1,i2) = -2.0*((*this)(long(d1)-1,i2)-(*this)(long(d1)-2,i2));
+        temp(long(d1)-2,i2) = ((*this)(long(d1)-3,i2)-(*this)(long(d1)-1,i2))/onesixth;
+        // temp(long(d1)-1,i2) = -2.0*((*this)(long(d1)-1,i2)-(*this)(long(d1)-2,i2));
    }
+
+   temp *= onesixth;
 
    *this = temp; 
     return *this;

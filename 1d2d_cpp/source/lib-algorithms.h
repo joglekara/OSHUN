@@ -402,14 +402,19 @@ namespace Algorithms {
 
         T integral(0.0);
 // TODO:   Integral values up to the zeroth cell and above the last cell
-      integral += q[0] * (pow(x[0], p))                   // += Q_0*x_0^p * (x_1-x_0)
-                  * (x[1]-x[0]);
-      for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-          integral += q[i] * pow(x[i], p)
-                      * (x[i+1] - x[i-1]);
-      }
-      integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-                      * (x[q.size()-1]-x[q.size()-2]);
+      // integral += q[0] * (pow(x[0], p))                   // += Q_0*x_0^p * (x_1-x_0)
+      //             * (x[1]-x[0]);
+      // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
+      //     integral += q[i] * pow(x[i], p)
+      //                 * (x[i+1] - x[i-1]);
+      // }
+
+        for (size_t i(1); i < q.size(); ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
+            integral += (q[i]*pow(x[i],p)+q[i-1]*pow(x[i-1],p))*(x[i]-x[i-1]);
+        }
+
+      // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
+      //                 * (x[q.size()-1]-x[q.size()-2]);
       return integral*0.5;
     }
 //--------------------------------------------------------------
@@ -419,14 +424,18 @@ namespace Algorithms {
 
         T integral(0.0);
 // TODO:   Integral values up to the zeroth cell and above the last cell
-      integral += q[0] * (pow(x[0], p))                   // += Q_0*x_0^p * (x_1-x_0)
-                  * (x[1]-x[0]);
-      for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-          integral += q[i] * pow(x[i], p)
-                      * (x[i+1] - x[i-1]);
-      }
-      integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-                      * (x[q.size()-1]-x[q.size()-2]);
+      // integral += q[0] * (pow(x[0], p))                   // += Q_0*x_0^p * (x_1-x_0)
+      //             * (x[1]-x[0]);
+      // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
+      //     integral += q[i] * pow(x[i], p)
+      //                 * (x[i+1] - x[i-1]);
+      // }
+      // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
+      //                 * (x[q.size()-1]-x[q.size()-2]);
+//                 
+        for (size_t i(1); i < q.size(); ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
+            integral += (q[i]*pow(x[i],p)+q[i-1]*pow(x[i-1],p))*(x[i]-x[i-1]);
+        }
       return integral*0.5;
     }
 //--------------------------------------------------------------
@@ -436,34 +445,38 @@ namespace Algorithms {
 
         T integral(0.0);
 // TODO:   Integral values up to the zeroth cell and above the last cell
-      integral += q[0] * (pow(x[0], p))                   // += Q_0*x_0^p * (x_1-x_0)
-                  * (x[1]-x[0]);
-      for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
-          integral += q[i] * pow(x[i], p)
-                      * (x[i+1] - x[i-1]);
-      }
-      integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
-                      * (x[q.size()-1]-x[q.size()-2]);
+      // integral += q[0] * (pow(x[0], p))                   // += Q_0*x_0^p * (x_1-x_0)
+      //             * (x[1]-x[0]);
+      // for (size_t i(1); i < q.size()-1; ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
+      //     integral += q[i] * pow(x[i], p)
+      //                 * (x[i+1] - x[i-1]);
+      // }
+      // integral += q[q.size()-1] * pow(x[q.size()-1], p) // += Q_n*x_n^p * (x_{n}-x_{n-1})
+      //                 * (x[q.size()-1]-x[q.size()-2]);
+//                 
+        for (size_t i(1); i < q.size(); ++i){           // += Q_i*x_i^p * (x_{i+1}-x_{i-1})
+            integral += (q[i]*pow(x[i],p)+q[i-1]*pow(x[i-1],p))*(x[i]-x[i-1]);
+        }
       return integral*0.5;
 
     }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-    template<class T>
-    T moment(const vector<T> q, const valarray<T> x, const valarray<T> dx, const int p){
+    // template<class T>
+    // T moment(const vector<T> q, const valarray<T> x, const valarray<T> dx, const int p){
 
-        T integral(0.0);
-        integral = 5./12. * q[0] * pow(x[0],p) * dx[0];
-        integral += 13./12. * q[1] * pow(x[1],p) * dx[1];
+    //     T integral(0.0);
+    //     integral = 5./12. * q[0] * pow(x[0],p) * dx[0];
+    //     integral += 13./12. * q[1] * pow(x[1],p) * dx[1];
 
-        for (size_t i(2); i < q.size()-2; ++i)
-        {  
-            integral += q[i] * pow(x[i],p) * dx[i];
-        }
+    //     for (size_t i(2); i < q.size()-2; ++i)
+    //     {  
+    //         integral += q[i] * pow(x[i],p) * dx[i];
+    //     }
 
-        integral += 13./12. * q[q.size()-2] * pow(x[q.size()-2],p) * dx[q.size()-2];
-        integral += 5./12. * q[q.size()-1] * pow(x[q.size()-1],p) * dx[q.size()-1];      
-    }
+    //     integral += 13./12. * q[q.size()-2] * pow(x[q.size()-2],p) * dx[q.size()-2];
+    //     integral += 5./12. * q[q.size()-1] * pow(x[q.size()-1],p) * dx[q.size()-1];      
+    // }
 
 //--------------------------------------------------------------
 // relativistic moments for inverse gamma and gamma
