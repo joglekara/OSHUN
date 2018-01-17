@@ -1272,10 +1272,10 @@ valarray<double> DistFunc1D::getdensity(){
     valarray<double> out((*df)[0].numx());
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
     static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
-    valarray<complex<double> > dvr(vr);
+    // valarray<complex<double> > dvr(vr);xwx
 
     vr[0] = static_cast<complex<double> > (0.5*dp[0]);
-    dvr[0] = static_cast<complex<double> >(dp[0]);
+    // dvr[0] = static_cast<complex<double> >(dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
         vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
@@ -1283,11 +1283,11 @@ valarray<double> DistFunc1D::getdensity(){
         vr[ip] *= static_cast<complex<double> > (0.5);
         vr[ip] += vr[ip-1];
     }
-    dvr[0] = static_cast<complex<double> >(dp[0]);
+    // dvr[0] = static_cast<complex<double> >(dp[0]);
 
     for (size_t i(0); i<(*df)[0].numx();++i){
-        // out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,2.0)).real();
-        out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,dvr,2.0)).real();
+        out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,2.0)).real();
+        // out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,dvr,2.0)).real();
     }
 
     return out;
