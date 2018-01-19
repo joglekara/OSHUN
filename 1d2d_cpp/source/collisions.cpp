@@ -47,7 +47,7 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
         mass(_mass), ib(_ib),
         vr(Algorithms::MakeCAxis(0.,dp)), 
         dvr(0.,dp.size()), // Non-uniform velocity grid
-        vrh(0.0,dp.size()), oneoverv2(dp.size()),
+        vrh(0.0,dp.size()), oneoverv2(0.,dp.size()),
         p2dp(0.0,dp.size()), p2dpm1(0.0,dp.size()),phdp(0.0,dp.size()), phdpm1(0.0,dp.size()), p4dp(0.0,dp.size()), laser_Inv_Uav6(0.0,dp.size()),
         C_RB(0.0,dp.size()+1), D_RB(0.0,dp.size()+1), 
         I4_Lnee(0.0), 
@@ -125,16 +125,11 @@ void self_f00_implicit_step::update_C_Rosenbluth(valarray<double> &fin) {
 
     C_RB = p4dp*fin;
     I4_Lnee = C_RB.sum();
+    C_RB = 0.;
     
-    C_RB[0] = 0.0;
-    // I4_Lnee = 0.0;
-    #pragma novector
-    for (size_t n(1); n < C_RB.size(); ++n) {
-//        C_RB[n]  = p2dp[n-1] * fin[n-1] + p2dpm1[n-1] * fin[n - 2];
-        C_RB[n]  = vr[n - 1] * vr[n - 1] * dvr[n - 1] * fin[n - 1];
-        C_RB[n] += C_RB[n - 1];
-
-        // I4_Lnee  += p4dp[n - 1] * fin[n - 1];
+    for (size_t n(1); n < C_RB.size(); ++n) 
+    {
+        C_RB[n]  = C_RB[n - 1] + (vr[n - 1] * vr[n - 1] * dvr[n - 1] * fin[n - 1]);
     }
 
     C_RB *= 4.0 * M_PI;
@@ -148,7 +143,7 @@ double self_f00_implicit_step::update_D_Rosenbluth(const size_t& k, valarray<dou
 
     double answer(0.0);
 
-    valarray<double> innersum(fin.size() - 1);  /// Only needs to be np-1
+    valarray<double> innersum(0.,fin.size() - 1);  /// Only needs to be np-1
 
     int n(innersum.size()-1);                /// Initialize at last point, which is the sum from np-1 to np-1
     /// Now n = np - 1

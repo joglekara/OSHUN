@@ -2558,7 +2558,7 @@ void Output_Data::Output_Preprocessor::py(const State1D& Y, const Grid_Info& gri
 
         for (size_t i(0); i < outNxLocal; ++i) 
         {
-            valarray<double> data1D = p_x.p2( Y.DF(s), i+Nbc, s);
+            valarray<double> data1D = p_x.p2( Y.DF(s), i, s);
 
             for (size_t j(0); j < Npy; ++j) {
                 pybuf[j+i*Npy]=data1D[j];
@@ -2624,7 +2624,7 @@ void Output_Data::Output_Preprocessor::pz(const State1D& Y, const Grid_Info& gri
 
         for (size_t i(0); i < outNxLocal; ++i) {
 
-            valarray<double> data1D = p_x.p3( Y.DF(s), i+Nbc, s);
+            valarray<double> data1D = p_x.p3( Y.DF(s), i, s);
 
             for (size_t j(0); j < Npz; ++j) {
                 pzbuf[j+i*Npz]=data1D[j];
@@ -2698,7 +2698,7 @@ void Output_Data::Output_Preprocessor::px(const State2D& Y, const Grid_Info& gri
             for(size_t iy(0); iy < outNyLocal; ++iy) 
             {
 
-                valarray<double> data1D = p_x.p1( Y.DF(s), ix+Nbc, iy + Nbc, s);
+                valarray<double> data1D = p_x.p1( Y.DF(s), ix, iy, s);
 
                 for (size_t j(0); j < Npx; ++j) {
                     pxbuf[counter]=data1D[j];
@@ -2799,7 +2799,7 @@ void Output_Data::Output_Preprocessor::py(const State2D& Y, const Grid_Info& gri
         {
             for(size_t iy(0); iy < outNyLocal; ++iy) 
             {
-                valarray<double> data1D = p_x.p2( Y.DF(s), ix+Nbc, iy + Nbc, s);
+                valarray<double> data1D = p_x.p2( Y.DF(s), ix, iy, s);
 
                 for (size_t j(0); j < Npy; ++j) {
                     pxbuf[counter]=data1D[j];
@@ -2900,7 +2900,7 @@ void Output_Data::Output_Preprocessor::pz(const State2D& Y, const Grid_Info& gri
             for(size_t iy(0); iy < outNyLocal; ++iy) 
             {
 
-                valarray<double> data1D = p_x.p3( Y.DF(s), ix+Nbc, iy + Nbc, s);
+                valarray<double> data1D = p_x.p3( Y.DF(s), ix, iy, s);
 
                 for (size_t j(0); j < Npz; ++j) {
                     pxbuf[counter]=data1D[j];
@@ -3008,7 +3008,7 @@ void Output_Data::Output_Preprocessor::pxpy(const State1D& Y, const Grid_Info& g
         ind = 0;    
         for (size_t i(0); i < outNxLocal; ++i) 
         {
-            Array2D<double> data2D = p_x.p1p2( Y.DF(s), i+Nbc, s);
+            Array2D<double> data2D = p_x.p1p2( Y.DF(s), i, s);
             for (size_t j(0); j < grid.axis.Npx(s); ++j) 
             {
 
@@ -3106,7 +3106,7 @@ void Output_Data::Output_Preprocessor::pxpy(const State2D& Y, const Grid_Info& g
         {
             for(size_t iy(0); iy < outNyLocal; ++iy) 
             {
-                Array2D<double> data2D = p_x.p1p2( Y.DF(s), ix+Nbc, iy+Nbc, s);
+                Array2D<double> data2D = p_x.p1p2( Y.DF(s), ix, iy, s);
 
                 for (size_t j(0); j < grid.axis.Npx(s); ++j) 
                 {
@@ -3232,7 +3232,7 @@ void Output_Data::Output_Preprocessor::pypz(const State1D& Y, const Grid_Info& g
 
         for (size_t i(0); i < outNxLocal; ++i) {
 
-            Array2D<double> data2D = p_x.p2p3( Y.DF(s), i+Nbc, s);
+            Array2D<double> data2D = p_x.p2p3( Y.DF(s), i, s);
 
             for (size_t j(0); j < grid.axis.Npy(s); ++j) 
             {
@@ -3329,7 +3329,7 @@ void Output_Data::Output_Preprocessor::pypz(const State2D& Y, const Grid_Info& g
         {
             for(size_t iy(0); iy < outNyLocal; ++iy) 
             {
-                Array2D<double> data2D = p_x.p2p3( Y.DF(s), ix+Nbc, iy+Nbc, s);
+                Array2D<double> data2D = p_x.p2p3( Y.DF(s), ix, iy, s);
 
                 for (size_t j(0); j < grid.axis.Npx(s); ++j) 
                 {
@@ -3450,7 +3450,7 @@ void Output_Data::Output_Preprocessor::pxpz(const State1D& Y, const Grid_Info& g
 
         for (size_t i(0); i < outNxLocal; ++i) {
 
-            Array2D<double> data2D = p_x.p1p2( Y.DF(s), i+Nbc, s);
+            Array2D<double> data2D = p_x.p1p2( Y.DF(s), i, s);
             ind = 0;
 
             for (size_t j(0); j < grid.axis.Npx(s); ++j) {
@@ -3550,7 +3550,7 @@ void Output_Data::Output_Preprocessor::pxpz(const State2D& Y, const Grid_Info& g
         {
             for(size_t iy(0); iy < outNyLocal; ++iy) 
             {
-                Array2D<double> data2D = p_x.p1p3( Y.DF(s), ix+Nbc, iy+Nbc, s);
+                Array2D<double> data2D = p_x.p1p3( Y.DF(s), ix, iy, s);
 
                 for (size_t j(0); j < grid.axis.Npx(s); ++j) 
                 {
