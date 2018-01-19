@@ -303,9 +303,6 @@ Electric_Field::Electric_Field(size_t Nl, size_t Nm, valarray<double> dp)
         }
     }
 
-    
-
-
     il = 0; im = 0; diag = 0;
 
     for (size_t id(0); id < num_dists; ++id)

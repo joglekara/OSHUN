@@ -291,6 +291,24 @@ namespace Algorithms {
             }
 
             for (size_t i(0); i < a.pxdim(); ++i) {
+                // _dp.push_back((_pmax[i])/(static_cast<T>(_Np[i])));
+                // Non-uniform grid
+                _dpx.push_back(a.dpx(i));
+            }
+
+            for (size_t i(0); i < a.pydim(); ++i) {
+                // _dp.push_back((_pmax[i])/(static_cast<T>(_Np[i])));
+                // Non-uniform grid
+                _dpy.push_back(a.dpy(i));
+            }
+
+            for (size_t i(0); i < a.pzdim(); ++i) {
+                // _dp.push_back((_pmax[i])/(static_cast<T>(_Np[i])));
+                // Non-uniform grid
+                _dpz.push_back(a.dpz(i));
+            }
+
+            for (size_t i(0); i < a.pxdim(); ++i) {
                 // _px.push_back( Axis<T>( static_cast<T>(-1.0) * a.pmax(i), a.pmax(i), a.Npx(i)) );
                 _px.push_back( CAxis<T>( static_cast<T>(-1.0) * a.pmax(i), a.dpx(i)) );
             }

@@ -927,8 +927,8 @@ Output_Data::harmonicvsposition::harmonicvsposition(const Grid_Info& _G) {
 
 //  Generate the required structures
     for (size_t s(0); s < _G.axis.pdim(); ++s) {
-        pmax.push_back( static_cast<double>(_G.axis.pmax(s)) );
-        pmin.push_back( static_cast<double>(_G.axis.pmin(s)) );
+    //     pmax.push_back( static_cast<double>(_G.axis.pmax(s)) );
+    //     pmin.push_back( static_cast<double>(_G.axis.pmin(s)) );
         nump.push_back( static_cast<double>(_G.axis.Np(s))   );
     }
 }
@@ -937,8 +937,8 @@ Output_Data::harmonicvsposition::harmonicvsposition(const Grid_Info& _G) {
 Output_Data::harmonicvsposition::harmonicvsposition( const harmonicvsposition& other) {
 
     for (size_t s(0); s < other.Species(); ++s) {
-        pmin.push_back( other.Pmin(s) );
-        pmax.push_back( other.Pmax(s) );
+    //     pmin.push_back( other.Pmin(s) );
+    //     pmax.push_back( other.Pmax(s) );
         nump.push_back( other.Np(s)   );
     }
 }
@@ -981,35 +981,30 @@ Array2D<double>  Output_Data::harmonicvsposition::operator()(DistFunc2D& df, siz
 
 //**************************************************************
 //--------------------------------------------------------------
-Output_Data::fulldistvsposition::fulldistvsposition( const Grid_Info& _G): grid(_G) 
+Output_Data::fulldist::fulldist( const Grid_Info& _G): grid(_G) 
 {
-    
-    //  Generate the required structures
-    for (size_t s(0); s < _G.axis.pdim(); ++s) {
-        pvec.push_back(valtovec(_G.axis.p(s)));
-        
-        pxvec.push_back(_G.axis.px(s));
-        pyvec.push_back(_G.axis.py(s));
-        pzvec.push_back(_G.axis.pz(s));
-
-        PL2D.push_back( PLegendre2D( _G.l0[s], _G.m0[s],
-          (_G.axis.pmax(s)), _G.axis.px(s), _G.axis.py(s) ) );  
-    
-        pout1D_p1.push_back( valarray<double>( _G.axis.Npx(s))); 
-        pout1D_p2.push_back( valarray<double>( _G.axis.Npy(s))); 
-        pout1D_p3.push_back( valarray<double>( _G.axis.Npz(s)));         
-        pout2D_p1p2.push_back( Array2D<double>( _G.axis.Npx(s),_G.axis.Npy(s))); 
-        pout2D_p1p3.push_back( Array2D<double>( _G.axis.Npx(s),_G.axis.Npz(s))); 
-        pout2D_p2p3.push_back( Array2D<double>( _G.axis.Npy(s),_G.axis.Npz(s))); 
-
-        pout3D.push_back( Array3D<double>( _G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
-    }
-
+    size_t szx = _G.axis.Nx(0) - 2*Input::List().BoundaryCells;
+    size_t szy = _G.axis.Nx(1) - 2*Input::List().BoundaryCells;
     double py_sq, pz_sqppy_sq;
     size_t pindlt;
 
+    //  Generate the required structures
     for (size_t s(0); s < _G.axis.pdim(); ++s) 
-    {
+    {   
+        pvec.push_back(valtovec(_G.axis.p(s)));
+        PL2D.push_back( PLegendre2D( _G.l0[s], _G.m0[s],
+          (_G.axis.pmax(s)), _G.axis.px(s), _G.axis.py(s) ) );  
+
+        vector<Array3D<double> > temp;
+        for (size_t iy(0); iy < szy; ++iy)
+        {
+            for (size_t ix(0); ix < szx; ++ix)
+            {
+                temp.push_back(Array3D<double>( _G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
+            }
+        }
+        pout3D.push_back(temp); 
+        
         pradius.push_back(Array3D<double>(_G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
         phi.push_back(Array2D<double>(_G.axis.Npy(s),_G.axis.Npz(s)));  phi[s] = 0.;
         
@@ -1021,23 +1016,15 @@ Output_Data::fulldistvsposition::fulldistvsposition( const Grid_Info& _G): grid(
                 pz_sqppy_sq = py_sq + (_G.axis.pz(s))[ipz]*(_G.axis.pz(s))[ipz];
                 for (size_t ipx(0); ipx < _G.axis.Npx(s); ++ipx)
                 {
-
                     pradius[s](ipx,ipy,ipz) = sqrt((_G.axis.px(s))[ipx]*(_G.axis.px(s))[ipx]+pz_sqppy_sq);
 
                     if (pradius[s](ipx,ipy,ipz) < _G.axis.pmax(s))
-                    {
-                        
+                    { 
                         phi[s](ipy,ipz) = (atan2((_G.axis.pz(s))[ipz],(_G.axis.py(s))[ipy]) + M_PI);
-                    }
-                    else
-                    {
                     }
                 }
             }       
         }
-        dpx.push_back(_G.axis.dpx(s));
-        dpy.push_back(_G.axis.dpy(s));
-        dpz.push_back(_G.axis.dpz(s));
     }
 }
 //-------------------------------------------------------------
@@ -1045,183 +1032,49 @@ Output_Data::fulldistvsposition::fulldistvsposition( const Grid_Info& _G): grid(
  * @brief      Destroys the object.
  */
 //-------------------------------------------------------------
-Output_Data::fulldistvsposition::~fulldistvsposition(){
+Output_Data::fulldist::~fulldist(){
 
 }
-
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldistvsposition::p1(DistFunc1D& df, size_t x0, size_t s) {
+valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s) {
 
-    pout1D_p1[s] = 0.0; 
+    valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
 
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
+        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+        {
+            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+            {
+                // std::cout << "(ipx,ipy,ipz) = " << ipx << "," << ipy << "," << ipz << "\n";
+                pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
                 
-        double YSH_re;
-
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout1D_p1[s][ipx] += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpy[s][ipy]*dpz[s][ipz]);
-                    }
-                    else pout1D_p1[s][ipx] += 0.;
-                }
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout1D_p1[s][ipx] += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re*dpy[s][ipy]*dpz[s][ipz]);
-                        }
-                        else pout1D_p1[s][ipx] += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-    return pout1D_p1[s];    
+    return pout1D_p1;
 }
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldistvsposition::p1(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+valarray<double>  Output_Data::fulldist::p1(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
 
-    pout1D_p1[s] = 0.0; 
-    
+    valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
 
-
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
+        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+        {
+            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+            {
                 
-        double YSH_re;
-
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout1D_p1[s][ipx] += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpy[s][ipy]*dpz[s][ipz]);
-                    }
-                    else pout1D_p1[s][ipx] += 0.;
-                }
+                pout1D_p1[ipx] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0,y0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout1D_p1[s][ipx] += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re*dpy[s][ipy]*dpz[s][ipz]);
-                        }
-                        else pout1D_p1[s][ipx] += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-    return pout1D_p1[s];    
+    return pout1D_p1;
 }
 
 //-------------------------------------------------------------
@@ -1229,915 +1082,240 @@ valarray<double>  Output_Data::fulldistvsposition::p1(DistFunc2D& df, size_t x0,
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldistvsposition::p2(DistFunc1D& df, size_t x0, size_t s) {
+valarray<double>  Output_Data::fulldist::p2(DistFunc1D& df, size_t x0, size_t s) {
 
-    pout1D_p2[s] = 0.0;
-    
+    valarray<double> pout1D_p2(0.,grid.axis.Npy(s));     
 
-
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
     {
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-     
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
+        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        {    
+            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+            {
                 
-        double YSH_re;
-
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout1D_p2[s][ipy] += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpx[s][ipx]*dpz[s][ipz]);
-                    }
-                    else pout1D_p2[s][ipy] += 0.;
-                }
+                pout1D_p2[ipy] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout1D_p2[s][ipy] += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re* dpx[s][ipx]*dpz[s][ipz]);
-                        }
-                        else pout1D_p2[s][ipy] += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout1D_p2[s];    
+    return pout1D_p2;
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldistvsposition::p2(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+valarray<double>  Output_Data::fulldist::p2(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
 
-    pout1D_p2[s] = 0.0; 
-    
+    valarray<double> pout1D_p2(0.,grid.axis.Npy(s));     
 
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
     {
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-     
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
+        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        {    
+            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+            {
                 
-        double YSH_re;
-
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout1D_p2[s][ipy] += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpx[s][ipx]*dpz[s][ipz]);
-                    }
-                    else pout1D_p2[s][ipy] += 0.;
-                }
+                pout1D_p2[ipy] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0,y0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
+    return pout1D_p2;
 
 
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout1D_p2[s][ipy] += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re* dpx[s][ipx]*dpz[s][ipz]);
-                        }
-                        else pout1D_p2[s][ipy] += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout1D_p2[s];    
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldistvsposition::p3(DistFunc1D& df, size_t x0, size_t s) {
+valarray<double>  Output_Data::fulldist::p3(DistFunc1D& df, size_t x0, size_t s) {
 
-    pout1D_p3[s] = 0.0; 
-    
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    valarray<double> pout1D_p3(0.,grid.axis.Npz(s));     
+
+    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
+        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        {    
+            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+            {
                 
-        double YSH_re;
-
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout1D_p3[s][ipz] += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpx[s][ipx]*dpy[s][ipy]);
-                    }
-                    else pout1D_p3[s][ipz] += 0.;
-                }
+                pout1D_p3[ipz] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout1D_p3[s][ipz] += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re* dpx[s][ipx]*dpy[s][ipy]);
-                        }
-                        else pout1D_p3[s][ipz] += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout1D_p3[s];    
+    return pout1D_p3;
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldistvsposition::p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+valarray<double>  Output_Data::fulldist::p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+   
+    valarray<double> pout1D_p3(0.,grid.axis.Npz(s));     
 
-    pout1D_p3[s] = 0.;
-    
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
+        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        {    
+            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+            {
                 
-        double YSH_re;
-
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout1D_p3[s][ipz] += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpx[s][ipx]*dpy[s][ipy]);
-                    }
-                    else pout1D_p3[s][ipz] += 0.;
-                }
+                pout1D_p3[ipz] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0,y0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout1D_p3[s][ipz] += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re* dpx[s][ipx]*dpy[s][ipy]);
-                        }
-                        else pout1D_p3[s][ipz] += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout1D_p3[s];    
+    return pout1D_p3;
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldistvsposition::p1p2(DistFunc1D& df, size_t x0, size_t s) {
+Array2D<double>  Output_Data::fulldist::p1p2(DistFunc1D& df, size_t x0, size_t s) {
 
-    pout2D_p1p2[s] = 0.0; 
-    size_t im(0);
+    Array2D<double> pout2D_p1p2(grid.axis.Npx(s),grid.axis.Npy(s));     
 
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
-    {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
-
-        double YSH_re;                   
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    {    
+        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
         {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
             {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout2D_p1p2[s](ipx,ipy) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpz[s][ipz]);
-                    }
-                    else pout2D_p1p2[s](ipx,ipy) += 0.;
-                }
+                pout2D_p1p2(ipx,ipy) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout2D_p1p2[s](ipx,ipy) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re * dpz[s][ipz]);
-                        }
-                        else pout2D_p1p2[s](ipx,ipy) += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout2D_p1p2[s];    
+    return pout2D_p1p2;
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldistvsposition::p1p2(DistFunc2D& df, size_t x0,  size_t y0, size_t s) {
+Array2D<double>  Output_Data::fulldist::p1p2(DistFunc2D& df, size_t x0,  size_t y0, size_t s) {  
 
-    pout2D_p1p2[s] = 0.0; 
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
-    {
+    Array2D<double> pout2D_p1p2(grid.axis.Npx(s),grid.axis.Npy(s));     
 
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
-
-        double YSH_re;
-                        
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    {    
+        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
         {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
             {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout2D_p1p2[s](ipx,ipy) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpz[s][ipz]);
-                    }
-                    else pout2D_p1p2[s](ipx,ipy) += 0.;
-                }
+                pout2D_p1p2(ipx,ipy) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0,y0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout2D_p1p2[s](ipx,ipy) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re * dpz[s][ipz]);
-                        }
-                        else pout2D_p1p2[s](ipx,ipy) += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout2D_p1p2[s];    
+    return pout2D_p1p2;
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p2p3 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldistvsposition::p2p3(DistFunc1D& df, size_t x0, size_t s) {
+Array2D<double>  Output_Data::fulldist::p2p3(DistFunc1D& df, size_t x0, size_t s) {
 
-    pout2D_p2p3[s] = 0.0; 
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    Array2D<double> pout2D_p2p3(grid.axis.Npy(s),grid.axis.Npz(s));
+     
+    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
-
-        double YSH_re;
-                        
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
         {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout2D_p2p3[s](ipy,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpx[s][ipx]);
-                    }
-                    else pout2D_p2p3[s](ipy,ipz) += 0.;
-                }
-            }
-        }
-    }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout2D_p2p3[s](ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re * dpx[s][ipx]);
-                        }
-                        else pout2D_p2p3[s](ipy,ipz) += 0.;
-
-                    }
-                }
+            {   
+                pout2D_p2p3(ipy,ipz) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
             }
         }
     }
-
-    return pout2D_p2p3[s];    
+    return pout2D_p2p3;
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p2p3 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldistvsposition::p2p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+Array2D<double>  Output_Data::fulldist::p2p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
 
-    pout2D_p2p3[s] = 0.0; 
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    Array2D<double> pout2D_p2p3(grid.axis.Npy(s),grid.axis.Npz(s));
+     
+    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
-
-        double YSH_re;
-                        
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
         {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout2D_p2p3[s](ipy,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpx[s][ipx]);
-                    }
-                    else pout2D_p2p3[s](ipy,ipz) += 0.;
-                }
-            }
-        }
-    }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0,y0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout2D_p2p3[s](ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re * dpx[s][ipx]);
-                        }
-                        else pout2D_p2p3[s](ipy,ipz) += 0.;
-
-                    }
-                }
+            {   
+                pout2D_p2p3(ipy,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
             }
         }
     }
-
-    return pout2D_p2p3[s];    
+    return pout2D_p2p3;  
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p3 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldistvsposition::p1p3(DistFunc1D& df, size_t x0, size_t s) {
-
-    pout2D_p1p3[s] = 0.0; 
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+Array2D<double>  Output_Data::fulldist::p1p3(DistFunc1D& df, size_t x0, size_t s) {
+  
+    Array2D<double> pout2D_p1p3(grid.axis.Npx(s),grid.axis.Npz(s));
+     
+    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
-
-        double YSH_re;
-                        
         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
+        {    
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout2D_p1p3[s](ipx,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpy[s][ipy]);
-                    }
-                    else pout2D_p1p3[s](ipx,ipz) += 0.;
-                }
+                pout2D_p1p3(ipx,ipz) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout2D_p1p3[s](ipx,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re * dpy[s][ipy]);
-                        }
-                        else pout2D_p1p3[s](ipx,ipz) += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout2D_p1p3[s];    
+    return pout2D_p1p3;
 }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p3 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldistvsposition::p1p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
-
-    pout2D_p1p3[s] = 0.0; 
-    size_t im(0);
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+Array2D<double>  Output_Data::fulldist::p1p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) 
+{
+    Array2D<double> pout2D_p1p3(grid.axis.Npx(s),grid.axis.Npz(s));
+     
+    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
     {
-
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-                 
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
-
-        double YSH_re;
-                        
         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
+        {    
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout2D_p1p3[s](ipx,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy) * dpy[s][ipy]);
-                    }
-                    else pout2D_p1p3[s](ipx,ipz) += 0.;
-                }
+                pout2D_p1p3(ipx,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
             }
         }
     }
-
-    for (im = 1; im < grid.m0[s]+1; ++im)
-    {
-        for (size_t il(im); il < grid.l0[s]+1; ++il)
-        {
-
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0,y0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0,y0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                    {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
-
-
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
-
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
-
-                            pout2D_p1p3[s](ipx,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re * dpy[s][ipy]);
-                        }
-                        else pout2D_p1p3[s](ipx,ipz) += 0.;
-
-                    }
-                }
-            }
-        }
-    }
-
-    return pout2D_p1p3[s];    
+    return pout2D_p1p3;  
 }
 //--------------------------------------------------------------
-Array3D<double>  Output_Data::fulldistvsposition::p1p2p3(DistFunc1D& df, size_t x0, size_t s){
+void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
+{
 //--------------------------------------------------------------
 //  Turn the Distribution function at some spatial location (x0,y0) 
 //  into a cartesian grid.
 //--------------------------------------------------------------
-    pout3D[s] = 0.0;
     size_t im(0);
+    double temp[grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)]{};
+    size_t Nbc(Input::List().BoundaryCells);
+
+    #pragma omp parallel for reduction(+:temp[:grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)])
     for(size_t il = 0; il < grid.l0[s]+1; ++il)
     {
 
         size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-
         vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                 
         tk::spline splSH;
         splSH.set_points(pvec[s],shdata_real);
 
         double YSH_re;
-                        
+        size_t index(0);
+
         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
         {
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
@@ -2147,19 +1325,22 @@ Array3D<double>  Output_Data::fulldistvsposition::p1p2p3(DistFunc1D& df, size_t 
                     if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
                     {                       
                         YSH_re = (splSH(pradius[s](ipx,ipy,ipz)));
-                        pout3D[s](ipx,ipy,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy));
+                        // pout3D[s](ipx,ipy,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy));
+                        temp[index] += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy));
                     }
-                    else pout3D[s](ipx,ipy,ipz) += 0.;
+                    // else pout3D[s](ipx,ipy,ipz) += 0.;
+                    ++index;
                 }
             }
         }
     }
 
+    #pragma omp parallel for reduction(+:temp[:grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)])
     for (im = 1; im < grid.m0[s]+1; ++im)
     {
         for (size_t il(im); il < grid.l0[s]+1; ++il)
         {
-
+            // std::cout << "(l,m) = " << il << "," << im << "\n";
             vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
             vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
                  
@@ -2173,7 +1354,7 @@ Array3D<double>  Output_Data::fulldistvsposition::p1p2p3(DistFunc1D& df, size_t 
 
             double mphi,calcos,calsin;
 
-
+            size_t index(0);
             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
             {
                 for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
@@ -2194,16 +1375,29 @@ Array3D<double>  Output_Data::fulldistvsposition::p1p2p3(DistFunc1D& df, size_t 
                             YSH_im *= calsin; 
                             YSH_re -= YSH_im;
 
-                            pout3D[s](ipx,ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
+                            // pout3D[s](ipx,ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
+                            temp[index] += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
                         }
-                        else pout3D[s](ipx,ipy,ipz) += 0.;
-
+                        // else pout3D[s](ipx,ipy,ipz) += 0.;
+                        ++index;
                     }
                 }
             }
         }
     }
-    return pout3D[s];
+
+    size_t index(0);
+    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    {
+        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+        {
+            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+            {
+                dist(s,x0-Nbc)(ipx,ipy,ipz) = temp[index];
+                ++index;
+            }
+        }
+    }
 }
 //**************************************************************
 //--------------------------------------------------------------
@@ -2314,13 +1508,6 @@ void Output_Data::Output_Preprocessor::operator()(const State1D& Y, const Grid_I
 void Output_Data::Output_Preprocessor::distdump(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
    const Parallel_Environment_1D& PE) 
 {
-
-    if (Input::List().o_p1x1){
-        px( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p2x1){
-        py( Y, grid, tout, time, dt, PE );
-    }
     if (Input::List().o_f0x1){
         f0( Y, grid, tout, time, dt, PE );
     }
@@ -2344,6 +1531,15 @@ void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_
    const Parallel_Environment_1D& PE) 
 {
 
+    make_fp1p2p3(Y, grid);
+
+    
+    if (Input::List().o_p1x1){
+        px( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_p2x1){
+        py( Y, grid, tout, time, dt, PE );
+    }
     if (Input::List().o_p1p2x1)
     {
         pxpy( Y, grid, tout, time, dt, PE );
@@ -3249,6 +2445,24 @@ void Output_Data::Output_Preprocessor::Bz(const State2D& Y, const Grid_Info& gri
 }
 //--------------------------------------------------------------   
 //--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::make_fp1p2p3(const State1D& Y, const Grid_Info& grid)
+{
+    size_t Nbc = Input::List().BoundaryCells;
+    MPI_Status status;
+     
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+    
+    for(int s(0); s < Y.Species(); ++s) 
+    {
+        for (size_t ix(0); ix < outNxLocal; ++ix)
+        {
+            p_x.p1p2p3(Y.DF(s), ix+Nbc, s);
+        }
+    }
+
+}
+//--------------------------------------------------------------
+//--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
  const Parallel_Environment_1D& PE) {
     // std::cout << "0 \n";
@@ -3271,8 +2485,9 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
 
         for (size_t i(0); i < outNxLocal; ++i) 
         {
-            valarray<double> data1D = p_x.p1( Y.DF(s), i+Nbc, s);
-
+            
+            valarray<double> data1D = p_x.p1( Y.DF(s), i, s);
+            
             for (size_t j(0); j < Npx; ++j) {
                 pxbuf[j+i*Npx]=data1D[j];
             }
@@ -3462,7 +2677,8 @@ void Output_Data::Output_Preprocessor::px(const State2D& Y, const Grid_Info& gri
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(int s(0); s < Y.Species(); ++s) {
+    for(int s(0); s < Y.Species(); ++s) 
+    {
         size_t Npx(grid.axis.Npx(s));
         int msg_sz(outNxLocal*outNyLocal*Npx);
         Array3D<double> p1x1Global(Npx,outNxGlobal,outNyGlobal); //, yglob_axis.dim());
@@ -4453,7 +3669,7 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
 
         for (size_t i(0); i < outNxLocal; ++i) {
 
-            Array3D<double> data3D = p_x.p1p2p3( Y.DF(s), i+Nbc, s);
+            // Array3D<double> data3D = p_x.p1p2p3( Y.DF(s), i+Nbc, s);
 
             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
             {
@@ -4461,7 +3677,7 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
                 {
                     for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
                     {
-                        pbuf[ind]=data3D(ipx,ipy,ipz);
+                        pbuf[ind]=p_x.dist(s,i+Nbc)(ipx,ipy,ipz);
                         ++ind;
                     }
                 }

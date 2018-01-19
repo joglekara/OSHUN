@@ -243,14 +243,14 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 //  This class converts the state Y at a specific location
 //  "x0" and calculates the integral \int\int f*dpy*dpz 
 //--------------------------------------------------------------
-        class fulldistvsposition {
+        class fulldist {
 //--------------------------------------------------------------        
         public:
             // Constructor/Destructor
-            fulldistvsposition(const Grid_Info& _G);
+            fulldist(const Grid_Info& _G);
         
 
-            ~fulldistvsposition();
+            ~fulldist();
 
             // 1P at a single point
             valarray<double> p1(DistFunc1D& df, size_t x0, size_t s) ;
@@ -261,7 +261,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
             Array2D<double> p1p2(DistFunc1D& df, size_t x0, size_t s) ;
             Array2D<double> p2p3(DistFunc1D& df, size_t x0, size_t s) ;
             Array2D<double> p1p3(DistFunc1D& df, size_t x0, size_t s) ;
-            Array3D<double> p1p2p3(DistFunc1D& df, size_t x0, size_t s) ;
+            void p1p2p3(DistFunc1D& df, size_t x0, size_t s) ;
 
             // 1P, integrate over x or y
             // valarray<double> p1(size_t integrationdimension, DistFunc2D& df, size_t x0, size_t s) ;
@@ -286,25 +286,27 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
             // Array3D<double> p1p2p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) ;
 
             // Access
-            Grid_Info           gridinfo()              const   { return grid;}
+            Grid_Info           gridinfo()                   const   { return grid;}
+            Array3D<double>&    dist(size_t s, size_t ix)   { return pout3D[s][ix];}
+            Array3D<double>&    dist(size_t s, size_t ix, size_t iy)   { return pout3D[s][iy*(grid.axis.Nx(0) - 2*Input::List().BoundaryCells)+ix];}
         
 
         private:
             Grid_Info           grid;  
 
             vector<vector<double> >    pvec;
-            vector<valarray<double> >  pxvec,pyvec,pzvec;
+            // vector<valarray<double> >  pxvec,pyvec,pzvec;
             
 
             vector< PLegendre2D     >  PL2D;
-            vector< valarray<double>  >  pout1D_p1, pout1D_p2, pout1D_p3;
-            vector< Array2D<double>  >  pout2D_p1p2, pout2D_p1p3, pout2D_p2p3;
-            vector< Array3D<double>  >  pout3D;
+            // vector< valarray<double>  >  pout1D_p1, pout1D_p2, pout1D_p3;
+            // vector< Array2D<double>  >  pout2D_p1p2, pout2D_p1p3, pout2D_p2p3;
+            vector< vector<Array3D<double> > >  pout3D;
 
             // Interpolation quantities
             vector< Array3D<double>  >  pradius;
             vector< Array2D<double>  >  phi;
-            vector< valarray<double> >            dpx,dpy,dpz;
+            // vector< valarray<double> >            dpx,dpy,dpz;
         };
 //--------------------------------------------------------------
 
@@ -333,16 +335,16 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 //      Access
             size_t Species()         const { return nump.size(); }
             size_t Np(size_t s)     const  { return nump[s]; }
-            double  Pmin(size_t s)    const  { return pmin[s]; }
-            double  Pmax(size_t s)    const  { return pmax[s]; }
+            // double  Pmin(size_t s)    const  { return pmin[s]; }
+            // double  Pmax(size_t s)    const  { return pmax[s]; }
             // valarray<double> Dp(size_t s) const {return deltap[s];}
-            valarray<double> paxis(size_t s) const {return pvec[s];}
+            // valarray<double> paxis(size_t s) const {return pvec[s];}
 
         private:
-           vector<double> pmin, pmax;
+           // vector<double> pmin, pmax;
            vector<double> nump;
            // vector<valarray<double> > deltap;
-           vector<valarray<double> > pvec;
+           // vector<valarray<double> > pvec;
 
        };
 //--------------------------------------------------------------
@@ -376,7 +378,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
     private:
         size_t                          Nbc;
         Export_Files::Xport             expo;
-        fulldistvsposition              p_x;
+        fulldist                        p_x;
         harmonicvsposition              f_x;
         vector< string >                oTags;
         
@@ -435,6 +437,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
          const Parallel_Environment_2D& PE);
 
         // Full distribution
+        void make_fp1p2p3(const State1D& Y, const Grid_Info& grid);
         void pxpypz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
          const Parallel_Environment_1D& PE);
 
