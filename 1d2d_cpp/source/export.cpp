@@ -1304,7 +1304,7 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
     double temp[grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)]{};
     size_t Nbc(Input::List().BoundaryCells);
 
-    #pragma omp parallel for reduction(+:temp[:grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)])
+    #pragma omp parallel for num_threads(Input::List().ompthreads) reduction(+:temp[:grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)])
     for(size_t il = 0; il < grid.l0[s]+1; ++il)
     {
 
@@ -1335,7 +1335,7 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
         }
     }
 
-    #pragma omp parallel for reduction(+:temp[:grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)])
+    #pragma omp parallel for schedule(dynamic) num_threads(Input::List().ompthreads) reduction(+:temp[:grid.axis.Npx(s)*grid.axis.Npy(s)*grid.axis.Npz(s)])
     for (im = 1; im < grid.m0[s]+1; ++im)
     {
         for (size_t il(im); il < grid.l0[s]+1; ++il)
