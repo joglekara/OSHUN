@@ -26,6 +26,7 @@
 #include "lib-array.h"
 #include "lib-algorithms.h"
 #include "external/exprtk.hpp"
+#include "tdsv.cu"
 
 //  Declarations
 #include "input.h"
@@ -268,9 +269,6 @@ void self_f00_implicit_step::update_D_inversebremsstrahlung(const double Z0, con
 //        b0      = (vos*vos+5.0*vr[ip]*vr[ip])/(5.0*vr[ip]*vr[ip]);
 //        nueff   = ZLnee/pow(vr[ip]*vr[ip]+vos*vos/xsi,1.5);
 //        g       = 1.0 - b0*nueff*vw_cube/(1.0+b0*b0*nuOeff*vw_cube);
-
-
-
         g = laser_Inv_Uav6[ip] * vw_cube * vw_cube;
         g = 1.0 / (1.0 + g);
 
@@ -385,7 +383,7 @@ self_f00_implicit_collisions::self_f00_implicit_collisions(
             // coolingprofile_2d(Input::List().NxLocal[0],Input::List().NxLocal[1])
 {
     
-    Nbc = Input::List().BoundaryCells;
+    // Nbc = Input::List().BoundaryCells;
     // Nbc = 0;
     // szx = Input::List().NxLocalnobnd[0];  // size of useful x axis
     // szy = Input::List().NxLocalnobnd[1];  // size of useful y axis
@@ -418,8 +416,8 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
         heatingprofile_1d *= (Input::List().lambda_0 * sqrt(7.3e-19*Input::List().I_0))*timecoeff;
 
     }
-
-    for (size_t ix(0); ix < szx-2*Nbc; ++ix)
+    
+    for (size_t ix(0); ix < szx; ++ix)
     {
         // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // Copy data for a specific location in space to valarray
@@ -427,17 +425,16 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
         for (size_t ip(0); ip < fin.size(); ++ip)
         {
             // fin[ip] = (f00(ip,ix+Nbc)).real();
-            fin[ip] = (f00(ip,ix+Nbc)).real();
+            fin[ip] = (f00(ip,ix)).real();
            // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
         }
-
         // collide.takestep(fin,fout,Zarray[ix+Nbc],heatingprofile_1d[ix+Nbc],step_size);//,coolingprofile_1d[ix+Nbc]);
-        collide.takestep(fin,fout,Zarray[ix+Nbc],heatingprofile_1d[ix+Nbc],step_size);//,coolingprofile_1d[ix+Nbc]);
+        collide.takestep(fin,fout,Zarray[ix],heatingprofile_1d[ix],step_size);//,coolingprofile_1d[ix+Nbc]);
 
         // Return updated data to the harmonic
         for (size_t ip(0); ip < fin.size(); ++ip)
         {
-            f00h(ip,ix+Nbc) = static_cast<complex<double> >(fout[ip]);
+            f00h(ip,ix) = static_cast<complex<double> >(fout[ip]);
             // f00h(ip,ix+Nbc) = fin[ip];
             
             // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
@@ -482,18 +479,18 @@ void self_f00_implicit_collisions::loop(const SHarmonic2D& f00, const Array2D<do
             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
             for (size_t ip(0); ip < fin.size(); ++ip)
             {
-                fin[ip] = (f00(ip,ix+Nbc,iy)).real();
+                fin[ip] = (f00(ip,ix,iy)).real();
                // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
             }
     //  
     //  
             // std::cout << "ix,iy = " << ix << " , " << iy << ", hfp = " << heatingprofile_2d(ix,iy) << "\n";
-            collide.takestep(fin,fout,Zarray(ix+Nbc,iy+Nbc),heatingprofile_2d(ix+Nbc,iy+Nbc),step_size);//,coolingprofile_2d(ix,iy));
+            collide.takestep(fin,fout,Zarray(ix,iy),heatingprofile_2d(ix,iy),step_size);//,coolingprofile_2d(ix,iy));
 
             // Return updated data to the harmonic
             for (size_t ip(0); ip < fin.size(); ++ip)
             {
-                f00h(ip,ix+Nbc,iy+Nbc) = static_cast<complex<double> >(fout[ip]);
+                f00h(ip,ix,iy) = static_cast<complex<double> >(fout[ip]);
                 // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
             }
         }
@@ -823,7 +820,7 @@ void self_f00_explicit_collisions::loop(const SHarmonic2D& f00, SHarmonic2D& f00
 #pragma optimize("", off)
 //*******************************************************************
 //--------------------------------------------------------------
-self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const valarray<double>& dp)
+self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const size_t l0, const size_t m0, const valarray<double>& dp)
 //--------------------------------------------------------------
 //  Constructor
 //--------------------------------------------------------------
@@ -836,7 +833,8 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const val
             U1(0.0,  dp.size()),
             U1m1(0.0,dp.size()),
             if_tridiagonal(Input::List().if_tridiagonal),
-            Dt(0.),kpre(0.)
+            Dt(0.),kpre(0.), id_low(2),
+            dist_il((((m0+1)*(2*l0-m0+2))/2)),dist_im((((m0+1)*(2*l0-m0+2))/2))
 {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     size_t totalnumberofspatiallocationstostore(numxtotal);
@@ -862,6 +860,34 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const val
         df0_x.push_back(valarray<double>(0.,dp.size()));
         ddf0_x.push_back(valarray<double>(0.,dp.size()));
     }
+
+    if (m0 == 0) 
+    {
+        id_low = 2;
+    }
+    else 
+    { 
+        id_low = 3;
+    }
+
+    size_t il(0), im(0);
+    for (size_t id(0); id < dist_il.size(); ++id)
+    {
+        // std::cout << "\n0(id,l,m) =  " << id << "," << il << "," << im << "," << "\n";
+
+        dist_il[id] = il;
+        dist_im[id] = im;
+        if (im < il && im < m0)
+        {
+            ++im;
+        }
+        else
+        {
+            ++il;
+            im = 0;
+        }
+    }
+
 
     double re(2.8179402894e-13);           //classical electron radius
     double kp(sqrt(4.0*M_PI*(Input::List().density_np)*re));
@@ -1127,7 +1153,7 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
 
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+    // std::cout << "\n10\n";
     if ( if_tridiagonal ) {
         if ( !(Thomas_Tridiagonal(Alpha, fin, fout)) ) {  // Invert A * fout = fin
             cout << "WARNING: Matrix is not diagonally dominant" << endl;
@@ -1143,6 +1169,105 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
 
     // return fout;
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+}
+//-------------------------------------------------------------------
+//------------------------------------------------------------------------------
+/// @brief      Perform a matrix solve to calculate effect of collisions on f >= 1
+///
+/// @param      fin   Input distribution function
+/// @param[in]  el    Number of elements in matrix (?)
+///
+void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh) 
+{
+    //-------------------------------------------------------------------
+    //  Collisions
+    //-------------------------------------------------------------------
+    size_t Nbc = Input::List().BoundaryCells; Nbc = 1;
+    size_t szx = DF(0,0).numx() - 2*Nbc;
+    int n_systems(szx * (dist_il.size()-id_low) * 2);
+    size_t totalsize(n_systems * DF(0,0).nump() );
+
+
+    // valarray<complex<double> >  fin(totalsize);
+    // fin = (static_cast<complex<double> > (0.));
+    // valarray<complex<double> >  fout(fin);
+    // valarray<double>            ld(fin.size()), dd(fin.size()), ud(fin.size());
+    // ld = 0.; dd = 0.; ud = 0.;
+
+    
+
+    double ld[totalsize], dd[totalsize], ud[totalsize], fin[totalsize];
+
+    // std::cout << "\n fin.size() = " << fin.size() << "\n";
+
+    // exit(1);
+    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    for (size_t ix = 0; ix < szx; ++ix)
+    {           
+        for(size_t id = id_low; id < dist_il.size() ; ++id)
+        {
+            /// Determine offset
+            size_t base_index = 2*(ix*(dist_il.size()-id_low)+(id-id_low))*DF(0,0).nump();
+            // std::cout << "\n base_index = " << base_index << "\n";        
+            //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+            //      INCLUDE SCATTERING TERM
+            //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+            double ll1(static_cast<double>(dist_il[id]));
+            ll1 *= (-0.5)*(ll1 + 1.0);
+
+
+            for (size_t im_re(0); im_re < 2; ++im_re)
+            {    /// And then pack it up
+                for (size_t i(0); i < DF(0,0).nump(); ++i)
+                {
+                    dd[ i + base_index] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
+
+                    if (im_re == 0)
+                        fin[i + base_index] = DF(dist_il[id],dist_im[id])(i,ix+Nbc).real();
+                    else
+                        fin[i + base_index] = DF(dist_il[id],dist_im[id])(i,ix+Nbc).imag();
+
+                    if (i < DF(0,0).nump() - 1)
+                    {
+                        ld[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                        ud[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
+                    }
+
+                    // std::cout << "\n ld[" << i << "] = " << ld[i +     base_index];
+                    // std::cout << "\n dd[" << i << "] = " << dd[i +     base_index];
+                    // std::cout << "\n ud[" << i << "] = " << ud[i +     base_index];
+                    // std::cout << "\n fi[" << i << "] = " << fin[i +     base_index];
+
+                }
+                base_index += DF(0,0).nump();
+            }
+            // std::cout << "(x,l,m) = (" << ix << "," << dist_il[id] << "," << dist_im[id] << ")\n";
+        }
+    }
+    // exit(1);
+    //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// SOLVE A * Fout  = Fin
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // TridiagonalSolve(DF(0,0).nump(), ld, dd, ud, fin, fout);
+    TDGPU::solve(DF(0,0).nump(), &ld, &dd, &ud, &fin, n_systems, DF(0,0).nump());
+
+    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    for (size_t ix = 0; ix < szx; ++ix)
+    {           
+        for(size_t id = id_low; id < dist_il.size() ; ++id)
+        {
+            size_t base_index = 2*(ix*(dist_il.size()-id_low)+(id-id_low))*DF(0,0).nump();
+            // std::cout << "(x,l,m) = (" << ix << "," << dist_il[id] << "," << dist_im[id] << ")\n";   
+            for (size_t i(0); i < DF(0,0).nump(); ++i)
+            {
+                DFh(dist_il[id],dist_im[id])(i,ix+Nbc) = (fin[base_index + i], fin[base_index + i + DF(0,0).nump()]);   
+            }
+        }
+
+
+    }
+    // exit(1);
 
 }
 //-------------------------------------------------------------------
@@ -1171,7 +1296,7 @@ self_flm_implicit_collisions::self_flm_implicit_collisions(const size_t _l0, con
             Nbc(Input::List().BoundaryCells),
             szx(Input::List().NxLocal[0]),
             szy(Input::List().NxLocal[1]),
-            implicit_step((szx*szy),dp),f1_m_upperlimit(1)
+            implicit_step((szx*szy),_l0,_m0,dp),f1_m_upperlimit(1)
 {
     // Nbc = 0;
     if (m0 == 0) {
@@ -1212,30 +1337,32 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc1D& DF, const valarr
     // ************************* //
     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     // Loop over the harmonics for this (x,y)
-    #pragma omp parallel for collapse(2) schedule(static) num_threads(Input::List().ompthreads)
-    for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
-    {           
-        for(size_t l = 2; l < l0+1 ; ++l)
-        {
-            for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
-            {
-
-                valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
-                // This harmonic --> Valarray
-                for (size_t ip(0); ip < fc.size(); ++ip){
-                    fc[ip] = (DF(l,m))(ip,ix+Nbc);
-                }
+    // #pragma omp parallel for collapse(2) schedule(static) num_threads(Input::List().ompthreads)
+    // for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
+    // {           
+    //     for(size_t l = 2; l < l0+1 ; ++l)
+    //     {
+    //         for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
+    //         {
+    //             valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
+    //             // This harmonic --> Valarray
+    //             for (size_t ip(0); ip < fc.size(); ++ip){
+    //                 fc[ip] = (DF(l,m))(ip,ix+Nbc);
+    //             }
                 
-                // Take an implicit step
-                implicit_step.advance(fc, l, ix+Nbc);
-                //  Valarray --> This harmonic
-                for (size_t ip(0); ip < fc.size(); ++ip){
-                    DFh(l,m)(ip,ix+Nbc) = fc[ip];
-                }
-            }
-        }
-    }
-    
+    //             // Take an implicit step
+    //             implicit_step.advance(fc, l, ix+Nbc);
+    //             //  Valarray --> This harmonic
+    //             for (size_t ip(0); ip < fc.size(); ++ip){
+    //                 DFh(l,m)(ip,ix+Nbc) = fc[ip];
+    //             }
+
+    //             exit(1);
+    //         }
+    //     }
+    // }
+
+    implicit_step.flm_solve(DF,DFh);
 }
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
@@ -1286,8 +1413,6 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
                 // std::cout << "fout[" << ip << "] = " << fc[ip] <<"\n";
                 DFh(1,m)(ip,ix) = fc[ip];
             }
-
-            // exit(1);
         }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
     }
@@ -1476,7 +1601,7 @@ void collisions_1D::advance(State1D& Yin, const double time, const double step_s
 //-------------------------------------------------------------------
 {
     // Yh = complex<double>(0.0,0.0);
-    // Yh = Yin;
+    Yh = Yin;
     
     if (Input::List().f00_implicitorexplicit)
     {

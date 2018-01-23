@@ -49,6 +49,20 @@ void TridiagonalSolve (valarray<double>& a,
                        valarray<complex<double> >&  d,
                        valarray<complex<double> >& x);
 
+void TridiagonalSolve ( size_t calculations_per_loop,
+                        valarray<double>& a,
+                       valarray<double>& b,
+                       valarray<double>& c,
+                       valarray<complex<double> >&  d,
+                       valarray<complex<double> >& x);
+
+void TridiagonalSolve ( size_t calculations_per_loop,
+                        valarray<double>& a,
+                        valarray<double>& b,
+                        valarray<double>& c,
+                        valarray<double>& d,
+                        valarray<double>& x);
+
 void TridiagonalSolve (valarray<double>& a,
                        valarray<double>& b,
                        valarray<double>& c,

@@ -22,7 +22,7 @@
 
 //  My libraries
     #include "lib-array.h"
-
+    #include "input.h"
 
 
 //-------------------------------------------------------------------
@@ -234,7 +234,87 @@
         }
     }
 //-------------------------------------------------------------------
+//*******************************************************************
+//-------------------------------------------------------------------
+     void TridiagonalSolve ( size_t calculations_per_loop,
+                            valarray<double>& a, 
+                            valarray<double>& b, 
+                                  valarray<double>& c,      
+                                  valarray<complex<double> >&  d,
+                                  valarray<complex<double> >& x) {
+//-------------------------------------------------------------------
+//   Fills solution into x. Warning: will modify c and d! 
+//-------------------------------------------------------------------
+    size_t total_loops(x.size()/calculations_per_loop);
+    
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for (size_t iLoop = 0; iLoop < total_loops; ++iLoop)
+    {
+        size_t offset(iLoop*calculations_per_loop);
+        // Modify the coefficients. 
+        c[offset] /= b[offset];                            // Division by zero risk. 
+        d[offset] /= b[offset];                            // Division by zero would imply a singular matrix. 
+                                                               // 
+        for (size_t i(offset+1); i < offset+calculations_per_loop; ++i)
+        {
+            double id(1.0/(b[i]-c[i-1]*a[i]));   // Division by zero risk. 
+            c[i] *= id;                          // Last value calculated is redundant.
+            d[i] -= d[i-1] * a[i];
+            d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id 
+        }
+     
+        // Now back substitute. 
+        x[offset+calculations_per_loop-1] = d[offset+calculations_per_loop-1];
 
+        #pragma novector
+        for (int i(offset+calculations_per_loop-2); i > offset-1; --i)
+        {
+            x[i]  = d[i];
+            x[i] -= c[i] * x[i+1];               // x[i] = d[i] - c[i] * x[i + 1];
+        }
+    }
+}
+//-------------------------------------------------------------------
+//*******************************************************************
+//-------------------------------------------------------------------
+     void TridiagonalSolve ( size_t calculations_per_loop,
+                            valarray<double>& a, 
+                            valarray<double>& b, 
+                                  valarray<double>& c,      
+                                  valarray<double>& d,
+                                  valarray<double>& x) {
+//-------------------------------------------------------------------
+//   Fills solution into x. Warning: will modify c and d! 
+//-------------------------------------------------------------------
+    size_t total_loops(x.size()/calculations_per_loop);
+    
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for (size_t iLoop = 0; iLoop < total_loops; ++iLoop)
+    {
+        size_t offset(iLoop*calculations_per_loop);
+        // Modify the coefficients. 
+        c[offset] /= b[offset];                            // Division by zero risk. 
+        d[offset] /= b[offset];                            // Division by zero would imply a singular matrix. 
+                                                               // 
+        for (size_t i(offset+1); i < offset+calculations_per_loop; ++i)
+        {
+            double id(1.0/(b[i]-c[i-1]*a[i]));   // Division by zero risk. 
+            c[i] *= id;                          // Last value calculated is redundant.
+            d[i] -= d[i-1] * a[i];
+            d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id 
+        }
+     
+        // Now back substitute. 
+        x[offset+calculations_per_loop-1] = d[offset+calculations_per_loop-1];
+
+        #pragma novector
+        for (int i(offset+calculations_per_loop-2); i > offset-1; --i)
+        {
+            x[i]  = d[i];
+            x[i] -= c[i] * x[i+1];               // x[i] = d[i] - c[i] * x[i + 1];
+        }
+    }
+}
 //*******************************************************************
 //-------------------------------------------------------------------
 void TridiagonalSolve ( valarray<double>& a,
@@ -255,7 +335,6 @@ void TridiagonalSolve ( valarray<double>& a,
         d[i] -= d[i-1] * a[i];
         d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id
     }
-
 
     // Now back substitute.
     x[n-1] = d[n-1];
@@ -301,7 +380,6 @@ bool Thomas_Tridiagonal(Array2D<double>& A,
     for (size_t i(0); i < A.dim1()-1; ++i){
         c[i] = A(i,i+1);
         // std::cout << "\n c[" << i << "] = " << c[i];
-        
     }
 
     // for (size_t i(0); i < A.dim1(); ++i)
@@ -354,6 +432,7 @@ bool Thomas_Tridiagonal(Array2D<double>& A,
     }
     for (size_t i(0); i < A.dim1()-1; ++i){
         c[i] = A(i,i+1);
+        // std::cout << "\n c[" << i << "] = " << c[i];
     }
 
 //        valarray< double > dcopy(d);

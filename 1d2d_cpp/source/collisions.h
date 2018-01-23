@@ -251,6 +251,9 @@ class self_f00_explicit_step {
 //          Constant
 
             double Dt, kpre;
+            size_t id_low;
+
+            valarray<size_t>            dist_il, dist_im;
 
             vector<double>              _LOGee_x;
             vector<valarray<double> >   Scattering_Term_x; 
@@ -262,13 +265,15 @@ class self_f00_explicit_step {
         public:
 //          Constructors/Destructors
             // self_flm_implicit_step(double pmax, size_t nump, double mass); 
-            self_flm_implicit_step(const size_t numxtotal, const valarray<double>& dp); 
+            self_flm_implicit_step(const size_t numxtotal, const size_t l0, const size_t m0, const valarray<double>& dp); 
          
 //          Calculate the coefficients
             void reset_coeff(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
 
 //          Implicit Advance
             void advance(valarray<complex<double> >& fin, const int el, size_t position);    
+
+            void flm_solve(const DistFunc1D& DF, DistFunc1D& Dh);
         };
 //-------------------------------------------------------------------
 /** @} */ 
