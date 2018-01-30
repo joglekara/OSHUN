@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
         
         if (!PE.RANK()) std::cout << "Initializing particle tracker ...";
         Particle_Pusher       Particle_Push(Input::List().par_xpos, Input::List().par_px, Input::List().par_py,  Input::List().par_pz,
-            Input::List().xminLocalnobnd[0], Input::List().xmaxLocalnobnd[0], Input::List().NxLocalnobnd[0], Y.particles());
+            grid.axis.x(0), Y.particles());
         if (!PE.RANK()) std::cout << "     done \n";
     
         if (Input::List().isthisarestart){
@@ -451,7 +451,7 @@ int main(int argc, char** argv) {
     
                 theclock.do_step(Y_star, Y, Y_old, rkF, collide, PE);
             
-
+                Particle_Push.push(Y,theclock.dt());
                 // Y = RK(Y,0.5*theclock.dt(),&rkF);
                 // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
 

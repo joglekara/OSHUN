@@ -22,6 +22,7 @@
 //  My libraries
 #include "lib-array.h"
 #include "lib-algorithms.h"
+#include "external/spline.h"
 
 // Declarations
 #include "input.h"
@@ -35,17 +36,21 @@
 //
 Particle_Pusher::Particle_Pusher(std::vector<double> xpos, 
 	std::vector<double> px, std::vector<double> py, std::vector<double> pz,
-	double xminLocal, double xmaxLocal, int NxLocal,
-	Particle1D& Pin): numpar(py.size()), 
-	chargetomass(Pin.charge()/Pin.mass()),
-	xmin(xminLocal),xmax(xmaxLocal),dx((xmaxLocal-xminLocal)/NxLocal)
+	valarray<double> _xaxis,
+	Particle1D& Pin): numpar(py.size()),
+	chargetomass(Pin.charge()/Pin.mass())
 {
-		// std::cout << "\n xmax = " << xmax << "\n";
-		// std::cout << "\n xmin = " << xmin << "\n";
+	
+	for (int ix(0); ix < _xaxis.size(); ++ix)	
+	{
+		xaxis.push_back(_xaxis[ix]);
+	}
+
+
 	for (int ip(0); ip < numpar; ++ip){
 		
 		Pin.x(ip) = xpos[ip];
-		if (Pin.x(ip) < xmax && Pin.x(ip) > xmin)
+		if (Pin.x(ip) < xaxis[xaxis.size()-1] && Pin.x(ip) > xaxis[0])
 		{
 			// std::cout << "\nParticle " << ip << " is in cell with xmin = " << xmin;
 			Pin.ishere(ip) = 1;
@@ -56,6 +61,7 @@ Particle_Pusher::Particle_Pusher(std::vector<double> xpos,
 		Pin.py(ip) = py[ip];
 		Pin.pz(ip) = pz[ip];
 
+
 		// std::cout << "min = " << xmin << ", and Pin.ishere(ip)" << Pin.ishere(ip) << "\n";
 	}
 }
@@ -64,75 +70,39 @@ Particle_Pusher::Particle_Pusher(std::vector<double> xpos,
  */
 void Particle_Pusher::push(State1D& Y, double dt){
 
-	for (int ip(0); ip < numpar; ++ip)
+
+	tk::spline splEx;
+	vector<double> exvec(xaxis.size());
+
+	for (size_t ix(0); ix < xaxis.size(); ++ix)
 	{
+		exvec[ix] = Y.EMF().Ex()(ix).real();
+	}
+
+	splEx.set_points(xaxis,exvec);
+
+	#pragma omp parallel for num_threads(Input::List().ompthreads)
+	for (int ip = 0; ip < numpar; ++ip)
+	{
+		double tempEx(0.);
 		// std::cout << "min = " << xmin << ", position = " << Y.particles().x(ip) << ", Pin.ishere = " << Y.particles().ishere(ip) << "\n";
 		if (Y.particles().ishere(ip))
 		{	
 
 			Y.particles().x(ip) = Y.particles().x(ip) + 0.5*dt*Y.particles().px(ip);
-			// if (ip == 2)
-			// std::cout << "\n ---- Particle Pusher for particle " << ip  << " \n";
-			findnearestneighbortotheright(Y.particles().x(ip));
-
-			// if (ip == 2)
-			// std::cout << "nnr = " << nearestneighbortotheright << "\n";
-			// if (ip == 2) 
-			// std::cout << "xmax = " << xmin << "\n";
-
-
-			Y.particles().px(ip) = Y.particles().px(ip) + dt*chargetomass*
 			
-			((normalizeddistancetoleft*(Y.EMF().Ex()(nearestneighbortotheright)).real() + 
-			(1.0 - 	normalizeddistancetoleft)*(Y.EMF().Ex()(nearestneighbortotheright-1)).real())) + 
-			(
-				Y.particles().py(ip)*((normalizeddistancetoleft*(Y.EMF().Bz()(nearestneighbortotheright)).real() + 
-				(1.0 - 	normalizeddistancetoleft)*(Y.EMF().Bz()(nearestneighbortotheright-1)).real())) 
-			- 
-				Y.particles().pz(ip)*((normalizeddistancetoleft*(Y.EMF().By()(nearestneighbortotheright)).real() + 
-				(1.0 - 	normalizeddistancetoleft)*(Y.EMF().By()(nearestneighbortotheright-1)).real())) 
-			);
-
-			Y.particles().py(ip) = Y.particles().py(ip) + dt*chargetomass*
-			
-			((normalizeddistancetoleft*(Y.EMF().Ey()(nearestneighbortotheright)).real() + 
-			(1.0 - 	normalizeddistancetoleft)*(Y.EMF().Ey()(nearestneighbortotheright-1)).real())) + 
-			(
-				Y.particles().pz(ip)*((normalizeddistancetoleft*(Y.EMF().Bx()(nearestneighbortotheright)).real() + 
-				(1.0 - 	normalizeddistancetoleft)*(Y.EMF().Bx()(nearestneighbortotheright-1)).real())) 
-			- 
-				Y.particles().px(ip)*((normalizeddistancetoleft*(Y.EMF().Bz()(nearestneighbortotheright)).real() + 
-				(1.0 - 	normalizeddistancetoleft)*(Y.EMF().Bz()(nearestneighbortotheright-1)).real())) 
-			);
-
-			Y.particles().pz(ip) = Y.particles().pz(ip) + dt*chargetomass*
-			
-			((normalizeddistancetoleft*(Y.EMF().Ez()(nearestneighbortotheright)).real() + 
-			(1.0 - 	normalizeddistancetoleft)*(Y.EMF().Ez()(nearestneighbortotheright-1)).real())) + 
-			(
-				Y.particles().px(ip)*((normalizeddistancetoleft*(Y.EMF().By()(nearestneighbortotheright)).real() + 
-				(1.0 - 	normalizeddistancetoleft)*(Y.EMF().By()(nearestneighbortotheright-1)).real())) 
-			- 
-				Y.particles().py(ip)*((normalizeddistancetoleft*(Y.EMF().Bx()(nearestneighbortotheright)).real() + 
-				(1.0 - 	normalizeddistancetoleft)*(Y.EMF().Bx()(nearestneighbortotheright-1)).real())) 
-			);
-
-			// if (ip == 2) 
-			// std::cout << "pxnew = " << Y.particles().px(ip) << "\n";
-
+			tempEx = splEx(Y.particles().x(ip));
+			Y.particles().px(ip) = Y.particles().px(ip) + dt*chargetomass*tempEx;
 
 			Y.particles().x(ip) = Y.particles().x(ip) + 0.5*dt*Y.particles().px(ip);
 			
-			
-			// exit(1);
-			// dt*Y.particles().px(ip)
-			if (Y.particles().x(ip) >= xmax )
+			if (Y.particles().x(ip) >= xaxis[xaxis.size()-1] )
 			{	
 				// std::cout << "\n Leaving right! \n";
 				Y.particles().ishere(ip) = 0;
 				Y.particles().goingright(ip) = 1;
 			}
-			else if (Y.particles().x(ip) < xmin)
+			else if (Y.particles().x(ip) < xaxis[0])
 			{
 				// std::cout << "\n Leaving left! \n";
 				Y.particles().ishere(ip) = 0;
@@ -144,8 +114,3 @@ void Particle_Pusher::push(State1D& Y, double dt){
 	}
 }
 //
-//
-void Particle_Pusher::findnearestneighbortotheright(double position){
-	nearestneighbortotheright = ceil((position - xmin) / dx);
-	normalizeddistancetoleft = (position - xmin) / dx - (nearestneighbortotheright-1.0);
-}

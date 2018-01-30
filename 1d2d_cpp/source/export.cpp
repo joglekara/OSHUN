@@ -1044,18 +1044,30 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
 
     valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
 
-    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+
+    if (df.m0() > 0)
     {
-        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
         {
-            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
-                // std::cout << "(ipx,ipy,ipz) = " << ipx << "," << ipy << "," << ipz << "\n";
-                pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
-                
+                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+                {
+                    // std::cout << "(ipx,ipy,ipz) = " << ipx << "," << ipy << "," << ipz << "\n";
+                    pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
+                    
+                }
             }
         }
     }
+    else
+    {
+        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        {
+            pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz);
+        }
+    }
+
     return pout1D_p1;
 }
 //-------------------------------------------------------------

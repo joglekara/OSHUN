@@ -23,21 +23,16 @@ public:
                     std::vector<double> px,
                     std::vector<double> py,
                     std::vector<double> pz,
-                    double xminLocal, double xmaxLocal, int NxLocal,
+                    valarray<double> _xaxis,
                     Particle1D& Pin);
 //          Advance
     void push(State1D& Y, double dt);
     
 private:
-
-    void findnearestneighbortotheright(double position);
     
     size_t numpar;
 
-    int nearestneighbortotheright;
-    double normalizeddistancetoleft;
-
-    double xmin, xmax, dx;
+    vector<double> xaxis;
 
     double chargetomass;
 };
