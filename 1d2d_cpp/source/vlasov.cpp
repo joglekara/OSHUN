@@ -13,10 +13,10 @@
 #include <complex>
 #include <algorithm>
 #include <cstdlib>
-
 #include <math.h>
 #include <map>
 #include <omp.h>
+#include <mpi.h>
 
 //  My libraries
 #include "lib-array.h"
@@ -28,7 +28,9 @@
 #include "formulary.h"
 #include "input.h"
 #include "fluid.h"
+#include "gpu.h"
 #include "vlasov.h"
+
 
 //**************************************************************
 //--------------------------------------------------------------
@@ -360,190 +362,6 @@ void Electric_Field::operator()(const DistFunc1D& Din,
 //  This is the core calculation for the electric field
 //--------------------------------------------------------------
 
-//     complex<double> ii(0.0,1.0);
-
-//     valarray<complex<double> > Ex(FEx.array());
-//     valarray<complex<double> > Em(FEz.array());
-//     Em *= (-1.0)*ii;
-//     Em += FEy.array();
-//     valarray<complex<double> > Ep(FEz.array());
-//     Ep *= ii;
-//     Ep += FEy.array();
-
-//     Ex *= Din.q();
-//     Em *= Din.q();
-//     Ep *= Din.q();
-
-//     size_t l0(Din.l0());
-//     size_t m0(Din.m0());
-
-//     SHarmonic1D G(pr.size(),FEx.numx()), H(pr.size(),FEx.numx()), TMP(pr.size(),FEx.numx());
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //      m = 0, l = 0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     MakeG00(Din(0,0),G);
-//     Ex *= A1(0,0); TMP = G; Dh(1,0) += G.mxaxis(Ex);
-//     Em *= C1[0];            Dh(1,1) += TMP.mxaxis(Em);
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //      m = 0, l = 1
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     MakeGH(Din(1,0),G,H,1);
-//     Ex *= A2(1,0) / A1(0,0);          Dh(0,0) += H.mxaxis(Ex);
-//     Ex *= A1(1,0) / A2(1,0); TMP = G; Dh(2,0) += G.mxaxis(Ex);
-//     Em *= C1[1]   / C1[0]  ;          Dh(2,1) += TMP.mxaxis(Em);
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //      m = 0, 1 < l < l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     for (size_t l(2); l < l0; ++l){
-//         MakeGH(Din(l,0),G,H,l);
-//         Ex *= A2(l,0) / A1(l-1,0); TMP = H;  Dh(l-1,0) += H.mxaxis(Ex);
-//         Em *= C3[l]   / C1[l-1];             Dh(l-1,1) += TMP.mxaxis(Em);
-//         Ex *= A1(l,0) / A2(l,0);   TMP = G;  Dh(l+1,0) += G.mxaxis(Ex);
-//         Em *= C1[l]   / C3[l];               Dh(l+1,1) += TMP.mxaxis(Em);
-//     }
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //      m = 0,  l = l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     MakeGH(Din(l0,0),G,H,l0);
-//     Ex *= A2(l0,0) / A1(l0-1,0); TMP = H;  Dh(l0-1,0) += H.mxaxis(Ex);
-//     Em *= C3[l0]   / C1[l0-1];             Dh(l0-1,1) += TMP.mxaxis(Em);
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //      m = 1, l = 1
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     MakeGH(Din(1,1),G,H,1);
-//     Ep *= B2[1];              H = H.mxaxis(Ep);     Dh(0,0) += H.Re();
-//     Ex *= A1(1,1) / A2(l0,0); TMP = G;              Dh(2,1) += G.mxaxis(Ex);
-//     Em *= C1[1] / C3[l0];     G = TMP;              Dh(2,2) += TMP.mxaxis(Em);
-//     Ep *= B1[1] / B2[1];      G = G.mxaxis(Ep);     Dh(2,0) += G.Re();
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //      m = 1, l = 2
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     MakeGH(Din(2,1),G,H,2);
-//     Ex *= A2(2,1) / A1(1,1); TMP = H;               Dh(1,1) += TMP.mxaxis(Ex);
-//     Ep *= B2[2]   / B1[1];   H = H.mxaxis(Ep);      Dh(1,0) += H.Re();
-//     Ex *= A1(2,1) / A2(2,1); TMP = G;               Dh(3,1) += G.mxaxis(Ex);
-//     Em *= C1[2]   / C1[1];   G = TMP;               Dh(3,2) += TMP.mxaxis(Em);
-//     Ep *= B1[2]   / B2[2];   G = G.mxaxis(Ep);      Dh(3,0) += G.Re();
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //      m = 1, 1 < l < l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     for (size_t l(3); l < l0; ++l){
-//         MakeGH(Din(l,1),G,H,l);
-//         Ex *= A2(l,1) / A1(l-1,1); TMP = H;             Dh(l-1,1) += H.mxaxis(Ex);
-//         Em *= C3[l]   / C1[l-1];   H = TMP;             Dh(l-1,2) += TMP.mxaxis(Em);
-//         Ep *= B2[l]   / B1[l-1];   H = H.mxaxis(Ep);    Dh(l-1,0) += H.Re();
-//         Ex *= A1(l,1) / A2(l,1);   TMP = G;             Dh(l+1,1) += G.mxaxis(Ex);
-//         Em *= C1[l]   / C3[l];     G = TMP;             Dh(l+1,2) += TMP.mxaxis(Em);
-//         Ep *= B1[l]   / B2[l];     G = G.mxaxis(Ep);    Dh(l+1,0) += G.Re();
-//     }
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //       m = 1,  l = l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     MakeGH(Din(l0,1),G,H,l0);
-//     Ex *= A2(l0,1) / A1(l0-1,1); TMP = H;              Dh(l0-1,1) += H.mxaxis(Ex);
-//     Em *= C3[l0]   / C1[l0-1];   H = TMP;              Dh(l0-1,2) += TMP.mxaxis(Em);
-//     Ep *= B2[l0]   / B1[l0-1];   H = H.mxaxis(Ep);     Dh(l0-1,0) += H.Re();
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     C4(l0,1) = B2[l0];
-//     for (size_t m(2); m < m0; ++m){
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //          m > 1 , l = m
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//         MakeGH(Din(m,m),G,H,m);
-//         Ep *= C4(m,m) / C4(l0,m-1);              Dh(m-1,m-1) += H.mxaxis(Ep);
-//         Ex *= A1(m,m) / A2(l0,m-1); TMP = G;     Dh(m+1,m  ) += G.mxaxis(Ex);
-//         Em *= C1[m]   / C3[l0];     G = TMP;     Dh(m+1,m+1) += TMP.mxaxis(Em);
-//         Ep *= C2(m,m) / C4(m,m);                 Dh(m+1,m-1) += G.mxaxis(Ep);
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //          m > 1 , l = m+1
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//         MakeGH(Din(m+1,m),G,H,m+1);
-//         Ex *= A2(m+1,m) / A1(m,m);   TMP = H;     Dh(m  ,m  ) += TMP.mxaxis(Ex);
-//         Ep *= C4(m+1,m) / C2(m,m);                Dh(m  ,m-1) += H.mxaxis(Ep);
-//         if ( m+1 < l0) { //always true except when m = m0-1 = l0-1
-//             Ex *= A1(m+1,m) / A2(m+1,m); TMP = G;     Dh(m+2,m  ) += G.mxaxis(Ex);
-//             Em *= C1[m+1]   / C1[m];     G = TMP;     Dh(m+2,m+1) += TMP.mxaxis(Em);
-//             Ep *= C2(m+1,m) / C4(m+1,m);              Dh(m+2,m-1) += G.mxaxis(Ep);
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //              m > 1, 1 < l < l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//             for (size_t l(m+2); l < l0; ++l){
-//                 MakeGH(Din(l,m),G,H,l);
-//                 Ex *= A2(l,m) / A1(l-1,m); TMP = H;   Dh(l-1,m  ) += H.mxaxis(Ex);
-//                 Em *= C3[l]   / C1[l-1];   H = TMP;   Dh(l-1,m+1) += TMP.mxaxis(Em);
-//                 Ep *= C4(l,m) / C2(l-1,m);            Dh(l-1,m-1) += H.mxaxis(Ep);
-//                 Ex *= A1(l,m) / A2(l,m);   TMP = G;   Dh(l+1,m  ) += G.mxaxis(Ex);
-//                 Em *= C1[l]   / C3[l];     G = TMP;   Dh(l+1,m+1) += TMP.mxaxis(Em);
-//                 Ep *= C2(l,m) / C4(l,m);              Dh(l+1,m-1) += G.mxaxis(Ep);
-//             }
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //               m > 1,  l = l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//             MakeGH(Din(l0,m),G,H,l0);
-//             Ex *= A2(l0,m) / A1(l0-1,m); TMP = H;    Dh(l0-1,m  ) += H.mxaxis(Ex);
-//             Em *= C3[l0]   / C1[l0-1];   H = TMP;    Dh(l0-1,m+1) += TMP.mxaxis(Em);
-//             Ep *= C4(l0,m) / C2(l0-1,m);             Dh(l0-1,m-1) += H.mxaxis(Ep);
-//         }
-//     }
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     MakeGH(Din(m0,m0),G,H,m0);
-//     Ep *= C4(m0,m0) / C4(l0,m0-1);              Dh(m0-1,m0-1) += H.mxaxis(Ep);
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //       m = m0, l0 > l > m0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//     if ( m0 < l0) {
-//         Ex *= A1(m0,m0) / A2(l0,m0-1); TMP = G;  Dh(m0+1,m0  ) += TMP.mxaxis(Ex);
-//         Ep *= C2(m0,m0) / C4(m0,m0);             Dh(m0+1,m0-1) += G.mxaxis(Ep);
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //          m = m0 , l = m0+1
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//         MakeGH(Din(m0+1,m0),G,H,m0+1);
-//         Ex *= A2(m0+1,m0) / A1(m0,m0); TMP = H;        Dh(m0,m0  )  += TMP.mxaxis(Ex);
-//         Ep *= C4(m0+1,m0) / C2(m0,m0);                 Dh(m0,m0-1)  += H.mxaxis(Ep);
-//         if ( m0+1 < l0) {
-//             Ex *= A1(m0+1,m0) / A2(m0+1,m0); TMP = G;  Dh(m0+2,m0  )+= TMP.mxaxis(Ex);
-//             Ep *= C2(m0+1,m0) / C4(m0+1,m0);           Dh(m0+2,m0-1)+= G.mxaxis(Ep);
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //              m = m0, m0+2 < l < l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//             for (size_t l(m0+2); l < l0; ++l){
-//                 MakeGH(Din(l,m0),G,H,l);
-//                 Ex *= A2(l,m0) / A1(l-1,m0); TMP = H;  Dh(l-1,m0)   += TMP.mxaxis(Ex);
-//                 Ep *= C4(l,m0) / C2(l-1,m0);           Dh(l-1,m0-1) += H.mxaxis(Ep);
-//                 Ex *= A1(l,m0) / A2(l,  m0); TMP = G;  Dh(l+1,m0  ) += TMP.mxaxis(Ex);
-//                 Ep *= C2(l,m0) / C4(l,  m0);           Dh(l+1,m0-1) += G.mxaxis(Ep);
-//             }
-
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// //               m > 1,  l = l0
-// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-//             MakeGH(Din(l0,m0),G,H,l0);
-//             Ex *= A2(l0,m0) / A1(l0-1,m0); TMP = H;    Dh(l0-1,m0)   += TMP.mxaxis(Ex);
-//             Ep *= C4(l0,m0) / C2(l0-1,m0);             Dh(l0-1,m0-1) += H.mxaxis(Ep);
-//         }
-//     }
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-
     /////  Vertical Iteration
 //  -------------------------------------------------------- //
     //   Because each iteration in the loop modifies + and - 1
@@ -607,8 +425,7 @@ void Electric_Field::operator()(const DistFunc1D& Din,
             
         }
         // std::cout << "\n Checkpoint #1 \n";   Dh.checknan();
-        
-
+    
         //  -------------------------------------------------------- //
         //  Do the chunks
         //  -------------------------------------------------------- //       
@@ -827,6 +644,164 @@ void Electric_Field::operator()(const DistFunc1D& Din,
             }
         }
     }
+
+}
+//--------------------------------------------------------------
+// void Electric_Field::gpu1d(const DistFunc1D& Din,
+//    const Field1D& FEx, const Field1D& FEy, const Field1D& FEz,
+//    DistFunc1D& Dh) 
+void Electric_Field::gpu1d(const DistFunc1D& Din,
+   const Field1D& FEx, DistFunc1D& Dh) 
+{
+
+    // int numx(Din(0,0).numx()); int nump(Din(0,0).nump());
+    // // size_t totalsize = numx*nump*dist_il.size();
+    // // thrust::host_vector<double> dfdx(totalsize);
+    // // thrust::host_vector<double> vtemp(nump);
+    // valarray<double> tEx(numx);
+
+    // for (size_t ip(0); ip < nump; ++ip)
+    // {
+    //     tEx[ip] = Din.q()*Ex[ix].real();
+    // }
+
+    // // #pragma omp parallel num_threads(Input::List().ompthreads)
+    // // for (size_t id = 0; id < dist_il.size(); ++id)
+    // // {
+    // //     for (size_t ip(0); ip < nump; ++ip)
+    // //     {
+    // //         /// Determine offset
+    // //         size_t baseidx = (id*nump+ip)*numx;
+
+    // //         for (size_t ix(0); ix < numx; ++ix)
+    // //         {
+    // //             dfdx[ ix + baseidx] = Din(id)(ip,ix).real();
+    // //         }
+    // //     }
+    // // }
+    
+
+    // // GPU_routines::calc_vgradf(numx, vtemp, h_A_RHS_dense, dfdx,
+    // //                             ld, dd, ud, device);
+
+    // size_t l0(Din.l0());
+
+    // #pragma omp parallel num_threads(Input::List().ompthreads)
+    // {   
+    //     size_t this_thread  = omp_get_thread_num();
+    //     // std::cout << "\n hi i'm " << this_thread << "\n";
+
+    //     size_t f_start_thread(f_start[this_thread]);
+    //     size_t f_end_thread(f_end[this_thread]);
+
+
+    //     // std::cout << "\n els[ " << this_thread << "] = " << f_start_thread << "....\n";
+    //     // std::cout << "\n ele[ " << this_thread << "] = " << f_end_thread << "....\n";
+    //     //  Initialize work variables
+    //     // SHarmonic1D SHtemp(vr.size(),Din(0,0).numx());
+    //     // SHtemp = complex<double>(0.);
+    //     //  -------------------------------------------------------- //
+    //     //   First thread takes the boundary conditions (l = 0)
+    //     //   Last thread takes the boundary condition (l = l0)
+    //     //  Rest proceed to chunks
+    //     //  -------------------------------------------------------- //
+    //     if (this_thread == 0)
+    //     {
+    //         for (size_t ip(0); ip < nump; ++ip)
+    //         {
+    //             size_t baseidx = ip*numx;
+    //             for (size_t ix(1); ix < numx-1; ++ix)
+    //             {
+    //                 // SHtemp(ip,ix).real( dfdx[baseidx + ix] ); 
+    //                 // Dh(1,0)(ip,ix).real(Dh(1,0)(ip,ix).real()+A1(0,0).real()*dfdx[baseidx + ix]);
+    //                 Dh(1,0)(ip,ix) += complex<double>( A1(0,0).real()*vtemp[ip]*
+    //                                     (Din(1,0)(ip,ix-1)-Din(1,0)(ip,ix+1)).real()    );
+    //             }
+    //         }
+    //         // SHtemp *= A1(0,0);
+    //         // Dh(1,0) += SHtemp;
+    //         f_start_thread = 1;
+    //     }
+
+    //     if (this_thread == Input::List().ompthreads - 1)    
+    //     {    
+    //         for (size_t ip(0); ip < nump; ++ip)
+    //         {
+    //             size_t baseidx = (l0*nump+ip)*numx;
+
+    //             for (size_t ix(1); ix < numx-1; ++ix)
+    //             {
+    //                 // SHtemp(ip,ix).real( dfdx[baseidx + ix] );
+    //                 // Dh(l0-1,0)(ip,ix).real(Dh(l0,0)(ip,ix).real()+A2(l0,0).real()*dfdx[baseidx + ix]);
+    //                 Dh(l0-1,0)(ip,ix) += complex<double>( A2(l0,0).real()*vtemp[ip]*
+    //                                     (Din(l0,0)(ip,ix-1)-Din(l0,0)(ip,ix+1)) );    
+    //             }
+    //         }
+    //         // SHtemp *= A2(l0,0);
+    //         // Dh(l0-1,0) += SHtemp;
+    //         f_end_thread -= 1;
+    //     }
+
+    //     //  -------------------------------------------------------- //
+    //     //  Do the chunks
+    //     //  Initialize vtemp so that it starts correctly
+    //     //  -------------------------------------------------------- //
+    //     double tdfdx(0.);
+    //     for (size_t il = f_start_thread; il < f_end_thread; ++il)
+    //     {
+    //         for (size_t ip = 0; ip < nump; ++ip)
+    //         {
+    //             size_t baseidx = (il*nump+ip)*numx;
+
+    //             for (size_t ix(1); ix < numx-1; ++ix)
+    //             {
+    //                 // SHtemp(ip,ix).real( dfdx[baseidx + ix] );
+    //                 // Dh(il-1,0)(ip,ix).real(Dh(il,0)(ip,ix).real()+A2(il,0).real()*dfdx[baseidx + ix]);
+    //                 // Dh(il+1,0)(ip,ix).real(Dh(il,0)(ip,ix).real()+A1(il,0).real()*dfdx[baseidx + ix]);
+    //                 tdfdx = vtemp[ip]*(Din(il,0)(ip,ix-1)-Din(il,0)(ip,ix+1)).real();
+                    
+    //                 Dh(il-1,0)(ip,ix) += complex<double>( A2(il,0).real()*tdfdx );
+    //                 Dh(il+1,0)(ip,ix) += complex<double>( A1(il,0).real()*tdfdx );
+
+
+    //             }
+    //         }
+    //         // SHtemp *= A2(il,0);                 Dh(il-1,0) += SHtemp;
+    //         // SHtemp *= A1(il,0)/A2(il,0);        Dh(il+1,0) += SHtemp;
+    //     }    
+    // }
+
+    // //  -------------------------------------------------------- //
+    // //  Do the boundaries between the chunks
+    // //  -------------------------------------------------------- //
+    // #pragma omp parallel for num_threads(f_start.size()-1)
+    // for (size_t threadboundaries = 0; threadboundaries < f_start.size()-1; ++threadboundaries)
+    // {
+    //     // SHarmonic1D SHtemp(vr.size(),Din(0,0).numx());
+    //     double tdfdx(0.);
+    //     for (size_t il = f_end[threadboundaries]; il < f_start[threadboundaries+1]; ++il)
+    //     {       
+    //         for (size_t ip = 0; ip < nump; ++ip)
+    //         {
+    //             size_t baseidx = (il*nump+ip)*numx;
+
+    //             for (size_t ix(0); ix < numx; ++ix)
+    //             {
+    //                 // SHtemp(ip,ix).real( dfdx[baseidx + ix] );
+    //                 // Dh(il-1,0)(ip,ix).real(Dh(il,0)(ip,ix).real()+A2(il,0).real()*dfdx[baseidx + ix]);
+    //                 // Dh(il+1,0)(ip,ix).real(Dh(il,0)(ip,ix).real()+A1(il,0).real()*dfdx[baseidx + ix]);
+
+    //                 tdfdx = vtemp[ip]*(Din(il,0)(ip,ix-1)-Din(il,0)(ip,ix+1)).real();
+                    
+    //                 Dh(il-1,0)(ip,ix) += complex<double>( A2(il,0).real()*tdfdx );
+    //                 Dh(il+1,0)(ip,ix) += complex<double>( A1(il,0).real()*tdfdx );
+    //             }
+    //         }
+    //         // SHtemp *= A2(il,0);              Dh(il-1,0) += SHtemp;
+    //         // SHtemp *= A1(il,0)/A2(il,0);     Dh(il+1,0) += SHtemp;
+    //     }
+    // }
+
 
 }
 //--------------------------------------------------------------
@@ -2833,6 +2808,10 @@ Spatial_Advection::Spatial_Advection(size_t Nl, size_t Nm,
             dist_il((Nm+1)*(2*Nl-Nm+2)/2),dist_im((Nm+1)*(2*Nl-Nm+2)/2),
             nwsediag_il((Nm+1)*(2*Nl-Nm+2)/2),nwsediag_im((Nm+1)*(2*Nl-Nm+2)/2),
             neswdiag_il((Nm+1)*(2*Nl-Nm+2)/2),neswdiag_im((Nm+1)*(2*Nl-Nm+2)/2)
+            // dfdx(((Nm+1)*(2*Nl-Nm+2)/2*Nx*dp.size())),
+            // ld(((Nm+1)*(2*Nl-Nm+2)/2*Nx*dp.size())),
+            // dd(((Nm+1)*(2*Nl-Nm+2)/2*Nx*dp.size())),
+            // ud(((Nm+1)*(2*Nl-Nm+2)/2*Nx*dp.size()))
     {
 // ------------------------------------------------------------------------ // 
 
@@ -3041,7 +3020,63 @@ Spatial_Advection::Spatial_Advection(size_t Nl, size_t Nm,
 // ----- // ----- // ----- // ----- // ----- // ----- // ----- // ----- 
 // ----- // ----- // ----- // ----- // ----- // ----- // ----- // ----- 
 // ----- // ----- // ----- // ----- // ----- // ----- // ----- // -----     
+            
+        // std::cout << "\n 10 \n";// = " << h_A_RHS_dense.size() << "\n";
+        // h_A_RHS_dense = 0.;
+        // --- Column-major ordering
+        // #pragma omp parallel num_threads(Input::List().ompthreads)
+        // for (size_t id = 0; id < dist_il.size(); ++id)
+        // {
+        //     for (size_t ip(0); ip < dp.size(); ++ip)
+        //     {
+        //         /// Determine offset
+        //         size_t baseidxV = (id*dp.size()+ip)*Nx;
+
+
+        //         // // std::cout << "id,ip,baseidx = " << id << "," << ip << "," << baseidxM << "\n";
+        //         // /// Create RHS
+        //         // h_A_RHS_dense[baseidxM + 0*Nx] = -17./6.;
+        //         // h_A_RHS_dense[baseidxM + 1*Nx] = 1.5;
+        //         // h_A_RHS_dense[baseidxM + 2*Nx] = 1.5;
+        //         // h_A_RHS_dense[baseidxM + 3*Nx] = -1./6.;
                 
+        //         // h_A_RHS_dense[baseidxM + Nx*(Nx-3)-1] = 1./6.;
+        //         // h_A_RHS_dense[baseidxM + Nx*(Nx-2)-1] = -1.5;
+        //         // h_A_RHS_dense[baseidxM + Nx*(Nx-1)-1] = -1.5;
+        //         // h_A_RHS_dense[baseidxM + Nx* Nx   -1] = 17./6.;
+                
+        //         // for (size_t ix(Nx+1); ix < Nx*(Nx-1); ix += Nx + 1)
+        //         // {
+        //         //     h_A_RHS_dense[baseidxM + ix-Nx] = 0.75;   h_A_RHS_dense[baseidxM + ix+Nx] = -0.75;
+        //         // }
+
+        //         /// Create LHS
+        //         for (size_t ix(0); ix < Nx; ++ix)
+        //         {
+        //             dd[ ix + baseidxV] = 1.;
+                    
+        //             // dd[ i + base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
+        //         }
+
+        //         for (size_t ix(0); ix < Nx - 1; ++ix)
+        //         {
+        //             ld[ix + 1 + baseidxV] = 0.25;
+        //             ud[ix +     baseidxV] = 0.25;
+                    
+        //             // ld[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
+        //             // ud[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
+        //         }
+
+        //         ld[baseidxV] = 0.;
+        //         ud[baseidxV] = 3.;
+
+        //         ld[baseidxV + Nx-1] = 3.;
+        //         ud[baseidxV + Nx-1] = 0.;
+
+        //     }
+            
+        // }
+        // exit(1);
     }
 //--------------------------------------------------------------
 
@@ -3510,6 +3545,151 @@ void Spatial_Advection::operator()(const DistFunc1D& Din, DistFunc1D& Dh)
     }
 }
 //--------------------------------------------------------------
+//   Advection in x
+void Spatial_Advection::gpu1d(const DistFunc1D& Din, DistFunc1D& Dh) 
+{
+//--------------------------------------------------------------
+    int numx(Din(0,0).numx()); int nump(Din(0,0).nump());
+    size_t totalsize = numx*(nump)*(2*dist_il.size());
+
+    // thrust::host_vector<thrust::complex<double> > fin(totalsize);
+    // thrust::host_vector<thrust::complex<double> > dfdx(totalsize);
+    // thrust::host_vector<thrust::complex<double> > dfdv(totalsize);
+
+    // thrust::host_vector<thrust::complex<double> > vtemp(nump, 0.);
+    // thrust::host_vector<thrust::complex<double> > exvec(nump, 0.);
+    // 
+    double *fin = (double*)malloc(totalsize * sizeof(double));
+    double *dfdx = (double*)malloc(totalsize * sizeof(double));
+    double *dfdv = (double*)malloc(totalsize * sizeof(double));
+
+    // double *exvec = (double*)malloc(numx * sizeof(double));
+    valarray<complex<double> > vtemp(vr);
+    vtemp /= (Din.mass());
+
+    #pragma omp parallel num_threads(Input::List().ompthreads)
+    for (size_t id = 0; id < dist_il.size(); ++id)
+    {
+        for (size_t ix(0); ix < numx; ++ix)
+        {
+            for (size_t ip(0); ip < nump; ++ip)
+            {
+                /// Determine offset
+                size_t baseidx = (id*numx+ix)*nump;
+                // thrust::copy(&Din(id).array(), &Din(id).array()+nump*numx, fin.begin()+baseidx);
+
+                fin[baseidx + ip] = (Din(id)(ip,ix)).real();
+                fin[baseidx + ip + nump] = (Din(id)(ip,ix)).imag();
+            }
+        }
+    }
+    
+    int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+
+    // std::cout << "\n hi i'm " << device << " \n ";
+    // GPU_interface_routines::calc_vgradf(numx, vtemp, h_A_RHS_dense, dfdx,
+    //                             ld, dd, ud, device);
+
+    GPU_interface_routines::calc_fieldxdf(numx, nump, dist_il.size(), fin, device);
+
+    size_t l0(Din.l0());
+
+    #pragma omp parallel num_threads(Input::List().ompthreads)
+    {   
+        size_t this_thread  = omp_get_thread_num();
+    
+        size_t f_start_thread(f_start[this_thread]);
+        size_t f_end_thread(f_end[this_thread]);
+        //  -------------------------------------------------------- //
+        //   First thread takes the boundary conditions (l = 0)
+        //   Last thread takes the boundary condition (l = l0)
+        //  Rest proceed to chunks
+        //  -------------------------------------------------------- //
+        if (this_thread == 0)
+        {
+            for (size_t ix(0); ix < numx; ++ix)
+            {
+                for (size_t ip(0); ip < nump; ++ip)
+                {
+                    size_t baseidx = ix*nump;
+                
+                    // Dh(1,0)(ip,ix).real(Dh(1,0)(ip,ix).real()+A1(0,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+
+
+                    Dh(1,0)(ip,ix) +=    A1(0,0) * vtemp[ip] * complex<double>(fin[baseidx + ip],fin[baseidx + ip + nump]);
+                    // Dh(1,0)(ip,ix) += complex<double>( A1(0,0).real()*vtemp[ip]*
+                    //                     (Din(1,0)(ip,ix-1)-Din(1,0)(ip,ix+1)).real()    );
+                }
+            }
+            f_start_thread = 1;
+        }
+
+        if (this_thread == Input::List().ompthreads - 1)    
+        {    
+            for (size_t ix(0); ix < numx; ++ix)
+            {
+                for (size_t ip(0); ip < nump; ++ip)
+                {
+                    size_t baseidx = (2*l0*numx+ix)*(nump);
+
+                    // Dh(l0-1,0)(ip,ix).real(Dh(l0-1,0)(ip,ix).real()+A2(l0,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+
+                    Dh(l0-1,0)(ip,ix) +=    A2(l0,0) * vtemp[ip] *complex<double>(fin[baseidx + ip],fin[baseidx + ip + nump]);
+                    // Dh(l0-1,0)(ip,ix) += complex<double>( A2(l0,0).real()*vtemp[ip]*
+                    //                     (Din(l0,0)(ip,ix-1)-Din(l0,0)(ip,ix+1)) );    
+                }
+            }
+            f_end_thread -= 1;
+        }
+
+        //  -------------------------------------------------------- //
+        //  Do the chunks
+        //  Initialize vtemp so that it starts correctly
+        //  -------------------------------------------------------- //
+        for (size_t il = f_start_thread; il < f_end_thread; ++il)
+        {
+            for (size_t ix(0); ix < numx; ++ix)
+            {
+                size_t baseidx = (2*il*numx+ix)*nump;
+                for (size_t ip = 0; ip < nump; ++ip)
+                {
+
+                    Dh(il-1,0)(ip,ix) += A2(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+                    Dh(il+1,0)(ip,ix) += A1(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+
+
+                    // Dh(il-1,0)(ip,ix).real(Dh(il-1,0)(ip,ix).real()+A2(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+                    // Dh(il+1,0)(ip,ix).real(Dh(il+1,0)(ip,ix).real()+A1(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+                }
+            }
+        }    
+    }
+
+    //  -------------------------------------------------------- //
+    //  Do the boundaries between the chunks
+    //  -------------------------------------------------------- //
+    #pragma omp parallel for num_threads(f_start.size()-1)
+    for (size_t threadboundaries = 0; threadboundaries < f_start.size()-1; ++threadboundaries)
+    {
+        for (size_t il = f_end[threadboundaries]; il < f_start[threadboundaries+1]; ++il)
+        {       
+            for (size_t ix(0); ix < numx; ++ix)
+            {
+                size_t baseidx = (2*il*numx+ix)*nump;
+                for (size_t ip = 0; ip < nump; ++ip)
+                {
+                    Dh(il-1,0)(ip,ix) += A2(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+                    Dh(il+1,0)(ip,ix) += A1(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+
+                    // Dh(il-1,0)(ip,ix).real(Dh(il-1,0)(ip,ix).real()+A2(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+                    // Dh(il+1,0)(ip,ix).real(Dh(il+1,0)(ip,ix).real()+A1(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+                }
+            }
+        }
+    }
+}
+
+
 //--------------------------------------------------------------
 //   Advection in x
 void Spatial_Advection::es1d(const DistFunc1D& Din, DistFunc1D& Dh) {

@@ -255,6 +255,8 @@ class self_f00_explicit_step {
 
             valarray<size_t>            dist_il, dist_im;
 
+
+
             vector<double>              _LOGee_x;
             vector<valarray<double> >   Scattering_Term_x; 
             vector<Array2D<double>  >   Alpha_Tri_x; 

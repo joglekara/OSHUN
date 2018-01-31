@@ -1212,6 +1212,7 @@ DistFunc1D& DistFunc1D::operator=(const DistFunc1D& other){
 }
 //  *=
 DistFunc1D& DistFunc1D::operator*=(const complex<double> & d){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
     for(size_t i(0); i < dim() ; ++i) {
         (*df)[i] *= d;
     }

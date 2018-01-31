@@ -24,6 +24,8 @@
 #include "lib-array.h"
 #include "lib-algorithms.h"
 #include "external/exprtk.hpp"
+#include <thrust/host_vector.h>
+#include <thrust/complex.h>
 
 //  Declerations
 #include "input.h"

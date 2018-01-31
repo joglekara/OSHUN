@@ -21,12 +21,13 @@
 #include <math.h>
 #include <map>
 #include <omp.h>
+#include <mpi.h>
 
 //  My libraries
 #include "lib-array.h"
 #include "lib-algorithms.h"
 #include "external/exprtk.hpp"
-#include "tdsv.cu"
+
 
 //  Declarations
 #include "input.h"
@@ -34,8 +35,8 @@
 #include "parser.h"
 #include "formulary.h"
 #include "nmethods.h"
+#include "gpu.h"
 #include "collisions.h"
-
 
 
 #pragma optimize("", off)
@@ -1185,90 +1186,90 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     //-------------------------------------------------------------------
     size_t Nbc = Input::List().BoundaryCells; Nbc = 1;
     size_t szx = DF(0,0).numx() - 2*Nbc;
-    int n_systems(szx * (dist_il.size()-id_low) * 2);
-    size_t totalsize(n_systems * DF(0,0).nump() );
+    size_t nump = DF(0,0).nump();
+    size_t numh = (dist_il.size()-id_low);
+    int n_systems(szx * numh * 2);
+    // int n_systems(szx * numh);
+    int totalsize(n_systems * nump);
 
+    double *ld  = (double*)malloc(totalsize * sizeof(double));
+    double *dd  = (double*)malloc(totalsize * sizeof(double));
+    double *ud  = (double*)malloc(totalsize * sizeof(double));
+    double *fin = (double*)malloc(totalsize * sizeof(double));
 
-    // valarray<complex<double> >  fin(totalsize);
-    // fin = (static_cast<complex<double> > (0.));
-    // valarray<complex<double> >  fout(fin);
-    // valarray<double>            ld(fin.size()), dd(fin.size()), ud(fin.size());
-    // ld = 0.; dd = 0.; ud = 0.;
-
-    
-
-    double ld[totalsize], dd[totalsize], ud[totalsize], fin[totalsize];
-
-    // std::cout << "\n fin.size() = " << fin.size() << "\n";
-
-    // exit(1);
-    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
     for (size_t ix = 0; ix < szx; ++ix)
     {           
-        for(size_t id = id_low; id < dist_il.size() ; ++id)
+        for(size_t id = 0; id < numh ; ++id)
         {
             /// Determine offset
-            size_t base_index = 2*(ix*(dist_il.size()-id_low)+(id-id_low))*DF(0,0).nump();
-            // std::cout << "\n base_index = " << base_index << "\n";        
-            //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            //      INCLUDE SCATTERING TERM
-            //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-            double ll1(static_cast<double>(dist_il[id]));
+            size_t base_index = 2*(ix*numh+id)*nump;
+            // size_t base_index = (ix*numh+id)*nump;
+            
+            double ll1(static_cast<double>(dist_il[id+id_low]));
             ll1 *= (-0.5)*(ll1 + 1.0);
 
+            /// And then pack it up
+            for (size_t i(0); i < nump; ++i)
+            {
+                dd[ i + base_index] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
+                fin[i + base_index] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real();
 
-            for (size_t im_re(0); im_re < 2; ++im_re)
-            {    /// And then pack it up
-                for (size_t i(0); i < DF(0,0).nump(); ++i)
-                {
-                    dd[ i + base_index] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
-
-                    if (im_re == 0)
-                        fin[i + base_index] = DF(dist_il[id],dist_im[id])(i,ix+Nbc).real();
-                    else
-                        fin[i + base_index] = DF(dist_il[id],dist_im[id])(i,ix+Nbc).imag();
-
-                    if (i < DF(0,0).nump() - 1)
-                    {
-                        ld[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                        ud[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
-                    }
-
-                    // std::cout << "\n ld[" << i << "] = " << ld[i +     base_index];
-                    // std::cout << "\n dd[" << i << "] = " << dd[i +     base_index];
-                    // std::cout << "\n ud[" << i << "] = " << ud[i +     base_index];
-                    // std::cout << "\n fi[" << i << "] = " << fin[i +     base_index];
-
-                }
-                base_index += DF(0,0).nump();
+                dd[ i + base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
+                fin[i + base_index + nump] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag();
             }
-            // std::cout << "(x,l,m) = (" << ix << "," << dist_il[id] << "," << dist_im[id] << ")\n";
+            
+            ld[base_index] = 0.;
+            ud[base_index+nump-1] = 0.;
+
+            ld[base_index+nump] = 0.;
+            ud[base_index+nump-1+nump] = 0.;
+
+            // ud[base_index] = 0.;
+            // ld[base_index+nump-1] = 0.;
+
+            // ud[base_index+nump] = 0.;
+            // ld[base_index+nump-1+nump] = 0.;
+            
+            for (size_t i(0); i < nump - 1; ++i)
+            {
+                ld[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                ud[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
+                
+                ld[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                ud[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
+
+                // ud[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                // ld[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
+                
+                // ud[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                // ld[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
+            }
         }
     }
-    // exit(1);
-    //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    // TridiagonalSolve(DF(0,0).nump(), ld, dd, ud, fin, fout);
-    TDGPU::solve(DF(0,0).nump(), &ld, &dd, &ud, &fin, n_systems, DF(0,0).nump());
+    int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+    GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, ld, dd, ud, fin, device);
 
-    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
     for (size_t ix = 0; ix < szx; ++ix)
-    {           
-        for(size_t id = id_low; id < dist_il.size() ; ++id)
+    {
+        for(size_t id = 0; id < numh ; ++id)
         {
-            size_t base_index = 2*(ix*(dist_il.size()-id_low)+(id-id_low))*DF(0,0).nump();
-            // std::cout << "(x,l,m) = (" << ix << "," << dist_il[id] << "," << dist_im[id] << ")\n";   
+            size_t base_index = 2*(ix*numh+id)*nump;
+            // size_t base_index = (ix*numh+id)*nump;
             for (size_t i(0); i < DF(0,0).nump(); ++i)
             {
-                DFh(dist_il[id],dist_im[id])(i,ix+Nbc) = (fin[base_index + i], fin[base_index + i + DF(0,0).nump()]);   
+                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i], fin[base_index + i + nump]);   
+                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real(fin[base_index + i]);
+                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag(fin[base_index + i + nump]);   
+                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i]);   
             }
         }
-
-
     }
-    // exit(1);
-
+    free(ld);free(dd);free(ud);free(fin);
 }
 //-------------------------------------------------------------------
 //*******************************************************************
@@ -1333,36 +1334,37 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc1D& DF, const valarr
         implicit_step.reset_coeff(f00, Zarray[ix+Nbc], Dt, ix);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
     }*/
-    
-    // ************************* //
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    // Loop over the harmonics for this (x,y)
-    // #pragma omp parallel for collapse(2) schedule(static) num_threads(Input::List().ompthreads)
-    // for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
-    // {           
-    //     for(size_t l = 2; l < l0+1 ; ++l)
-    //     {
-    //         for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
-    //         {
-    //             valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
-    //             // This harmonic --> Valarray
-    //             for (size_t ip(0); ip < fc.size(); ++ip){
-    //                 fc[ip] = (DF(l,m))(ip,ix+Nbc);
-    //             }
-                
-    //             // Take an implicit step
-    //             implicit_step.advance(fc, l, ix+Nbc);
-    //             //  Valarray --> This harmonic
-    //             for (size_t ip(0); ip < fc.size(); ++ip){
-    //                 DFh(l,m)(ip,ix+Nbc) = fc[ip];
-    //             }
-
-    //             exit(1);
-    //         }
-    //     }
-    // }
-
-    implicit_step.flm_solve(DF,DFh);
+    // at app initialization
+    // store this variable somewhere you can access it later
+    // bool deviceConfigured = configureCudaDevice;          
+    // ...                             
+    // then later, at run time
+    if (Input::List().flm_acc) implicit_step.flm_solve(DF,DFh);
+    else
+    {
+        #pragma omp parallel for collapse(2) schedule(static) num_threads(Input::List().ompthreads)
+        for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
+        {           
+            for(size_t l = 2; l < l0+1 ; ++l)
+            {
+                for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
+                {
+                    valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
+                    // This harmonic --> Valarray
+                    for (size_t ip(0); ip < fc.size(); ++ip){
+                        fc[ip] = (DF(l,m))(ip,ix+Nbc);
+                    }
+                    
+                    // Take an implicit step
+                    implicit_step.advance(fc, l, ix+Nbc);
+                    //  Valarray --> This harmonic
+                    for (size_t ip(0); ip < fc.size(); ++ip){
+                        DFh(l,m)(ip,ix+Nbc) = fc[ip];
+                    }
+                }
+            }
+        }
+    }
 }
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------

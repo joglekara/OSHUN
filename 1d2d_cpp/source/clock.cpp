@@ -23,7 +23,7 @@
 #include "lib-array.h"
 #include "lib-algorithms.h"
 
-//  Declerations
+//  Declarations
 #include "state.h"
 #include "input.h"
 #include "formulary.h"
@@ -66,12 +66,11 @@ Clock:: ~Clock(){
 //--------------------------------------------------------------
 Clock& Clock::operator++() 
 {
-
     // std::cout << "\n time = "  << current_time;
     // end_of_loop_output();
     // end_of_loop_dist_output();
     // end_of_loop_dist_output();
-    end_of_loop_time_updates();    
+    end_of_loop_time_updates();
     
     return *this;
 }

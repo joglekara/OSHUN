@@ -70,6 +70,7 @@ public:
     SHarmonic1D& operator*=(const SHarmonic1D& shmulti);
     SHarmonic1D& operator+=(const complex<double> & d);
     SHarmonic1D& operator+=(const SHarmonic1D& shadd);
+    // SHarmonic1D& operator+=(const thrust::host_vector<double>& thadd);
     SHarmonic1D& operator-=(const complex<double> & d);
     SHarmonic1D& operator-=(const SHarmonic1D& shmin);
 

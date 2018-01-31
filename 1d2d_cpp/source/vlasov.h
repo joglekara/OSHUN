@@ -27,6 +27,7 @@ public:
     void operator()(const DistFunc1D& Din, DistFunc1D& Dh);
     void operator()(const DistFunc2D& Din, DistFunc2D& Dh);
     void es1d(const DistFunc1D& Din, DistFunc1D& Dh);
+    void gpu1d(const DistFunc1D& Din, DistFunc1D& Dh);
     void f1only(const DistFunc1D& Din, DistFunc1D& Dh);
     void f1only(const DistFunc2D& Din, DistFunc2D& Dh);
 
@@ -43,6 +44,9 @@ private:
 
 
     complex<double>                 A00, A10, A20;
+
+    // thrust::host_vector<double> dfdx;
+    // thrust::host_vector<double> ld, dd, ud;
 
 
     
@@ -62,6 +66,11 @@ public:
     void operator()(const DistFunc1D& Din,
                     const Field1D& FEx, const Field1D& FEy, const Field1D& FEz,
                     DistFunc1D& Dh);
+    
+    void gpu1d(const DistFunc1D& Din,
+                    const Field1D& FEx,// const Field1D& FEy, const Field1D& FEz,
+                    DistFunc1D& Dh);
+
     void es1d(const DistFunc1D& Din,
                     const Field1D& FEx,
                     DistFunc1D& Dh);

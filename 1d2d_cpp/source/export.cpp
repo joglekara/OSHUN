@@ -591,6 +591,7 @@ Export_Files::Xport::Xport(const Algorithms::AxisBundle<double>& _axis,
             string nounits = dTags.part[i].substr(0, dTags.part[i].find("_"));
             string folder = homedir + "output/particles/" + nounits + "/";
             //         Generate a header file for this tag
+            Hdr[nounits] = Header(axis_units, dTags.part[i], folder);
         }
     } // <--
 
@@ -1064,7 +1065,7 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
     {
         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
         {
-            pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz);
+            pout1D_p1[ipx] += dist(s,x0)(ipx,floor(grid.axis.Npy(s)/2),floor(grid.axis.Npz(s)/2));
         }
     }
 
@@ -4700,9 +4701,11 @@ void Output_Data::Output_Preprocessor::particles_x(const State1D& Y, const Grid_
     int msg_sz(Y.particles().numpar()) ; 
     double buf[msg_sz];
     vector<double> pGlobal(Y.particles().numpar()); 
+    vector<double> prtaxis(Y.particles().numpar());
 
     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
         buf[ip] = Y.particles().x(ip)* (double (Y.particles().ishere(ip)));
+        prtaxis.push_back( ip );
     }
 
 
@@ -4731,8 +4734,7 @@ void Output_Data::Output_Preprocessor::particles_x(const State1D& Y, const Grid_
         }
     }
     
-
-    // if (PE.RANK() == 0) expo.Export_h5("prtx", pGlobal, tout, time, dt);
+    if (PE.RANK() == 0) expo.Export_h5("prtx", prtaxis, pGlobal, tout, time, dt);
 
 }
 //--------------------------------------------------------------
@@ -4748,6 +4750,7 @@ void Output_Data::Output_Preprocessor::particles_px(const State1D& Y, const Grid
     int msg_sz(Y.particles().numpar()) ; 
     double buf[msg_sz];
     vector<double> pGlobal(Y.particles().numpar()); 
+    vector<double> prtaxis(Y.particles().numpar());
 
     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
         buf[ip] = Y.particles().px(ip)* (double (Y.particles().ishere(ip)));
@@ -4779,7 +4782,7 @@ void Output_Data::Output_Preprocessor::particles_px(const State1D& Y, const Grid
         }
     }
 
-    // if (PE.RANK() == 0) expo.Export_h5("prtpx", pGlobal, tout, time, dt);
+    if (PE.RANK() == 0) expo.Export_h5("prtpx", prtaxis, pGlobal, tout, time, dt);
 
 }
 //--------------------------------------------------------------
@@ -4795,6 +4798,7 @@ void Output_Data::Output_Preprocessor::particles_py(const State1D& Y, const Grid
     int msg_sz(Y.particles().numpar()) ; 
     double buf[msg_sz];
     vector<double> pGlobal(Y.particles().numpar()); 
+    vector<double> prtaxis(Y.particles().numpar());
 
     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
         buf[ip] = Y.particles().py(ip)* (double (Y.particles().ishere(ip)));
@@ -4826,7 +4830,7 @@ void Output_Data::Output_Preprocessor::particles_py(const State1D& Y, const Grid
         }
     }
 
-    // if (PE.RANK() == 0) expo.Export_h5("prtpy", pGlobal, tout, time, dt);
+    if (PE.RANK() == 0) expo.Export_h5("prtpy", prtaxis, pGlobal, tout, time, dt);
 
 }
 //--------------------------------------------------------------
@@ -4842,6 +4846,7 @@ void Output_Data::Output_Preprocessor::particles_pz(const State1D& Y, const Grid
     int msg_sz(Y.particles().numpar()) ; 
     double buf[msg_sz];
     vector<double> pGlobal(Y.particles().numpar()); 
+    vector<double> prtaxis(Y.particles().numpar());
 
     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
         buf[ip] = Y.particles().pz(ip)* (double (Y.particles().ishere(ip)));
@@ -4873,7 +4878,7 @@ void Output_Data::Output_Preprocessor::particles_pz(const State1D& Y, const Grid
         }
     }
 
-    // if (PE.RANK() == 0) expo.Export_h5("prtpz", pGlobal, tout, time, dt);
+    if (PE.RANK() == 0) expo.Export_h5("prtpz", prtaxis, pGlobal, tout, time, dt);
 
 }
 //--------------------------------------------------------------

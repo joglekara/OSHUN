@@ -90,9 +90,21 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
             //         std::cout << "\nEx(" << ix << ") = " << Yin.EMF().Ex()(ix);
             //     }            
             // }
+            
+
+            // if (Input::List().flm_acc)
+            // {
+                // EF[s].gpu1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+                SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
+            // }
+            // SA[s].es1d(Yin.DF(s),Yslope.DF(s));
+            // { 
+            
+
             EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-
-
+                
+            // }
+            
             // if (debug) 
             // {
             //     std::cout << "\n\nf after E:";
@@ -112,7 +124,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
             //     }            
             // }
             
-            SA[s].es1d(Yin.DF(s),Yslope.DF(s));
+            
 
             // if (debug) 
             // {
@@ -181,8 +193,17 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
             //         std::cout << "\nEx(" << ix << ") = " << Yin.EMF().Ex()(ix);
             //     }            
             // }
-            EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-
+            // EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+            // if (Input::List().flm_acc)
+            // {
+            //     EF[s].gpu1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+            //     // SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
+            // }
+            // else
+            // { 
+                EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+                
+            // }
 
             // if (debug) 
             // {
@@ -204,7 +225,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
             // }
             
             SA[s].es1d(Yin.DF(s),Yslope.DF(s));
-
+            // SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
             // if (debug) 
             // {
             //     std::cout << "\n\n after SA:";

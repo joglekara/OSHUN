@@ -755,16 +755,13 @@ Input::Input_List::Input_List():
                 if (flm_collisions == 1)
                 {
                     if (deckstringbool == "ee") {ee_bool = 1; ei_bool = 0;}
-                    else if (deckstringbool == "ee-openmp") {flm_acc = 1; ee_bool = 1; ei_bool = 0;}
-                    else if (deckstringbool == "ee-openacc") {flm_acc = 2; ee_bool = 1; ei_bool = 0;}
-
+                    else if (deckstringbool == "ee-gpu") {flm_acc = 1; ee_bool = 1; ei_bool = 0;}
+                    
                     else if (deckstringbool == "ei") {ee_bool = 0; ei_bool = 1;}
-                    else if (deckstringbool == "ei-openmp") {flm_acc = 1; ee_bool = 0; ei_bool = 1;}
-                    else if (deckstringbool == "ei-openacc") {flm_acc = 2; ee_bool = 0; ei_bool = 1;}
+                    else if (deckstringbool == "ei-gpu") {flm_acc = 1; ee_bool = 0; ei_bool = 1;}
 
                     else if (deckstringbool == "on") {ee_bool = 1; ei_bool = 1;}
-                    else if (deckstringbool == "on-openmp") {flm_acc = 1; ee_bool = 1; ei_bool = 1;}
-                    else if (deckstringbool == "on-openacc") {flm_acc = 2; ee_bool = 1; ei_bool = 1;}
+                    else if (deckstringbool == "on-gpu") {flm_acc = 1; ee_bool = 1; ei_bool = 1;}
                 }
                 // flm_collisions = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }

@@ -382,8 +382,6 @@ int main(int argc, char** argv) {
             { 
                 std::cout << "Starting Fully-Explicit, 1D OSHUN\n";
             }
-
-
             // --------------------------------------------------------------------------------------------------------------------------------
             // --------------------------------------------------------------------------------------------------------------------------------
             // --------------------------------------------------------------------------------------------------------------------------------
@@ -446,12 +444,13 @@ int main(int argc, char** argv) {
 
                 if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
                 
-                // if (Input::List().trav_wave) 
-                //     Setup_Y::applytravelingwave(grid, Y, theclock.time(), theclock.dt());
-    
                 theclock.do_step(Y_star, Y, Y_old, rkF, collide, PE);
-            
-                Particle_Push.push(Y,theclock.dt());
+                
+                if (Input::List().particlepusher)
+                {
+                    Particle_Push.push(Y,theclock.dt());
+                    PE.particle_Neighbor_Communications(Y);
+                }
                 // Y = RK(Y,0.5*theclock.dt(),&rkF);
                 // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
 
@@ -466,11 +465,7 @@ int main(int argc, char** argv) {
 
                 // if (Input::List().hydromotion)
                 //     Y = RK(Y, theclock.dt(), &HydroFunc);                                                   /// Hydro Motion
-                // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
-                
-
-                
-                
+                // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //                
             }
         }
         tend = omp_get_wtime();
