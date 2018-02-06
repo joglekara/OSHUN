@@ -420,7 +420,7 @@ public:
     DistFunc1D& operator-=(const DistFunc1D& other);
 
 //      Filter
-    DistFunc1D& Filterp();
+    void Filterp();
 
 //      Debug
     void checknan();

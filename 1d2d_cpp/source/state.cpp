@@ -1257,12 +1257,15 @@ DistFunc1D& DistFunc1D::operator-=(const DistFunc1D& other){
     return *this;
 }
 
-DistFunc1D& DistFunc1D::Filterp(){
-    for(size_t i(1); i < dim() ; ++i) {
+void DistFunc1D::Filterp(){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i(1); i < dim() ; ++i) 
+    {
+        (*df)[i] *= complex<double>(exp(-36.*pow(i/(dim()-1),36)));
         // (*df)[i].Filterp(i);
         // (*df)[i].Filterp(filter_ceiling[i]);
     }
-    return *this;
+    // return *this;
 }
 //--------------------------------------------------------------------------------------------------------------------------
 //  Moments for Hydro
