@@ -145,11 +145,11 @@ SHarmonic1D& SHarmonic1D::Dp()
             *sh = (*sh).Dd1_4th_order();
         }
 
-        for (size_t i(0); i < plast.size(); ++i) {
+        // for (size_t i(0); i < plast.size(); ++i) {
             // TODO                The Dp at the zeroth cell is taken care off
-            (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
-            (*sh)(nump()-1,i) = 2.0*plast[i];
-        }
+            // (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
+            // (*sh)(nump()-1,i) = 2.0*plast[i];
+        // }
     
     return *this;
 }
@@ -1213,7 +1213,7 @@ DistFunc1D& DistFunc1D::operator=(const DistFunc1D& other){
 //  *=
 DistFunc1D& DistFunc1D::operator*=(const complex<double> & d){
     #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for(size_t i(0); i < dim() ; ++i) {
+    for(size_t i = 0; i < dim() ; ++i) {
         (*df)[i] *= d;
     }
     return *this;
@@ -1259,7 +1259,7 @@ DistFunc1D& DistFunc1D::operator-=(const DistFunc1D& other){
 
 void DistFunc1D::Filterp(){
     #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for(size_t i(1); i < dim() ; ++i) 
+    for(size_t i = 0; i < dim() ; ++i) 
     {
         (*df)[i] *= complex<double>(exp(-36.*pow(i/(dim()-1),36)));
         // (*df)[i].Filterp(i);

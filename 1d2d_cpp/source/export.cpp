@@ -1752,30 +1752,8 @@ void Output_Data::Output_Preprocessor::Ex(const State1D& Y, const Grid_Info& gri
         Exbuf[i] = static_cast<double>( Y.EMF().Ex()(Nbc+i).real() );
     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Exbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                ExGlobal[i] = Exbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Exbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    ExGlobal[i + outNxLocal*rr] = Exbuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            ExGlobal[i] = Exbuf[i];
-        }
-    }
+    MPI_Gather( Exbuf, msg_sz, MPI_DOUBLE, &ExGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
 
     if (PE.RANK() == 0) expo.Export_h5("Ex", xaxis, ExGlobal, tout, time, dt);
 
@@ -1802,30 +1780,7 @@ void Output_Data::Output_Preprocessor::Ey(const State1D& Y, const Grid_Info& gri
         Eybuf[i] = static_cast<double>( Y.EMF().Ey()(Nbc+i).real() );
     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Eybuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                EyGlobal[i] = Eybuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Eybuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    EyGlobal[i + outNxLocal*rr] = Eybuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            EyGlobal[i] = Eybuf[i];
-        }
-    }
+    MPI_Gather( Eybuf, msg_sz, MPI_DOUBLE, &EyGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (PE.RANK() == 0) expo.Export_h5("Ey", xaxis, EyGlobal, tout, time, dt);
 
@@ -1852,30 +1807,7 @@ void Output_Data::Output_Preprocessor::Ez(const State1D& Y, const Grid_Info& gri
         Ezbuf[i] = static_cast<double>( Y.EMF().Ez()(Nbc+i).real() );
     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Ezbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                EzGlobal[i] = Ezbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Ezbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    EzGlobal[i + outNxLocal*rr] = Ezbuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            EzGlobal[i] = Ezbuf[i];
-        }
-    }
+    MPI_Gather( Ezbuf, msg_sz, MPI_DOUBLE, &EzGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (PE.RANK() == 0) expo.Export_h5("Ez", xaxis, EzGlobal, tout, time, dt);
 
@@ -1902,30 +1834,7 @@ void Output_Data::Output_Preprocessor::Bx(const State1D& Y, const Grid_Info& gri
         Bxbuf[i] = static_cast<double>( Y.EMF().Bx()(Nbc+i).real() );
     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Bxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                BxGlobal[i] = Bxbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Bxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    BxGlobal[i + outNxLocal*rr] = Bxbuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            BxGlobal[i] = Bxbuf[i];
-        }
-    }
+    MPI_Gather( Bxbuf, msg_sz, MPI_DOUBLE, &BxGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (PE.RANK() == 0) expo.Export_h5("Bx", xaxis, BxGlobal, tout, time, dt);
 
@@ -1951,30 +1860,7 @@ void Output_Data::Output_Preprocessor::By(const State1D& Y, const Grid_Info& gri
         Bybuf[i] = static_cast<double>( Y.EMF().By()(Nbc+i).real() );
     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Bybuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                ByGlobal[i] = Bybuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Bybuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    ByGlobal[i + outNxLocal*rr] = Bybuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            ByGlobal[i] = Bybuf[i];
-        }
-    }
+    MPI_Gather( Bybuf, msg_sz, MPI_DOUBLE, &ByGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (PE.RANK() == 0) expo.Export_h5("By", xaxis, ByGlobal, tout, time, dt);
 
@@ -2001,30 +1887,7 @@ void Output_Data::Output_Preprocessor::Bz(const State1D& Y, const Grid_Info& gri
         Bzbuf[i] = static_cast<double>( Y.EMF().Bz()(Nbc+i).real() );
     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Bzbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                BzGlobal[i] = Bzbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Bzbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    BzGlobal[i + outNxLocal*rr] = Bzbuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            BzGlobal[i] = Bzbuf[i];
-        }
-    }
+    MPI_Gather( Bzbuf, msg_sz, MPI_DOUBLE, &BzGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     if (PE.RANK() == 0) expo.Export_h5("Bz", xaxis, BzGlobal, tout, time, dt);
 

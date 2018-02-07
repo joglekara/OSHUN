@@ -544,11 +544,15 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_2nd_order(){
 
     for (long i2(0); i2<long(d2);++i2)
     {
+        temp(0,i2) = (-3.0*(*this)(0,i2) + 4.*(*this)(1,i2) - (*this)(2,i2));
+
         for (long i1(1); i1<long(d1)-1;++i1)
         {
             temp(i1,i2) = (*this)(i1-1,i2);
             temp(i1,i2) -= (*this)(i1+1,i2);
         }
+
+        temp(long(d1)-1,i2) = (3.0*(*this)(long(d1)-1,i2) - 4.*(*this)(long(d1)-2,i2) + (*this)(long(d1)-3,i2));
    }
 
    *this = temp; 
@@ -566,7 +570,7 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 
     for (long i2(0); i2<long(d2);++i2)
     {
-        // temp(0,i2) = -2.0*((*this)(1,i2)-(*this)(0,i2));
+        temp(0,i2) = -1./onesixth*(-3.0*(*this)(0,i2) + 4.*(*this)(1,i2) - (*this)(2,i2));
         temp(1,i2) = ((*this)(0,i2)-(*this)(2,i2))/onesixth;
 
         for (long i1(2); i1<long(d1)-2;++i1)
@@ -578,7 +582,7 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
         }
         
         temp(long(d1)-2,i2) = ((*this)(long(d1)-3,i2)-(*this)(long(d1)-1,i2))/onesixth;
-        // temp(long(d1)-1,i2) = -2.0*((*this)(long(d1)-1,i2)-(*this)(long(d1)-2,i2));
+        temp(long(d1)-1,i2) = -1./onesixth*(3.0*(*this)(long(d1)-1,i2) - 4.*(*this)(long(d1)-2,i2) + (*this)(long(d1)-3,i2));
    }
 
    temp *= onesixth;
