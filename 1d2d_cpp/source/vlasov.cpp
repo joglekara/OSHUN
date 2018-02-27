@@ -3590,7 +3590,7 @@ void Spatial_Advection::gpu1d(const DistFunc1D& Din, DistFunc1D& Dh)
     // GPU_interface_routines::calc_vgradf(numx, vtemp, h_A_RHS_dense, dfdx,
     //                             ld, dd, ud, device);
 
-    GPU_interface_routines::calc_fieldxdf(numx, nump, dist_il.size(), fin, device);
+    // GPU_interface_routines::calc_fieldxdf(numx, nump, dist_il.size(), fin, device);
 
     size_t l0(Din.l0());
 

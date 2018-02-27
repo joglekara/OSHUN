@@ -21,10 +21,8 @@
 //  My libraries
     #include "lib-array.h"
     #include "lib-algorithms.h"
-    #include <thrust/host_vector.h>
-    #include <thrust/complex.h>
 
-//  Declerations
+//  Declarations
     #include "state.h"
     #include "formulary.h"
     #include "input.h"

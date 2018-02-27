@@ -65,6 +65,7 @@ namespace Input{
         int flm_collisions;
         int flm_acc;
         bool ee_bool,ei_bool;
+        int coll_op;
 
         int BoundaryCells;
         

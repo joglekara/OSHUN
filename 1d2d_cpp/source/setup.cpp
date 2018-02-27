@@ -24,10 +24,8 @@
 #include "lib-array.h"
 #include "lib-algorithms.h"
 #include "external/exprtk.hpp"
-#include <thrust/host_vector.h>
-#include <thrust/complex.h>
 
-//  Declerations
+//  Declarations
 #include "input.h"
 #include "state.h"
 #include "formulary.h"
@@ -794,7 +792,7 @@ void Setup_Y:: init_f1(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
         coefftemp = coeff*density[j]/pow(2.0*M_PI*temperature[j]*mass,1.5)*f10x[j];
         for (int k(0); k < h.nump(); ++k){
             // New formulation for temperature distribution and super-Gaussians
-            h(k,j) = idp*df0(k,j)*pow(p[k],3.0)*f10x[j];
+            h(k,j) = idp*df0(k,j)*f10x[j];
         }
 
     }

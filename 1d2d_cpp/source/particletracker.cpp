@@ -68,31 +68,48 @@ Particle_Pusher::Particle_Pusher(std::vector<double> xpos,
 /**
  * Pusher
  */
-void Particle_Pusher::push(State1D& Y, double dt){
-
-
-	tk::spline splEx;
-	vector<double> exvec(xaxis.size());
+void Particle_Pusher::push(State1D& Y, double dt)
+{
+	tk::spline splEx, splEy, splEz;
+	tk::spline splBx, splBy, splBz;
+	vector<double> exvec(xaxis.size()), eyvec(xaxis.size()), ezvec(xaxis.size());
+	vector<double> bxvec(xaxis.size()), byvec(xaxis.size()), bzvec(xaxis.size());
 
 	for (size_t ix(0); ix < xaxis.size(); ++ix)
 	{
 		exvec[ix] = Y.EMF().Ex()(ix).real();
+		eyvec[ix] = Y.EMF().Ey()(ix).real();
+		ezvec[ix] = Y.EMF().Ez()(ix).real();
+		bxvec[ix] = Y.EMF().Bx()(ix).real();
+		byvec[ix] = Y.EMF().By()(ix).real();
+		bzvec[ix] = Y.EMF().Bz()(ix).real();
 	}
 
-	splEx.set_points(xaxis,exvec);
+	/// Create Splines
+	splEx.set_points(xaxis,exvec); splEy.set_points(xaxis,eyvec); splEz.set_points(xaxis,ezvec);
+	splBx.set_points(xaxis,bxvec); splBy.set_points(xaxis,byvec); splBz.set_points(xaxis,bzvec);
 
 	#pragma omp parallel for num_threads(Input::List().ompthreads)
 	for (int ip = 0; ip < numpar; ++ip)
 	{
-		double tempEx(0.);
+		double tempEx(0.), tempEy(0.), tempEz(0.);
+		double tempBx(0.), tempBy(0.), tempBz(0.);
 		// std::cout << "min = " << xmin << ", position = " << Y.particles().x(ip) << ", Pin.ishere = " << Y.particles().ishere(ip) << "\n";
 		if (Y.particles().ishere(ip))
 		{	
 
 			Y.particles().x(ip) = Y.particles().x(ip) + 0.5*dt*Y.particles().px(ip);
 			
-			tempEx = splEx(Y.particles().x(ip));
-			Y.particles().px(ip) = Y.particles().px(ip) + dt*chargetomass*tempEx;
+			tempEx = splEx(Y.particles().x(ip)); tempEy = splEy(Y.particles().x(ip)); tempEz = splEz(Y.particles().x(ip));
+			tempBx = splBx(Y.particles().x(ip)); tempBy = splBy(Y.particles().x(ip)); tempBz = splBz(Y.particles().x(ip));
+
+			double Lorentz_x = tempEx + Y.particles().py(ip) * tempBz - Y.particles().pz(ip) * tempBy;
+			double Lorentz_y = tempEy + Y.particles().pz(ip) * tempBx - Y.particles().px(ip) * tempBz;
+			double Lorentz_z = tempEz + Y.particles().px(ip) * tempBy - Y.particles().py(ip) * tempBx;
+
+			Y.particles().px(ip) = Y.particles().px(ip) + dt*chargetomass*Lorentz_x;
+			Y.particles().py(ip) = Y.particles().py(ip) + dt*chargetomass*Lorentz_y;
+			Y.particles().pz(ip) = Y.particles().pz(ip) + dt*chargetomass*Lorentz_z;			
 
 			Y.particles().x(ip) = Y.particles().x(ip) + 0.5*dt*Y.particles().px(ip);
 			

@@ -916,7 +916,7 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
 /// @param[in]  fin      Input distribution function
 /// @param[in]  Delta_t  timestep
 ///
-void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zvalue, const double Delta_t, const size_t position) {
+void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double Zvalue, const double Delta_t, const size_t position) {
 //-------------------------------------------------------------------
 //  Reset the coefficients based on f_0^0 
 //-------------------------------------------------------------------
@@ -1074,7 +1074,111 @@ void  self_flm_implicit_step::reset_coeff(valarray<double>& fin, const double Zv
     //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 }
 //-------------------------------------------------------------------
+//--------------------------------------------------------------
+//------------------------------------------------------------------------------
+/// @brief      Resets coefficients and integrals to use in the matrix solve.
+///
+/// @param[in]  fin      Input distribution function
+/// @param[in]  Delta_t  timestep
+///
+void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double Zvalue, const double Delta_t, const size_t position) {
+//-------------------------------------------------------------------
+//  Reset the coefficients based on f_0^0 
+//-------------------------------------------------------------------
+    // std::cout << "ix = " << position << "\n";
+    //          Constant
+    double I0_density, I2_temperature;
+    double _ZLOGei, _LOGee;
 
+    valarray<double>  df0(0.,fin.size()), ddf0(0.,fin.size());
+    Array2D<double> Alpha_Tri(fin.size(),fin.size());
+    valarray<double> Scattering_Term(fin);
+    //          Define the integrals
+    valarray<double>  J1m(0.,fin.size()), I0(0.,fin.size()), I2(0.,fin.size());
+
+//     Calculate Dt
+    Dt = Delta_t;
+
+//     INTEGRALS
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     Temperature integral I2 = 4*pi / (v^2) * int_0^v f(u)*u^4du
+//     Density integral I0 = 4*pi*int_0^v f(u)*u^2du 
+
+    I2[0] = 0;
+    I0[0] = 0;
+
+    // #pragma novector
+    for (size_t k(1); k < I2.size(); ++k) 
+    {
+        I2[k]  = U4[k]*fin[k];
+        I2[k] += U4m1[k]*fin[k-1];
+        I2[k] += I2[k-1];
+
+        // std::cout << "vr[" << k << "] = " << vr[k] <<"\n";
+        // std::cout << "U4m1[" << k << "] = " << U4m1[k] <<"\n";
+
+        I0[k]  = U2[k]*fin[k];
+        I0[k] += U2m1[k]*fin[k-1];
+        I0[k] += I0[k-1];
+    }
+    
+    I0_density = 4.0*M_PI*I0[I0.size()-1];
+    I2_temperature = I2[I2.size()-1]/3.0/I0[I0.size()-1];
+
+//     COULOMB LOGARITHMS
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    _LOGee  = Input::List().ee_bool*formulas.LOGee(I0_density,I2_temperature);
+    _ZLOGei = Input::List().ei_bool*(formulas.Zeta*Zvalue)*formulas.LOGei(I0_density,I2_temperature,(formulas.Zeta*Zvalue));
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+
+//     SCATTERING TERM
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    // Scattering_Term    = TriI1;
+    Scattering_Term    = 2.*I2_temperature;
+    Scattering_Term   *= _LOGee;                        // Electron-electron contribution
+    Scattering_Term[0] = 0.0;
+    Scattering_Term   += _ZLOGei * I0_density;          // Ion-electron contribution
+    // Scattering_Term   /= pow(vr,3);
+    for (size_t i(0); i < Scattering_Term.size(); ++i){    // Multiply by 1/v^3
+        Scattering_Term[i] /= pow(vr[i],2);
+        // std::cout << "\nScattering_TermBBB[" << i << "] = " << Scattering_Term[i] << "\n";
+    }
+
+    Scattering_Term *=  kpre * Dt;
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+
+//     MAKE TRIDIAGONAL ARRAY
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    Alpha_Tri = 0.0;
+
+
+    double deltav = vr[2]-vr[1];
+    Alpha_Tri(0,0) = 1.0 - 2.*pow(I2_temperature/deltav,2.);
+
+
+
+    for (size_t i(1); i < I2.size()-1; ++i)
+    {   
+        Alpha_Tri(i, i  ) = 1.0 - 2.*pow(I2_temperature/deltav,2.);
+        Alpha_Tri(i, i-1) = (2.*I2_temperature*I2_temperature*(1./deltav - 1./vr[i]) - vr[i]) / (2.*deltav);
+        Alpha_Tri(i, i+1) = (2.*I2_temperature*I2_temperature*(1./deltav + 1./vr[i]) + vr[i]) / (2.*deltav);                                     //  
+    }
+
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt;         // (-1) because the matrix moves to the LHS in the equation
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
+    // Collect all terms to share with matrix solve routine
+    (_LOGee_x)[position] = _LOGee;
+    (Scattering_Term_x)[position] = Scattering_Term;
+    (Alpha_Tri_x)[position] = Alpha_Tri;
+    (df0_x)[position] = df0;
+    (ddf0_x)[position] = ddf0;
+    //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+}
+//-------------------------------------------------------------------
 //------------------------------------------------------------------------------
 /// @brief      Perform a matrix solve to calculate effect of collisions on f >= 1
 ///
@@ -1146,8 +1250,20 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
     double ll1(static_cast<double>(el));
     ll1 *= (-0.5)*(ll1 + 1.0);
 
-    for (size_t i(0); i < Alpha.dim1(); ++i){
-        Alpha(i,i) += 1.0 - ll1 * (Scattering_Term_x[position])[i];
+
+    if (Input::List().coll_op == 0 || Input::List().coll_op == 2)
+    {
+        for (size_t i(0); i < Alpha.dim1(); ++i)
+        {
+            Alpha(i,i) += 1.0;
+        }
+    }
+    else if (Input::List().coll_op == 1 || Input::List().coll_op == 3)
+    {
+        for (size_t i(0); i < Alpha.dim1(); ++i)
+        {
+            Alpha(i,i) += 1.0 - ll1 * (Scattering_Term_x[position])[i];
+        }
     }
     
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1179,7 +1295,7 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
 /// @param      fin   Input distribution function
 /// @param[in]  el    Number of elements in matrix (?)
 ///
-void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh) 
+void  self_flm_implicit_step::flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& DFh) 
 {
     //-------------------------------------------------------------------
     //  Collisions
@@ -1192,12 +1308,14 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     // int n_systems(szx * numh);
     int totalsize(n_systems * nump);
 
-    double *ld  = (double*)malloc(totalsize * sizeof(double));
-    double *dd  = (double*)malloc(totalsize * sizeof(double));
-    double *ud  = (double*)malloc(totalsize * sizeof(double));
-    double *fin = (double*)malloc(totalsize * sizeof(double));
+    // double *ld  = (double*)malloc(totalsize * sizeof(double));
+    // double *dd  = (double*)malloc(totalsize * sizeof(double));
+    // double *ud  = (double*)malloc(totalsize * sizeof(double));
+    // double *fin = (double*)malloc(totalsize * sizeof(double));
 
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    valarray<double> ld(totalsize), dd(totalsize), ud(totalsize), fin(totalsize);
+
+    #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
     for (size_t ix = 0; ix < szx; ++ix)
     {           
         for(size_t id = 0; id < numh ; ++id)
@@ -1251,7 +1369,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
-    GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, ld, dd, ud, fin, device);
+    // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld[0], &dd[0], &ud[0], &fin[0], device);
 
     #pragma omp parallel for num_threads(Input::List().ompthreads)
     for (size_t ix = 0; ix < szx; ++ix)
@@ -1269,11 +1387,112 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
             }
         }
     }
-    free(ld);free(dd);free(ud);free(fin);
+    // free(ld);free(dd);free(ud);free(fin);
 }
 //-------------------------------------------------------------------
 //*******************************************************************
+//------------------------------------------------------------------------------
+/// @brief      Perform a matrix solve to calculate effect of collisions on f >= 1
+///
+/// @param      fin   Input distribution function
+/// @param[in]  el    Number of elements in matrix (?)
+///
+void  self_flm_implicit_step::flm_solve_FP1(const DistFunc1D& DF, DistFunc1D& DFh) 
+{
+    //-------------------------------------------------------------------
+    //  Collisions
+    //-------------------------------------------------------------------
+    size_t Nbc = Input::List().BoundaryCells; Nbc = 1;
+    size_t szx = DF(0,0).numx() - 2*Nbc;
+    size_t nump = DF(0,0).nump();
+    size_t numh = (dist_il.size()-id_low);
+    int n_systems(szx * numh * 2);
+    // int n_systems(szx * numh);
+    int totalsize(n_systems * nump);
 
+    // double *ld  = (double*)malloc(totalsize * sizeof(double));
+    // double *dd  = (double*)malloc(totalsize * sizeof(double));
+    // double *ud  = (double*)malloc(totalsize * sizeof(double));
+    // double *fin = (double*)malloc(totalsize * sizeof(double));
+
+    valarray<double> ld(totalsize), dd(totalsize), ud(totalsize), fin(totalsize);
+
+    #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
+    for (size_t ix = 0; ix < szx; ++ix)
+    {           
+        for(size_t id = 0; id < numh ; ++id)
+        {
+            /// Determine offset
+            size_t base_index = 2*(ix*numh+id)*nump;
+            // size_t base_index = (ix*numh+id)*nump;
+            
+            double ll1(static_cast<double>(dist_il[id+id_low]));
+            ll1 *= (-0.5)*(ll1 + 1.0);
+
+            /// And then pack it up
+            for (size_t i(0); i < nump; ++i)
+            {
+                dd[ i + base_index] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0);
+                fin[i + base_index] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real();
+
+                dd[ i + base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0);
+                fin[i + base_index + nump] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag();
+            }
+            
+            ld[base_index] = 0.;
+            ud[base_index+nump-1] = 0.;
+
+            ld[base_index+nump] = 0.;
+            ud[base_index+nump-1+nump] = 0.;
+
+            // ud[base_index] = 0.;
+            // ld[base_index+nump-1] = 0.;
+
+            // ud[base_index+nump] = 0.;
+            // ld[base_index+nump-1+nump] = 0.;
+            
+            for (size_t i(0); i < nump - 1; ++i)
+            {
+                ld[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                ud[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
+                
+                ld[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                ud[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
+
+                // ud[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                // ld[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
+                
+                // ud[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                // ld[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
+            }
+        }
+    }
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    /// SOLVE A * Fout  = Fin
+    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+    // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld[0], &dd[0], &ud[0], &fin[0], device);
+
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for (size_t ix = 0; ix < szx; ++ix)
+    {
+        for(size_t id = 0; id < numh ; ++id)
+        {
+            size_t base_index = 2*(ix*numh+id)*nump;
+            // size_t base_index = (ix*numh+id)*nump;
+            for (size_t i(0); i < DF(0,0).nump(); ++i)
+            {
+                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i], fin[base_index + i + nump]);   
+                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real(fin[base_index + i]);
+                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag(fin[base_index + i + nump]);   
+                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i]);   
+            }
+        }
+    }
+    // free(ld);free(dd);free(ud);free(fin);
+}
+//-------------------------------------------------------------------
+//*******************************************************************
 
 //*******************************************************************
 //*******************************************************************
@@ -1339,7 +1558,13 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc1D& DF, const valarr
     // bool deviceConfigured = configureCudaDevice;          
     // ...                             
     // then later, at run time
-    if (Input::List().flm_acc) implicit_step.flm_solve(DF,DFh);
+    if (Input::List().flm_acc) 
+    {
+        if (Input::List().coll_op == 0 || Input::List().coll_op == 2)
+            implicit_step.flm_solve_FP1(DF,DFh);
+        else if (Input::List().coll_op == 1 || Input::List().coll_op == 3)
+            implicit_step.flm_solve_FP2(DF,DFh);
+    }
     else
     {
         #pragma omp parallel for collapse(2) schedule(static) num_threads(Input::List().ompthreads)
@@ -1388,7 +1613,10 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
 
         }
         // Reset the integrals and coefficients
-        implicit_step.reset_coeff(f00, Zarray[ix], step_size, ix);
+        if (Input::List().coll_op == 0 || Input::List().coll_op == 1)
+            implicit_step.reset_coeff_FP(f00, Zarray[ix], step_size, ix);
+        else if (Input::List().coll_op == 2 || Input::List().coll_op == 3)
+            implicit_step.reset_coeff_LB(f00, Zarray[ix], step_size, ix);
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
     }
 
@@ -1442,8 +1670,13 @@ void self_flm_implicit_collisions::advancef1(const DistFunc2D& DF, const Array2D
             for (size_t ip(0); ip < f00.size(); ++ip){
                 f00[ip] = (DF(0,0)(ip,ix,iy)).real();
             }
+            
             // Reset the integrals and coefficients
-            implicit_step.reset_coeff(f00, Zarray(ix,iy), step_size, ix*szy+iy);
+            // implicit_step.reset_coeff(f00, Zarray(ix,iy), step_size, ix*szy+iy);
+            if (Input::List().coll_op == 0 || Input::List().coll_op == 1)
+                implicit_step.reset_coeff_FP(f00, Zarray(ix,iy), step_size, ix*szy+iy);
+            else if (Input::List().coll_op == 2 || Input::List().coll_op == 3)
+                implicit_step.reset_coeff_LB(f00, Zarray(ix,iy), step_size, ix*szy+iy);
         }
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
     }

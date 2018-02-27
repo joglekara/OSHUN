@@ -55,7 +55,7 @@ Input::Input_List::Input_List():
     implicit_B(0),
     collisions(1),
     f00_implicitorexplicit(2),
-    flm_collisions(0),flm_acc(0),ee_bool(1),ei_bool(1),
+    flm_collisions(0),flm_acc(0),ee_bool(1),ei_bool(1), coll_op(0),
     BoundaryCells(4),
     
     bndX(0),
@@ -764,6 +764,22 @@ Input::Input_List::Input_List():
                     else if (deckstringbool == "on-gpu") {flm_acc = 1; ee_bool = 1; ei_bool = 1;}
                 }
                 // flm_collisions = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "coll_operator") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+
+                if (deckstringbool == "LB1") coll_op = 2;
+                else if (deckstringbool == "LB2") coll_op = 3;
+                else if (deckstringbool == "FP1") coll_op = 0;
+                else if (deckstringbool == "FP2") coll_op = 1;
+                else coll_op = 1;
+
+
             }
             if (deckstring == "assume_tridiagonal_flm_collisions") {
                 deckfile >> deckequalssign;
