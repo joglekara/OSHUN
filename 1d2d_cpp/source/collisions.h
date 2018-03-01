@@ -60,6 +60,8 @@ public:
     self_f00_implicit_step(const valarray<double>& dp, const double _mass, bool _ib);
 
     void takestep(valarray<double> &fin, valarray<double> &fh, const double Z0, const double heating, const double step_size);//, const double& cooling);
+    void takeLBstep(valarray<double> &fin, valarray<double> &fh, const double step_size);//, const double& cooling);
+
 };
 
 //-------------------------------------------------------------------

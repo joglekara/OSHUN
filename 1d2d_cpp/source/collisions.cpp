@@ -255,7 +255,7 @@ void self_f00_implicit_step::update_D_inversebremsstrahlung(const double Z0, con
 
     double vw_cube;// = vw_coeff_cube; * ZLn_ei * 4.0*M_PI*I2;;
 
-    double temperature = I4_Lnee/3.0/C_RB[C_RB.size()-1];
+    double temperature = 2.*I4_Lnee/3.0/C_RB[C_RB.size()-1];
     vw_cube  = Z0*formulas.Zeta*formulas.LOGei(C_RB[C_RB.size()-1],temperature,Z0*formulas.Zeta);  ///< ZLogLambda
     vw_cube *= vw_coeff_cube * C_RB[C_RB.size()-1];
 
@@ -293,14 +293,12 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
     update_D_and_delta(fin);    /// And takes care of boundaries
 
     /// Normalizing quantities (Inspired by previous collision routines and OSHUN notes by M. Tzoufras)
-    collisional_coefficient  = formulas.LOGee(C_RB[C_RB.size()-1],I4_Lnee/3.0/C_RB[C_RB.size()-1]);
+    collisional_coefficient  = formulas.LOGee(C_RB[C_RB.size()-1],2.*I4_Lnee/3.0/C_RB[C_RB.size()-1]);
     collisional_coefficient *= 4.0*M_PI/3.0*c_kpre;
-
     collisional_coefficient *= step_size;           /// Step size incorporated here
 
 
-
-    heating_coefficient  = formulas.Zeta*Z0*formulas.LOGei(C_RB[C_RB.size()-1],I4_Lnee/3.0/C_RB[C_RB.size()-1],Z0*formulas.Zeta);  ///< ZLogLambda
+    heating_coefficient  = formulas.Zeta*Z0*formulas.LOGei(C_RB[C_RB.size()-1],2.*I4_Lnee/3.0/C_RB[C_RB.size()-1],Z0*formulas.Zeta);  ///< ZLogLambda
     heating_coefficient *= c_kpre / 6.0 * pow(vos,2.0) * C_RB[C_RB.size()-1];
     heating_coefficient /= collisional_coefficient;
 
@@ -356,6 +354,77 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
     // }
 
     // fh = fin;
+    Thomas_Tridiagonal(LHS,fin,fh);
+
+}
+
+//---------------------------------------------------------------------------------------------
+void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double> &fh, const double step_size)//, const double cooling) {
+{
+
+    Array2D<double> LHS(fin.size(),fin.size());
+
+    ///  Calculate Rosenbluth and Chang-Cooper quantities
+    update_C_Rosenbluth(fin);   /// Also fills in I4_Lnee (the temperature for the Lnee calculation)
+
+    /// Normalizing quantities (Inspired by previous collision routines and OSHUN notes by M. Tzoufras)
+    double collisional_coefficient;
+    collisional_coefficient  = formulas.LOGee(C_RB[C_RB.size()-1],2.*I4_Lnee/3.0/C_RB[C_RB.size()-1]);
+    collisional_coefficient *= 4.0*M_PI/3.0*c_kpre;
+
+    collisional_coefficient *= -step_size;           /// Step size incorporated here
+
+    double deltav = vr[2]-vr[1];
+    double I2_temperature(2.*I4_Lnee/3.0/C_RB[C_RB.size()-1]);
+    
+    /// Fill in matrix
+    size_t ip(0);
+
+    /// Boundaries by hand -- This operates on f(0)
+    LHS(ip, ip + 1)  = (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
+    LHS(ip, ip + 1) += I2_temperature/(4.*deltav*deltav);
+    LHS(ip, ip + 1) *= collisional_coefficient;
+
+    LHS(ip    , ip)  = 1.0 - I2_temperature/4./deltav/deltav;
+    LHS(ip    , ip) -= (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
+    LHS(ip    , ip) *= collisional_coefficient;
+    LHS(ip    , ip) += 1.;
+
+    #pragma ivdep
+    for (ip = 1; ip < fin.size() - 1; ++ip)
+    {
+        LHS(ip, ip + 1)  = (vr[ip]+2.*I2_temperature/vr[ip])/(2.*deltav);
+        LHS(ip, ip + 1) += I2_temperature/(deltav*deltav);
+        LHS(ip, ip + 1) *= collisional_coefficient;
+
+        LHS(ip    , ip)  = 1.0 - 2.*I2_temperature/deltav/deltav;
+        LHS(ip    , ip) *= collisional_coefficient;
+        LHS(ip    , ip) += 1.;
+
+        LHS(ip, ip - 1)  = -(vr[ip]+2.*I2_temperature/vr[ip])/(2.*deltav);
+        LHS(ip, ip - 1) += I2_temperature/(deltav*deltav);
+        LHS(ip, ip - 1) *= collisional_coefficient;
+    }
+
+    ip = fin.size() - 1;
+
+    LHS(ip    , ip)  = 1.0 - I2_temperature/4./deltav/deltav;
+    LHS(ip    , ip) += (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
+    LHS(ip    , ip) *= collisional_coefficient;
+    LHS(ip    , ip) += 1.;
+
+    LHS(ip, ip - 1)  = -(vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
+    LHS(ip, ip - 1) += I2_temperature/(4.*deltav*deltav);
+    LHS(ip, ip - 1) *= collisional_coefficient;
+
+    // std::cout << "\n\n LHS = \n";
+    // for (size_t i(0); i < LHS.dim1(); ++i) {
+    //     std::cout << "i = " << i << " :::: ";
+    //     for (size_t j(0); j < LHS.dim2(); ++j) {
+    //         std::cout << LHS(i, j) << "   ";
+    //     }
+    //     std::cout << "\n";
+    // }
     Thomas_Tridiagonal(LHS,fin,fh);
 
 }
@@ -430,7 +499,14 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
            // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
         }
         // collide.takestep(fin,fout,Zarray[ix+Nbc],heatingprofile_1d[ix+Nbc],step_size);//,coolingprofile_1d[ix+Nbc]);
-        collide.takestep(fin,fout,Zarray[ix],heatingprofile_1d[ix],step_size);//,coolingprofile_1d[ix+Nbc]);
+        if (Input::List().coll_op == 0 || Input::List().coll_op == 1)
+        {
+            collide.takestep(fin,fout,Zarray[ix],heatingprofile_1d[ix],step_size);//,coolingprofile_1d[ix+Nbc]);
+        }
+        else if (Input::List().coll_op == 2 || Input::List().coll_op == 3)
+        {
+            collide.takeLBstep(fin,fout,step_size);
+        }
 
         // Return updated data to the harmonic
         for (size_t ip(0); ip < fin.size(); ++ip)
@@ -959,7 +1035,7 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
     
     I0_density = 4.0*M_PI*I0[I0.size()-1];
     I2_temperature = I2[I2.size()-1]/3.0/I0[I0.size()-1];
-
+    
     //     Integral J_(-1) = 4*pi * v * int_0^v f(u)*u^4du
     J1m[J1m.size()-1] = 0;
     #pragma novector
@@ -1154,15 +1230,19 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
 
 
     double deltav = vr[2]-vr[1];
-    Alpha_Tri(0,0) = 1.0 - 2.*pow(I2_temperature/deltav,2.);
+    Alpha_Tri(0,0) = 1.0 - 2.*I2_temperature/deltav/deltav;
 
 
 
     for (size_t i(1); i < I2.size()-1; ++i)
     {   
-        Alpha_Tri(i, i  ) = 1.0 - 2.*pow(I2_temperature/deltav,2.);
-        Alpha_Tri(i, i-1) = (2.*I2_temperature*I2_temperature*(1./deltav - 1./vr[i]) - vr[i]) / (2.*deltav);
-        Alpha_Tri(i, i+1) = (2.*I2_temperature*I2_temperature*(1./deltav + 1./vr[i]) + vr[i]) / (2.*deltav);                                     //  
+        Alpha_Tri(i, i  ) = 1.0 - 2.*I2_temperature/deltav/deltav;
+        
+        Alpha_Tri(i, i-1) = -(vr[i]+2.*I2_temperature/vr[i])/(2.*deltav);
+        Alpha_Tri(i, i-1) += I2_temperature/(deltav*deltav);
+
+        Alpha_Tri(i, i+1) = (vr[i]+2.*I2_temperature/vr[i])/(2.*deltav);
+        Alpha_Tri(i, i+1) += I2_temperature/(deltav*deltav);
     }
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1766,9 +1846,10 @@ self_collisions::self_collisions(const size_t _l0, const size_t _m0,
 //-------------------------------------------------------------------
 void self_collisions::advancef00(const SHarmonic1D& f00, const valarray<double>& Zarray,SHarmonic1D& f00h,  const double time, const double step_size)
 //-------------------------------------------------------------------
-{    
+{
+    
     if (Input::List().f00_implicitorexplicit == 2) self_f00_imp_collisions.loop(f00,Zarray,f00h,time,step_size);
-    // else self_f00_exp_collisions.loop(f00,f00h,step_size);
+    // else self_f00_exp_collisions.loop(f00,f00h,step_size);    
     
 }
 //-------------------------------------------------------------------
