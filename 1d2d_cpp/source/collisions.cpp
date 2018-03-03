@@ -1230,7 +1230,7 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
 
 
     double deltav = vr[2]-vr[1];
-    Alpha_Tri(0,0) = 1.0 - 2.*I2_temperature/deltav/deltav;
+    Alpha_Tri(0,0) = 1.0 ;
 
 
 
@@ -1280,50 +1280,43 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
     }
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
-    if ( !(if_tridiagonal) ) {
-
-//         CONSTRUCT COEFFICIENTS and then full array
-//         - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        double LL(el);
-        double A1(         (LL+1.0)*(LL+2.0) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
-        double A2( (-1.0) *(LL-1.0)* LL      / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
-        double B1( (-1.0) *( 0.5 *LL*(LL+1.0) +(LL+1.0) ) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
-        double B2( (       (-0.5)*LL*(LL+1.0) +(LL+2.0) ) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
-        double B3(         ( 0.5 *LL*(LL+1.0) +(LL-1.0) ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
-        double B4(         ( 0.5 *LL*(LL+1.0) - LL      ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
-
+    if ( !(if_tridiagonal) && (Input::List().coll_op < 2) )
+    {
+        collide_f0withRBflm(fin, double (el), position);
+    
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-        for (size_t i(0); i < Alpha.dim1()-1; ++i){
-            double t1( A1*(ddf0_x[position])[i] + B1*(df0_x[position])[i] );
-            t1 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
-            double t2( A1*(ddf0_x[position])[i] + B2*(df0_x[position])[i] );
-            t2 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
-            double t3( A2*(ddf0_x[position])[i] + B3*(df0_x[position])[i] );
-            t3 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
-            double t4( A2*(ddf0_x[position])[i] + B4*(df0_x[position])[i] );
-            t4 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
+        // for (size_t i(0); i < Alpha.dim1()-1; ++i){
+        //     double t1( A1*(ddf0_x[position])[i] + B1*(df0_x[position])[i] );
+        //     t1 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
+        //     double t2( A1*(ddf0_x[position])[i] + B2*(df0_x[position])[i] );
+        //     t2 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
+        //     double t3( A2*(ddf0_x[position])[i] + B3*(df0_x[position])[i] );
+        //     t3 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
+        //     double t4( A2*(ddf0_x[position])[i] + B4*(df0_x[position])[i] );
+        //     t4 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
 
-            Alpha(i,0) += t1 * ( 2.0*M_PI*pow(vr[0]/vr[i],el+2)*vr[0]*vr[0]*(vr[1]-vr[0]) );
-            Alpha(i,0) += t3 * ( 2.0*M_PI*pow(vr[0]/vr[i],el)  *vr[0]*vr[0]*(vr[1]-vr[0]) );
+        //     Alpha(i,0) += t1 * ( 2.0*M_PI*pow(vr[0]/vr[i],el+2)*vr[0]*vr[0]*(vr[1]-vr[0]) );
+        //     Alpha(i,0) += t3 * ( 2.0*M_PI*pow(vr[0]/vr[i],el)  *vr[0]*vr[0]*(vr[1]-vr[0]) );
 
-            for (size_t j(1); j < i; ++j){
-                Alpha(i,j) += t1 * ( 2.0*M_PI*pow(vr[j]/vr[i],el+2)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-                Alpha(i,j) += t3 * ( 2.0*M_PI*pow(vr[j]/vr[i],el)  *vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-            }
+        //     for (size_t j(1); j < i; ++j){
+        //         Alpha(i,j) += t1 * ( 2.0*M_PI*pow(vr[j]/vr[i],el+2)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
+        //         Alpha(i,j) += t3 * ( 2.0*M_PI*pow(vr[j]/vr[i],el)  *vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
+        //     }
 
-            Alpha(i,i) += t1 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i]-vr[i-1]) );
-            Alpha(i,i) += t3 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i]-vr[i-1]) );
+        //     Alpha(i,i) += t1 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i]-vr[i-1]) );
+        //     Alpha(i,i) += t3 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i]-vr[i-1]) );
 
-            Alpha(i,i) += t2 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i+1]-vr[i]) );
-            Alpha(i,i) += t4 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i+1]-vr[i]) );
+        //     Alpha(i,i) += t2 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i+1]-vr[i]) );
+        //     Alpha(i,i) += t4 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i+1]-vr[i]) );
 
-            for (size_t j(i+1); j < Alpha.dim2()-1; ++j){
-                Alpha(i,j) += t2 * ( 2.0*M_PI*pow(vr[j]/vr[i],-el-1)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-                Alpha(i,j) += t4 * ( 2.0*M_PI*pow(vr[j]/vr[i],-el+1)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-            }
-        }
-//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+        //     for (size_t j(i+1); j < Alpha.dim2()-1; ++j){
+        //         Alpha(i,j) += t2 * ( 2.0*M_PI*pow(vr[j]/vr[i],-el-1)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
+        //         Alpha(i,j) += t4 * ( 2.0*M_PI*pow(vr[j]/vr[i],-el+1)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
+        //     }
+        // }
     }
+//     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+    // }
 
 //      INCLUDE SCATTERING TERM
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -1351,15 +1344,18 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     // std::cout << "\n10\n";
-    if ( if_tridiagonal ) {
-        if ( !(Thomas_Tridiagonal(Alpha, fin, fout)) ) {  // Invert A * fout = fin
-            cout << "WARNING: Matrix is not diagonally dominant" << endl;
-        }
+    // if ( if_tridiagonal ) {
+    if ( !(Thomas_Tridiagonal(Alpha, fin, fout)) ) {  // Invert A * fout = fin
+        cout << "WARNING: Matrix is not diagonally dominant" << endl;
     }
-    else {
-        if ( !(Gauss_Seidel(Alpha, fin, fout)) ) {  // Invert A * fout = fin
-            cout << "WARNING: Matrix is not diagonally dominant" << endl;
-        }
+    // }
+    // else {
+        // if ( !(Gauss_Seidel(Alpha, fin, fout)) ) {  // Invert A * fout = fin
+        //     cout << "WARNING: Matrix is not diagonally dominant" << endl;
+        // }
+    if ( !(if_tridiagonal) && (Input::List().coll_op < 2) )
+    {
+        collide_f0withRBflm(fout, double (el), position);
     }
 
     fin = fout;
@@ -1368,6 +1364,67 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 }
+void  self_flm_implicit_step::collide_f0withRBflm(valarray<complex<double> >& fin_singleharmonic, const double LL, const size_t position)
+{
+    double A1(         (LL+1.0)*(LL+2.0) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
+    double A2( (-1.0) *(LL-1.0)* LL      / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
+    double B1( (-1.0) *( 0.5 *LL*(LL+1.0) +(LL+1.0) ) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
+    double B2( (       (-0.5)*LL*(LL+1.0) +(LL+2.0) ) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
+    double B3(         ( 0.5 *LL*(LL+1.0) +(LL-1.0) ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
+    double B4(         ( 0.5 *LL*(LL+1.0) - LL      ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
+
+    valarray<complex<double> > I_ellplustwo(0.,fin_singleharmonic.size());
+    valarray<complex<double> > J_minusellminusone(0.,fin_singleharmonic.size());
+    valarray<complex<double> > I_ell(0.,fin_singleharmonic.size());
+    valarray<complex<double> > J_oneminusell(0.,fin_singleharmonic.size());
+
+    I_ellplustwo[0] = 0.;
+    I_ell[0]        = 0.;
+
+    for (size_t i(1); i < I_ellplustwo.size(); ++i) 
+    {
+        I_ellplustwo[i]  = 0.5 * pow(vr[i],LL+4.)     * (vr[i]-vr[i-1])*fin_singleharmonic[i];
+        I_ellplustwo[i] += 0.5 * pow(vr[i-1],LL+4.)     * (vr[i]-vr[i-1])*fin_singleharmonic[i-1];
+        I_ellplustwo[i] += I_ellplustwo[i-1];
+
+        I_ell[i]  = 0.5 * pow(vr[i],LL+2.)     * (vr[i]-vr[i-1])*fin_singleharmonic[i];
+        I_ell[i] += 0.5 * pow(vr[i-1],LL+2.)     * (vr[i]-vr[i-1])*fin_singleharmonic[i-1];
+        I_ell[i] += I_ell[i-1];
+
+    }
+
+    J_minusellminusone[J_minusellminusone.size()-1] = 0.;
+    J_oneminusell[J_oneminusell.size()-1] = 0.;
+
+    #pragma novector
+    for (int i(J_minusellminusone.size()-2); i > -1; --i) 
+    {
+        J_minusellminusone[i]   = 0.5 * pow(vr[i+1],-1.*LL-1+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i+1];
+        J_minusellminusone[i]   += 0.5 * pow(vr[i],-1.*LL-1+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i];
+        J_minusellminusone[i]   += J_minusellminusone[i+1];
+
+        J_oneminusell[i]   = 0.5 * pow(vr[i+1],-1.-LL+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i+1];
+        J_oneminusell[i]   += 0.5 * pow(vr[i],1.-LL+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i];
+        J_oneminusell[i]   += J_oneminusell[i+1];
+    }
+
+    for (size_t k(0); k < I_ellplustwo.size(); ++k) 
+    {
+        I_ellplustwo[k]         *=  4.0 * M_PI / pow(vr[k],LL+2.);
+        I_ell[k]                *=  4.0 * M_PI / pow(vr[k],LL);
+
+        J_minusellminusone[k]   *=  4.0 * M_PI / pow(vr[k],-1.*LL-1.);
+        J_oneminusell[k]        *=  4.0 * M_PI / pow(vr[k],1.-LL);
+    }
+
+    for (size_t k(0); k < I_ellplustwo.size(); ++k) 
+    {
+        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A1*(ddf0_x[position][k]) + B1*(df0_x[position])[k])*I_ellplustwo[k];
+        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A1*(ddf0_x[position][k]) + B2*(df0_x[position])[k])*J_minusellminusone[k];
+        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A2*(ddf0_x[position][k]) + B3*(df0_x[position])[k])*I_ell[k];
+        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A2*(ddf0_x[position][k]) + B4*(df0_x[position])[k])*J_oneminusell[k];
+    }
+}
 //-------------------------------------------------------------------
 //------------------------------------------------------------------------------
 /// @brief      Perform a matrix solve to calculate effect of collisions on f >= 1
@@ -1375,7 +1432,7 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
 /// @param      fin   Input distribution function
 /// @param[in]  el    Number of elements in matrix (?)
 ///
-void  self_flm_implicit_step::flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& DFh) 
+void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh) 
 {
     //-------------------------------------------------------------------
     //  Collisions
@@ -1385,13 +1442,7 @@ void  self_flm_implicit_step::flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& DF
     size_t nump = DF(0,0).nump();
     size_t numh = (dist_il.size()-id_low);
     int n_systems(szx * numh * 2);
-    // int n_systems(szx * numh);
     int totalsize(n_systems * nump);
-
-    // double *ld  = (double*)malloc(totalsize * sizeof(double));
-    // double *dd  = (double*)malloc(totalsize * sizeof(double));
-    // double *ud  = (double*)malloc(totalsize * sizeof(double));
-    // double *fin = (double*)malloc(totalsize * sizeof(double));
 
     valarray<double> ld(totalsize), dd(totalsize), ud(totalsize), fin(totalsize);
 
@@ -1400,21 +1451,49 @@ void  self_flm_implicit_step::flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& DF
     {           
         for(size_t id = 0; id < numh ; ++id)
         {
+            valarray<complex<double> > fin_singleharmonic(0.,nump);
+    
+            for (size_t i(0); i < nump; ++i)
+            {
+                fin_singleharmonic[i] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc);
+            }
+
+            if ( !(if_tridiagonal) && (Input::List().coll_op < 2) )
+            {
+                collide_f0withRBflm(fin_singleharmonic, dist_il[id+id_low], ix+Nbc);
+            }
+
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            ///                 GPU portion
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            
             /// Determine offset
             size_t base_index = 2*(ix*numh+id)*nump;
-            // size_t base_index = (ix*numh+id)*nump;
             
             double ll1(static_cast<double>(dist_il[id+id_low]));
             ll1 *= (-0.5)*(ll1 + 1.0);
+
+            if (Input::List().coll_op == 0 || Input::List().coll_op == 2)
+            {
+                ll1 = 0.;
+            }
 
             /// And then pack it up
             for (size_t i(0); i < nump; ++i)
             {
                 dd[ i + base_index] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
-                fin[i + base_index] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real();
+                fin[i + base_index] = fin_singleharmonic[i].real();
+                //DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real();
 
                 dd[ i + base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
-                fin[i + base_index + nump] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag();
+                fin[i + base_index + nump] = fin_singleharmonic[i].imag();
+                // DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag();
             }
             
             ld[base_index] = 0.;
@@ -1423,12 +1502,6 @@ void  self_flm_implicit_step::flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& DF
             ld[base_index+nump] = 0.;
             ud[base_index+nump-1+nump] = 0.;
 
-            // ud[base_index] = 0.;
-            // ld[base_index+nump-1] = 0.;
-
-            // ud[base_index+nump] = 0.;
-            // ld[base_index+nump-1+nump] = 0.;
-            
             for (size_t i(0); i < nump - 1; ++i)
             {
                 ld[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
@@ -1436,12 +1509,6 @@ void  self_flm_implicit_step::flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& DF
                 
                 ld[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
                 ud[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
-
-                // ud[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                // ld[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
-                
-                // ud[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                // ld[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
             }
         }
     }
@@ -1450,129 +1517,45 @@ void  self_flm_implicit_step::flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& DF
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
     // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld[0], &dd[0], &ud[0], &fin[0], device);
-
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for (size_t ix = 0; ix < szx; ++ix)
-    {
-        for(size_t id = 0; id < numh ; ++id)
-        {
-            size_t base_index = 2*(ix*numh+id)*nump;
-            // size_t base_index = (ix*numh+id)*nump;
-            for (size_t i(0); i < DF(0,0).nump(); ++i)
-            {
-                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i], fin[base_index + i + nump]);   
-                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real(fin[base_index + i]);
-                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag(fin[base_index + i + nump]);   
-                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i]);   
-            }
-        }
-    }
-    // free(ld);free(dd);free(ud);free(fin);
-}
-//-------------------------------------------------------------------
-//*******************************************************************
-//------------------------------------------------------------------------------
-/// @brief      Perform a matrix solve to calculate effect of collisions on f >= 1
-///
-/// @param      fin   Input distribution function
-/// @param[in]  el    Number of elements in matrix (?)
-///
-void  self_flm_implicit_step::flm_solve_FP1(const DistFunc1D& DF, DistFunc1D& DFh) 
-{
-    //-------------------------------------------------------------------
-    //  Collisions
-    //-------------------------------------------------------------------
-    size_t Nbc = Input::List().BoundaryCells; Nbc = 1;
-    size_t szx = DF(0,0).numx() - 2*Nbc;
-    size_t nump = DF(0,0).nump();
-    size_t numh = (dist_il.size()-id_low);
-    int n_systems(szx * numh * 2);
-    // int n_systems(szx * numh);
-    int totalsize(n_systems * nump);
-
-    // double *ld  = (double*)malloc(totalsize * sizeof(double));
-    // double *dd  = (double*)malloc(totalsize * sizeof(double));
-    // double *ud  = (double*)malloc(totalsize * sizeof(double));
-    // double *fin = (double*)malloc(totalsize * sizeof(double));
-
-    valarray<double> ld(totalsize), dd(totalsize), ud(totalsize), fin(totalsize);
 
     #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
     for (size_t ix = 0; ix < szx; ++ix)
-    {           
-        for(size_t id = 0; id < numh ; ++id)
-        {
-            /// Determine offset
-            size_t base_index = 2*(ix*numh+id)*nump;
-            // size_t base_index = (ix*numh+id)*nump;
-            
-            double ll1(static_cast<double>(dist_il[id+id_low]));
-            ll1 *= (-0.5)*(ll1 + 1.0);
-
-            /// And then pack it up
-            for (size_t i(0); i < nump; ++i)
-            {
-                dd[ i + base_index] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0);
-                fin[i + base_index] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real();
-
-                dd[ i + base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0);
-                fin[i + base_index + nump] = DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag();
-            }
-            
-            ld[base_index] = 0.;
-            ud[base_index+nump-1] = 0.;
-
-            ld[base_index+nump] = 0.;
-            ud[base_index+nump-1+nump] = 0.;
-
-            // ud[base_index] = 0.;
-            // ld[base_index+nump-1] = 0.;
-
-            // ud[base_index+nump] = 0.;
-            // ld[base_index+nump-1+nump] = 0.;
-            
-            for (size_t i(0); i < nump - 1; ++i)
-            {
-                ld[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                ud[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
-                
-                ld[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                ud[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
-
-                // ud[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                // ld[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
-                
-                // ud[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                // ld[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
-            }
-        }
-    }
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    /// SOLVE A * Fout  = Fin
-    //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
-    // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld[0], &dd[0], &ud[0], &fin[0], device);
-
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for (size_t ix = 0; ix < szx; ++ix)
     {
         for(size_t id = 0; id < numh ; ++id)
         {
+            valarray<complex<double> > fin_singleharmonic(0.,nump);
+
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            ///     Another step of the off-diagonal collisions
+            ///     and then fill 'em back up 
+            /// ---------------------------------------------
+            /// ---------------------------------------------
+            /// ---------------------------------------------
             size_t base_index = 2*(ix*numh+id)*nump;
-            // size_t base_index = (ix*numh+id)*nump;
+
             for (size_t i(0); i < DF(0,0).nump(); ++i)
             {
-                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i], fin[base_index + i + nump]);   
-                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real(fin[base_index + i]);
-                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag(fin[base_index + i + nump]);   
-                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = static_cast<complex<double> > (fin[base_index + i]);   
+                fin_singleharmonic[i].real(fin[base_index + i]);
+                fin_singleharmonic[i].imag(fin[base_index + i + nump]);
             }
+
+            if ( !(if_tridiagonal) && (Input::List().coll_op < 2) )
+            {
+                collide_f0withRBflm(fin_singleharmonic, dist_il[id+id_low], ix+Nbc);
+            }
+
+            for (size_t i(0); i < DF(0,0).nump(); ++i)
+            {
+                DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = fin_singleharmonic[i];
+                // .real(fin[base_index + i]);
+                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag(fin[base_index + i + nump]);   
+            }         
         }
     }
-    // free(ld);free(dd);free(ud);free(fin);
 }
 //-------------------------------------------------------------------
-//*******************************************************************
 
 //*******************************************************************
 //*******************************************************************
@@ -1640,10 +1623,10 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc1D& DF, const valarr
     // then later, at run time
     if (Input::List().flm_acc) 
     {
-        if (Input::List().coll_op == 0 || Input::List().coll_op == 2)
-            implicit_step.flm_solve_FP1(DF,DFh);
-        else if (Input::List().coll_op == 1 || Input::List().coll_op == 3)
-            implicit_step.flm_solve_FP2(DF,DFh);
+        // if (Input::List().coll_op == 0 || Input::List().coll_op == 2)
+            implicit_step.flm_solve(DF,DFh);
+        // else if (Input::List().coll_op == 1 || Input::List().coll_op == 3)
+            // implicit_step.flm_solve_FP2(DF,DFh);
     }
     else
     {

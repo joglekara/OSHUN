@@ -688,13 +688,15 @@ void Export_Files::Restart_Facility::Read(const int rank, const size_t re_step, 
 
 //      Open file
     ifstream  fin(filename.c_str(), ios::binary);
-
     if (fin)
     {
-        fin.read((char *) &time,sizeof(time_start));
+        fin.read((char *) &time_start,sizeof(time_start));
+        
     //      Read distribution functions
         for(size_t s(0); s < Y.Species(); ++s) {
+            
             for(size_t nh(0); nh < Y.DF(s).dim(); ++nh) {
+                
                 for(size_t i(0); i < (Y.DF(s))(nh).dim(); ++i) {
                     fin.read((char *)&(Y.DF(s))(nh)(i), sizeof((Y.DF(s))(nh)(i)));
                 }

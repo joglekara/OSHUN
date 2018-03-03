@@ -275,11 +275,13 @@ class self_f00_explicit_step {
             void reset_coeff_FP(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
             void reset_coeff_LB(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
 
+            void collide_f0withRBflm(valarray<complex<double> >& fin_singleharmonic, const double LL, const size_t position);
+
 //          Implicit Advance
             void advance(valarray<complex<double> >& fin, const int el, size_t position);    
 
-            void flm_solve_FP1(const DistFunc1D& DF, DistFunc1D& Dh);
-            void flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& Dh);
+            void flm_solve(const DistFunc1D& DF, DistFunc1D& Dh);
+            // void flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& Dh);
         };
 //-------------------------------------------------------------------
 /** @} */ 
