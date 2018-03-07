@@ -336,13 +336,13 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
 
     ip = fin.size() - 1;
 
-    LHS(ip    , ip) = 1.0 - oneoverv2[ip] * collisional_coefficient
-                * (C_RB[ip + 1] * delta_CC[ip + 1]
-                   - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
+    LHS(ip    , ip) = 1.0 ;//- oneoverv2[ip] * collisional_coefficient
+                // * (C_RB[ip + 1] * delta_CC[ip + 1]
+                   // - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
 
-    LHS(ip, ip - 1) = oneoverv2[ip] * collisional_coefficient
-          * (C_RB[ip] * delta_CC[ip]
-             - D_RB[ip] / dvr[ip]);
+    // LHS(ip, ip - 1) = oneoverv2[ip] * collisional_coefficient
+          // * (C_RB[ip] * delta_CC[ip]
+             // - D_RB[ip] / dvr[ip]);
 
     // std::cout << "\n\n LHS = \n";
     // for (size_t i(0); i < LHS.dim1(); ++i) {
@@ -381,41 +381,37 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     size_t ip(0);
 
     /// Boundaries by hand -- This operates on f(0)
-    LHS(ip, ip + 1)  = (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
-    LHS(ip, ip + 1) += I2_temperature/(4.*deltav*deltav);
+    LHS(ip, ip + 1)  = vr[ip]/2/deltav + I2_temperature/deltav/deltav;
     LHS(ip, ip + 1) *= collisional_coefficient;
 
-    LHS(ip    , ip)  = 1.0 - I2_temperature/4./deltav/deltav;
-    LHS(ip    , ip) -= (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
+    LHS(ip    , ip)  = 1.0 - 2*I2_temperature/deltav/deltav;
+    LHS(ip    , ip) += -vr[ip]/2/deltav + I2_temperature/deltav/deltav;
     LHS(ip    , ip) *= collisional_coefficient;
     LHS(ip    , ip) += 1.;
 
     #pragma ivdep
     for (ip = 1; ip < fin.size() - 1; ++ip)
     {
-        LHS(ip, ip + 1)  = (vr[ip]+2.*I2_temperature/vr[ip])/(2.*deltav);
-        LHS(ip, ip + 1) += I2_temperature/(deltav*deltav);
+        LHS(ip, ip + 1)  = vr[ip]/2/deltav + I2_temperature/deltav/deltav;
         LHS(ip, ip + 1) *= collisional_coefficient;
 
         LHS(ip    , ip)  = 1.0 - 2.*I2_temperature/deltav/deltav;
         LHS(ip    , ip) *= collisional_coefficient;
         LHS(ip    , ip) += 1.;
 
-        LHS(ip, ip - 1)  = -(vr[ip]+2.*I2_temperature/vr[ip])/(2.*deltav);
-        LHS(ip, ip - 1) += I2_temperature/(deltav*deltav);
+        LHS(ip, ip - 1)  = -vr[ip]/2/deltav + I2_temperature/deltav/deltav;
         LHS(ip, ip - 1) *= collisional_coefficient;
     }
 
     ip = fin.size() - 1;
 
-    LHS(ip    , ip)  = 1.0 - I2_temperature/4./deltav/deltav;
-    LHS(ip    , ip) += (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
-    LHS(ip    , ip) *= collisional_coefficient;
+    // LHS(ip    , ip)  = 1.0 - I2_temperature/4./deltav/deltav;
+    // LHS(ip    , ip) += (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
+    // LHS(ip    , ip) *= collisional_coefficient;
     LHS(ip    , ip) += 1.;
 
-    LHS(ip, ip - 1)  = -(vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
-    LHS(ip, ip - 1) += I2_temperature/(4.*deltav*deltav);
-    LHS(ip, ip - 1) *= collisional_coefficient;
+    // LHS(ip, ip - 1)  = -vr[ip]/2/deltav + I2_temperature/deltav/deltav;
+    // LHS(ip, ip - 1) *= collisional_coefficient;
 
     // std::cout << "\n\n LHS = \n";
     // for (size_t i(0); i < LHS.dim1(); ++i) {
@@ -723,15 +719,16 @@ void self_f00_explicit_step::takestep(const valarray<double>& fin, valarray<doub
 //     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //     Evaluate G using the standard integrals
 //     J1 needs to be used again later so it is not modified!
-    for (size_t n(0); n < I4.size(); ++n) 
-    {
-        I2[n] *= J1[n];          // J1(n) * I2(n)
-        I2[n] *= -3.0;           // -3 * J1(n) * I2(n)
-        I4[n] += U3[n] * J1[n];  // I4(n) + u_n^3 * J1(n)
-        I4[n] *= fin[n];         // fn * I4(n) + u_n^3 * fn * J1(n)
-        I4[n] += I2[n];          // Gn = fn * I4(n) + u_n^3 * fn * J1(n) - 3 * J1(n) * I2(n)
-    }
-
+    // for (size_t n(0); n < I4.size(); ++n) 
+    // {
+    //     I2[n] *= J1[n];          // J1(n) * I2(n)
+    //     I2[n] *= -3.0;           // -3 * J1(n) * I2(n)
+    //     I4[n] += U3[n] * J1[n];  // I4(n) + u_n^3 * J1(n)
+    //     I4[n] *= fin[n];         // fn * I4(n) + u_n^3 * fn * J1(n)
+    //     I4[n] += I2[n];          // Gn = fn * I4(n) + u_n^3 * fn * J1(n) - 3 * J1(n) * I2(n)
+    // }
+    I2 = -3.*I2*J1;
+    I4 = fin*(I4 + U3 * J1)+I2;
 //     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //     Evaluate G assuming a parabolic f(v << vt)
     for (size_t n(0); n < NB; ++n) {
@@ -1230,20 +1227,36 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
 
 
     double deltav = vr[2]-vr[1];
-    Alpha_Tri(0,0) = 1.0 ;
 
+    size_t ip = 0;
+    Alpha_Tri(ip, ip + 1)  = vr[ip]/2/deltav + I2_temperature/deltav/deltav;
+    // Alpha_Tri(ip, ip + 1) *= collisional_coefficient;
 
+    Alpha_Tri(ip    , ip)  = 1.0 - 2*I2_temperature/deltav/deltav;
+    Alpha_Tri(ip    , ip) += -vr[ip]/2/deltav + I2_temperature/deltav/deltav;
+    // Alpha_Tri(ip    , ip) *= collisional_coefficient;
+    // Alpha_Tri(ip    , ip) += 1.;
 
-    for (size_t i(1); i < I2.size()-1; ++i)
-    {   
-        Alpha_Tri(i, i  ) = 1.0 - 2.*I2_temperature/deltav/deltav;
-        
-        Alpha_Tri(i, i-1) = -(vr[i]+2.*I2_temperature/vr[i])/(2.*deltav);
-        Alpha_Tri(i, i-1) += I2_temperature/(deltav*deltav);
+    #pragma ivdep
+    for (ip = 1; ip < fin.size() - 1; ++ip)
+    {
+        Alpha_Tri(ip, ip + 1)  = vr[ip]/2/deltav + I2_temperature/deltav/deltav;
+        // Alpha_Tri(ip, ip + 1) *= collisional_coefficient;
 
-        Alpha_Tri(i, i+1) = (vr[i]+2.*I2_temperature/vr[i])/(2.*deltav);
-        Alpha_Tri(i, i+1) += I2_temperature/(deltav*deltav);
+        Alpha_Tri(ip    , ip)  = 1.0 - 2.*I2_temperature/deltav/deltav;
+        // Alpha_Tri(ip    , ip) *= collisional_coefficient;
+        // Alpha_Tri(ip    , ip) += 1.;
+
+        Alpha_Tri(ip, ip - 1)  = -vr[ip]/2/deltav + I2_temperature/deltav/deltav;
+        // Alpha_Tri(ip, ip - 1) *= collisional_coefficient;
     }
+
+    // ip = fin.size() - 1;
+
+    // LHS(ip    , ip)  = 1.0 - I2_temperature/4./deltav/deltav;
+    // LHS(ip    , ip) += (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
+    // LHS(ip    , ip) *= collisional_coefficient;
+    // Alpha_Tri(ip    , ip) += 1.;
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt;         // (-1) because the matrix moves to the LHS in the equation
@@ -1403,7 +1416,7 @@ void  self_flm_implicit_step::collide_f0withRBflm(valarray<complex<double> >& fi
         J_minusellminusone[i]   += 0.5 * pow(vr[i],-1.*LL-1+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i];
         J_minusellminusone[i]   += J_minusellminusone[i+1];
 
-        J_oneminusell[i]   = 0.5 * pow(vr[i+1],-1.-LL+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i+1];
+        J_oneminusell[i]   = 0.5 * pow(vr[i+1],1.-LL+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i+1];
         J_oneminusell[i]   += 0.5 * pow(vr[i],1.-LL+2.) * (vr[i+1]-vr[i]) * fin_singleharmonic[i];
         J_oneminusell[i]   += J_oneminusell[i+1];
     }
