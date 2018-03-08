@@ -3687,7 +3687,7 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
     {
         for(size_t il = 0; il < Nl+1; ++il)    
         {
-            allfs_Global(ix,il) = allfsbuf[ix*(Nl+1)+il];
+            allfs_Global(ix,il) = allfs_Globalbuf[ix*(Nl+1)+il];
         }
     }
 
