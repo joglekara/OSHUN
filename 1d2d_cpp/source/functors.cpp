@@ -95,9 +95,9 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
             // if (Input::List().flm_acc)
             // {
                 // EF[s].gpu1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-                SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
+                // SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
             // }
-            // SA[s].es1d(Yin.DF(s),Yslope.DF(s));
+            SA[s].es1d(Yin.DF(s),Yslope.DF(s));
             // { 
             
 

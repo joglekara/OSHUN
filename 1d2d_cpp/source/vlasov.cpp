@@ -650,9 +650,9 @@ void Electric_Field::operator()(const DistFunc1D& Din,
 // void Electric_Field::gpu1d(const DistFunc1D& Din,
 //    const Field1D& FEx, const Field1D& FEy, const Field1D& FEz,
 //    DistFunc1D& Dh) 
-void Electric_Field::gpu1d(const DistFunc1D& Din,
-   const Field1D& FEx, DistFunc1D& Dh) 
-{
+// void Electric_Field::gpu1d(const DistFunc1D& Din,
+//    const Field1D& FEx, DistFunc1D& Dh) 
+// {
 
     // int numx(Din(0,0).numx()); int nump(Din(0,0).nump());
     // // size_t totalsize = numx*nump*dist_il.size();
@@ -803,7 +803,7 @@ void Electric_Field::gpu1d(const DistFunc1D& Din,
     // }
 
 
-}
+// }
 //--------------------------------------------------------------
 //
 void Electric_Field::es1d(const DistFunc1D& Din,
@@ -3548,148 +3548,148 @@ void Spatial_Advection::operator()(const DistFunc1D& Din, DistFunc1D& Dh)
 }
 //--------------------------------------------------------------
 //   Advection in x
-void Spatial_Advection::gpu1d(const DistFunc1D& Din, DistFunc1D& Dh) 
-{
-//--------------------------------------------------------------
-    int numx(Din(0,0).numx()); int nump(Din(0,0).nump());
-    size_t totalsize = numx*(nump)*(2*dist_il.size());
+// void Spatial_Advection::gpu1d(const DistFunc1D& Din, DistFunc1D& Dh) 
+// {
+// //--------------------------------------------------------------
+//     int numx(Din(0,0).numx()); int nump(Din(0,0).nump());
+//     size_t totalsize = numx*(nump)*(2*dist_il.size());
 
-    // thrust::host_vector<thrust::complex<double> > fin(totalsize);
-    // thrust::host_vector<thrust::complex<double> > dfdx(totalsize);
-    // thrust::host_vector<thrust::complex<double> > dfdv(totalsize);
+//     // thrust::host_vector<thrust::complex<double> > fin(totalsize);
+//     // thrust::host_vector<thrust::complex<double> > dfdx(totalsize);
+//     // thrust::host_vector<thrust::complex<double> > dfdv(totalsize);
 
-    // thrust::host_vector<thrust::complex<double> > vtemp(nump, 0.);
-    // thrust::host_vector<thrust::complex<double> > exvec(nump, 0.);
-    // 
-    double *fin = (double*)malloc(totalsize * sizeof(double));
-    double *dfdx = (double*)malloc(totalsize * sizeof(double));
-    double *dfdv = (double*)malloc(totalsize * sizeof(double));
+//     // thrust::host_vector<thrust::complex<double> > vtemp(nump, 0.);
+//     // thrust::host_vector<thrust::complex<double> > exvec(nump, 0.);
+//     // 
+//     double *fin = (double*)malloc(totalsize * sizeof(double));
+//     double *dfdx = (double*)malloc(totalsize * sizeof(double));
+//     double *dfdv = (double*)malloc(totalsize * sizeof(double));
 
-    // double *exvec = (double*)malloc(numx * sizeof(double));
-    valarray<complex<double> > vtemp(vr);
-    vtemp /= (Din.mass());
+//     // double *exvec = (double*)malloc(numx * sizeof(double));
+//     valarray<complex<double> > vtemp(vr);
+//     vtemp /= (Din.mass());
 
-    #pragma omp parallel num_threads(Input::List().ompthreads)
-    for (size_t id = 0; id < dist_il.size(); ++id)
-    {
-        for (size_t ix(0); ix < numx; ++ix)
-        {
-            for (size_t ip(0); ip < nump; ++ip)
-            {
-                /// Determine offset
-                size_t baseidx = (id*numx+ix)*nump;
-                // thrust::copy(&Din(id).array(), &Din(id).array()+nump*numx, fin.begin()+baseidx);
+//     #pragma omp parallel num_threads(Input::List().ompthreads)
+//     for (size_t id = 0; id < dist_il.size(); ++id)
+//     {
+//         for (size_t ix(0); ix < numx; ++ix)
+//         {
+//             for (size_t ip(0); ip < nump; ++ip)
+//             {
+//                 /// Determine offset
+//                 size_t baseidx = (id*numx+ix)*nump;
+//                 // thrust::copy(&Din(id).array(), &Din(id).array()+nump*numx, fin.begin()+baseidx);
 
-                fin[baseidx + ip] = (Din(id)(ip,ix)).real();
-                fin[baseidx + ip + nump] = (Din(id)(ip,ix)).imag();
-            }
-        }
-    }
+//                 fin[baseidx + ip] = (Din(id)(ip,ix)).real();
+//                 fin[baseidx + ip + nump] = (Din(id)(ip,ix)).imag();
+//             }
+//         }
+//     }
     
-    int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+//     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
 
-    // std::cout << "\n hi i'm " << device << " \n ";
-    // GPU_interface_routines::calc_vgradf(numx, vtemp, h_A_RHS_dense, dfdx,
-    //                             ld, dd, ud, device);
+//     // std::cout << "\n hi i'm " << device << " \n ";
+//     // GPU_interface_routines::calc_vgradf(numx, vtemp, h_A_RHS_dense, dfdx,
+//     //                             ld, dd, ud, device);
 
-    // GPU_interface_routines::calc_fieldxdf(numx, nump, dist_il.size(), fin, device);
+//     // GPU_interface_routines::calc_fieldxdf(numx, nump, dist_il.size(), fin, device);
 
-    size_t l0(Din.l0());
+//     size_t l0(Din.l0());
 
-    #pragma omp parallel num_threads(Input::List().ompthreads)
-    {   
-        size_t this_thread  = omp_get_thread_num();
+//     #pragma omp parallel num_threads(Input::List().ompthreads)
+//     {   
+//         size_t this_thread  = omp_get_thread_num();
     
-        size_t f_start_thread(f_start[this_thread]);
-        size_t f_end_thread(f_end[this_thread]);
-        //  -------------------------------------------------------- //
-        //   First thread takes the boundary conditions (l = 0)
-        //   Last thread takes the boundary condition (l = l0)
-        //  Rest proceed to chunks
-        //  -------------------------------------------------------- //
-        if (this_thread == 0)
-        {
-            for (size_t ix(0); ix < numx; ++ix)
-            {
-                for (size_t ip(0); ip < nump; ++ip)
-                {
-                    size_t baseidx = ix*nump;
+//         size_t f_start_thread(f_start[this_thread]);
+//         size_t f_end_thread(f_end[this_thread]);
+//         //  -------------------------------------------------------- //
+//         //   First thread takes the boundary conditions (l = 0)
+//         //   Last thread takes the boundary condition (l = l0)
+//         //  Rest proceed to chunks
+//         //  -------------------------------------------------------- //
+//         if (this_thread == 0)
+//         {
+//             for (size_t ix(0); ix < numx; ++ix)
+//             {
+//                 for (size_t ip(0); ip < nump; ++ip)
+//                 {
+//                     size_t baseidx = ix*nump;
                 
-                    // Dh(1,0)(ip,ix).real(Dh(1,0)(ip,ix).real()+A1(0,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+//                     // Dh(1,0)(ip,ix).real(Dh(1,0)(ip,ix).real()+A1(0,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
 
 
-                    Dh(1,0)(ip,ix) +=    A1(0,0) * vtemp[ip] * complex<double>(fin[baseidx + ip],fin[baseidx + ip + nump]);
-                    // Dh(1,0)(ip,ix) += complex<double>( A1(0,0).real()*vtemp[ip]*
-                    //                     (Din(1,0)(ip,ix-1)-Din(1,0)(ip,ix+1)).real()    );
-                }
-            }
-            f_start_thread = 1;
-        }
+//                     Dh(1,0)(ip,ix) +=    A1(0,0) * vtemp[ip] * complex<double>(fin[baseidx + ip],fin[baseidx + ip + nump]);
+//                     // Dh(1,0)(ip,ix) += complex<double>( A1(0,0).real()*vtemp[ip]*
+//                     //                     (Din(1,0)(ip,ix-1)-Din(1,0)(ip,ix+1)).real()    );
+//                 }
+//             }
+//             f_start_thread = 1;
+//         }
 
-        if (this_thread == Input::List().ompthreads - 1)    
-        {    
-            for (size_t ix(0); ix < numx; ++ix)
-            {
-                for (size_t ip(0); ip < nump; ++ip)
-                {
-                    size_t baseidx = (2*l0*numx+ix)*(nump);
+//         if (this_thread == Input::List().ompthreads - 1)    
+//         {    
+//             for (size_t ix(0); ix < numx; ++ix)
+//             {
+//                 for (size_t ip(0); ip < nump; ++ip)
+//                 {
+//                     size_t baseidx = (2*l0*numx+ix)*(nump);
 
-                    // Dh(l0-1,0)(ip,ix).real(Dh(l0-1,0)(ip,ix).real()+A2(l0,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+//                     // Dh(l0-1,0)(ip,ix).real(Dh(l0-1,0)(ip,ix).real()+A2(l0,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
 
-                    Dh(l0-1,0)(ip,ix) +=    A2(l0,0) * vtemp[ip] *complex<double>(fin[baseidx + ip],fin[baseidx + ip + nump]);
-                    // Dh(l0-1,0)(ip,ix) += complex<double>( A2(l0,0).real()*vtemp[ip]*
-                    //                     (Din(l0,0)(ip,ix-1)-Din(l0,0)(ip,ix+1)) );    
-                }
-            }
-            f_end_thread -= 1;
-        }
+//                     Dh(l0-1,0)(ip,ix) +=    A2(l0,0) * vtemp[ip] *complex<double>(fin[baseidx + ip],fin[baseidx + ip + nump]);
+//                     // Dh(l0-1,0)(ip,ix) += complex<double>( A2(l0,0).real()*vtemp[ip]*
+//                     //                     (Din(l0,0)(ip,ix-1)-Din(l0,0)(ip,ix+1)) );    
+//                 }
+//             }
+//             f_end_thread -= 1;
+//         }
 
-        //  -------------------------------------------------------- //
-        //  Do the chunks
-        //  Initialize vtemp so that it starts correctly
-        //  -------------------------------------------------------- //
-        for (size_t il = f_start_thread; il < f_end_thread; ++il)
-        {
-            for (size_t ix(0); ix < numx; ++ix)
-            {
-                size_t baseidx = (2*il*numx+ix)*nump;
-                for (size_t ip = 0; ip < nump; ++ip)
-                {
+//         //  -------------------------------------------------------- //
+//         //  Do the chunks
+//         //  Initialize vtemp so that it starts correctly
+//         //  -------------------------------------------------------- //
+//         for (size_t il = f_start_thread; il < f_end_thread; ++il)
+//         {
+//             for (size_t ix(0); ix < numx; ++ix)
+//             {
+//                 size_t baseidx = (2*il*numx+ix)*nump;
+//                 for (size_t ip = 0; ip < nump; ++ip)
+//                 {
 
-                    Dh(il-1,0)(ip,ix) += A2(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
-                    Dh(il+1,0)(ip,ix) += A1(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+//                     Dh(il-1,0)(ip,ix) += A2(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+//                     Dh(il+1,0)(ip,ix) += A1(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
 
 
-                    // Dh(il-1,0)(ip,ix).real(Dh(il-1,0)(ip,ix).real()+A2(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
-                    // Dh(il+1,0)(ip,ix).real(Dh(il+1,0)(ip,ix).real()+A1(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
-                }
-            }
-        }    
-    }
+//                     // Dh(il-1,0)(ip,ix).real(Dh(il-1,0)(ip,ix).real()+A2(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+//                     // Dh(il+1,0)(ip,ix).real(Dh(il+1,0)(ip,ix).real()+A1(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+//                 }
+//             }
+//         }    
+//     }
 
-    //  -------------------------------------------------------- //
-    //  Do the boundaries between the chunks
-    //  -------------------------------------------------------- //
-    #pragma omp parallel for num_threads(f_start.size()-1)
-    for (size_t threadboundaries = 0; threadboundaries < f_start.size()-1; ++threadboundaries)
-    {
-        for (size_t il = f_end[threadboundaries]; il < f_start[threadboundaries+1]; ++il)
-        {       
-            for (size_t ix(0); ix < numx; ++ix)
-            {
-                size_t baseidx = (2*il*numx+ix)*nump;
-                for (size_t ip = 0; ip < nump; ++ip)
-                {
-                    Dh(il-1,0)(ip,ix) += A2(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
-                    Dh(il+1,0)(ip,ix) += A1(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+//     //  -------------------------------------------------------- //
+//     //  Do the boundaries between the chunks
+//     //  -------------------------------------------------------- //
+//     #pragma omp parallel for num_threads(f_start.size()-1)
+//     for (size_t threadboundaries = 0; threadboundaries < f_start.size()-1; ++threadboundaries)
+//     {
+//         for (size_t il = f_end[threadboundaries]; il < f_start[threadboundaries+1]; ++il)
+//         {       
+//             for (size_t ix(0); ix < numx; ++ix)
+//             {
+//                 size_t baseidx = (2*il*numx+ix)*nump;
+//                 for (size_t ip = 0; ip < nump; ++ip)
+//                 {
+//                     Dh(il-1,0)(ip,ix) += A2(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
+//                     Dh(il+1,0)(ip,ix) += A1(il,0) * vtemp[ip] *complex<double>(fin[baseidx + ip], fin[baseidx + ip + nump]);
 
-                    // Dh(il-1,0)(ip,ix).real(Dh(il-1,0)(ip,ix).real()+A2(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
-                    // Dh(il+1,0)(ip,ix).real(Dh(il+1,0)(ip,ix).real()+A1(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
-                }
-            }
-        }
-    }
-}
+//                     // Dh(il-1,0)(ip,ix).real(Dh(il-1,0)(ip,ix).real()+A2(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+//                     // Dh(il+1,0)(ip,ix).real(Dh(il+1,0)(ip,ix).real()+A1(il,0).real()*vtemp[ip]*dfdx[baseidx + ip]);
+//                 }
+//             }
+//         }
+//     }
+// }
 
 
 //--------------------------------------------------------------
