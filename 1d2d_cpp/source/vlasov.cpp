@@ -1334,8 +1334,8 @@ void Electric_Field::MakeG00(const SHarmonic1D& f, SHarmonic1D& G) {
     f00;
 
     for (size_t i(0); i < f.numx(); ++i) {
-        f00    = ( f(0,i) - f(1,i) * p0p1_sq) * inv_mp0p1_sq;
-        G(0,i) = ( f(1,i) - f00) * g_r;
+        // f00    = ( f(0,i) - f(1,i) * p0p1_sq) * inv_mp0p1_sq;
+        G(0,i) = ( f(0,i) - f(1,i) )/2./(pr[1]-pr[0]);
     }
 }
 //--------------------------------------------------------------
@@ -1354,7 +1354,9 @@ void Electric_Field::MakeG00(const SHarmonic2D& f, SHarmonic2D& G) {
         for (size_t iy(0); iy < G.numy(); ++iy)
         {
             f00    = ( f(0,ix,iy) - f(1,ix,iy) * p0p1_sq) * inv_mp0p1_sq;
-            G(0,ix,iy) = ( f(1,ix,iy) - f00) * g_r;
+            // G(0,ix,iy) = ( f(1,ix,iy) - f00) * g_r;
+            G(0,ix,iy) = ( f(0,ix,iy) - f(1,ix,iy) )/2./(pr[1]-pr[0]);
+
         }
     }
 }
