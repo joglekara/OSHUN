@@ -3683,7 +3683,7 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
     MPI_Gather( allfsbuf, msg_sz, MPI_DOUBLE, &allfs_Globalbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
-    for(size_t ix = 0; ix < outNxLocal; ++ix) 
+    for(size_t ix = 0; ix < outNxGlobal; ++ix) 
     {
         for(size_t il = 0; il < Nl+1; ++il)    
         {
