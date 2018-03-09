@@ -911,6 +911,9 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
             dist_il((((m0+1)*(2*l0-m0+2))/2)),dist_im((((m0+1)*(2*l0-m0+2))/2))
 {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    // int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+    // GPU_interface_routines::setupTDsolve(d_ld, d_d, d_ud, device);
+
     size_t totalnumberofspatiallocationstostore(numxtotal);
     
     // vr[0] = 0.5*dp[0];
@@ -1112,6 +1115,12 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
     df0[fin.size()-1]  = fin[fin.size()-1]-fin[fin.size()-2];
     df0[fin.size()-1] /= vr[fin.size()-1]-vr[fin.size()-2];
 
+    df0[0]  = fin[1]-fin[0];
+    df0[0] /= 2.*(vr[1]-vr[0]);
+
+    ddf0[0]  = fin[1]-2*fin[0]+fin[0];
+    ddf0[0] /= (vr[1]-vr[0])*(vr[1]-vr[0]);
+
     // exit(1);
 
 //     Evaluate the second derivative
@@ -1126,11 +1135,11 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
         ddf0[n]  /= 0.5*(vr[n+1]-vr[n-1]);
     }
 
-//     Calculate zeroth cell
-    double f00 = ( fin[0] - ( (vr[0]*vr[0])/(vr[1]*vr[1]) ) *fin[1] )
-                 / (1.0 - (vr[0]*vr[0])/(vr[1]*vr[1]));
-    ddf0[0] = 2.0 * (fin[1] - f00) / (vr[1]*vr[1]);
-    df0[0] = ddf0[0] * vr[0];
+// //     Calculate zeroth cell
+//     double f00 = ( fin[0] - ( (vr[0]*vr[0])/(vr[1]*vr[1]) ) *fin[1] )
+//                  / (1.0 - (vr[0]*vr[0])/(vr[1]*vr[1]));
+//     ddf0[0] = 2.0 * (fin[1] - f00) / (vr[1]*vr[1]);
+    // df0[0] = ddf0[0] * vr[0];
 
 //     Calculate 1/(2v)*(d^2f)/(dv^2),  1/v^2*df/dv
     df0  /= vr*vr;
@@ -1934,11 +1943,12 @@ void collisions_1D::advance(State1D& Yin, const double time, const double step_s
     
     // if (Input::List().filterdistribution) Yh.DF(s) = Yh.DF(s).Filterp();
 
-    for (size_t s(0); s < Yin.Species(); ++s){
-        for (size_t i(0); i < Yin.DF(s).dim(); ++i){
-            Yin.DF(s)(i) = Yh.DF(s)(i);
-        }
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    // for (size_t s = 0; s < Yin.Species(); ++s){
+    for (size_t i = 0; i < Yin.DF(0).dim(); ++i){
+        Yin.DF(0)(i) = Yh.DF(0)(i);
     }
+    // }
     
     // return Yh;
 }

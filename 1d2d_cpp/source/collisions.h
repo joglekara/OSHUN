@@ -257,8 +257,6 @@ class self_f00_explicit_step {
 
             valarray<size_t>            dist_il, dist_im;
 
-
-
             vector<double>              _LOGee_x;
             vector<valarray<double> >   Scattering_Term_x; 
             vector<Array2D<double>  >   Alpha_Tri_x; 
@@ -266,11 +264,18 @@ class self_f00_explicit_step {
             
             Formulary formulas;
 
+            // double *d_ld;
+            // double *d_d;
+            // double *d_ud;
+
         public:
 //          Constructors/Destructors
             // self_flm_implicit_step(double pmax, size_t nump, double mass); 
             self_flm_implicit_step(const size_t numxtotal, const size_t l0, const size_t m0, const valarray<double>& dp); 
-         
+            ~self_flm_implicit_step()
+            {
+                // GPU_destroyTDsolve(double *d_ld, double *d_d, double *d_ud, double *d_x);
+            }
 //          Calculate the coefficients
             void reset_coeff_FP(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
             void reset_coeff_LB(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);

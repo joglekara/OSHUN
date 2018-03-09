@@ -227,12 +227,22 @@ __global__ void v_times_derivative_x(double *f, double *df, int numx, int offset
 /********//********//********//********//********//********//********//********//********//********/
 /********//********//********//********//********//********//********//********//********//********/
 /********//********//********//********//********//********//********//********//********//********/
+void GPU_interface_routines::setupTDsolve(double *d_ld, double *d_d, double *d_ud, double *d_x, int device)
+{
+    cudaSetDevice(device);
+
+    gpuErrchk(cudaMalloc(&d_ld, N * sizeof(double)));
+    gpuErrchk(cudaMalloc(&d_d,  N * sizeof(double)));
+    gpuErrchk(cudaMalloc(&d_ud, N * sizeof(double)));
+}
+
 
 void GPU_interface_routines::TDsolve( int calculations_per_loop, int n_systems,
                             double *ld, 
                             double *dd, 
                                   double *ud,      
-                                  double *fin, int device)
+                                  double *fin,// int device)
+                                  double *d_ld, double *d_d, double *d_ud, double *d_x)
 {
     cudaSetDevice(device);
     // --- Initialize cuSPARSE
@@ -241,16 +251,16 @@ void GPU_interface_routines::TDsolve( int calculations_per_loop, int n_systems,
     const int N     =  n_systems*calculations_per_loop;        // --- Size of the linear system
 
     // // --- Lower diagonal, diagonal and upper diagonal of the system matrix
-    double *d_ld;   gpuErrchk(cudaMalloc(&d_ld, N * sizeof(double)));
-    double *d_d;    gpuErrchk(cudaMalloc(&d_d,  N * sizeof(double)));
-    double *d_ud;   gpuErrchk(cudaMalloc(&d_ud, N * sizeof(double)));
+    // double *d_ld;   gpuErrchk(cudaMalloc(&d_ld, N * sizeof(double)));
+    // double *d_d;    gpuErrchk(cudaMalloc(&d_d,  N * sizeof(double)));
+    // double *d_ud;   gpuErrchk(cudaMalloc(&d_ud, N * sizeof(double)));
 
     gpuErrchk(cudaMemcpy(d_ld, ld, N * sizeof(double), cudaMemcpyHostToDevice));
     gpuErrchk(cudaMemcpy(d_d,  dd, N * sizeof(double), cudaMemcpyHostToDevice));
     gpuErrchk(cudaMemcpy(d_ud, ud, N * sizeof(double), cudaMemcpyHostToDevice));
 
     // --- Allocating and defining dense device data vectors
-    double *d_x;        gpuErrchk(cudaMalloc(&d_x, N * sizeof(double)));   
+    // double *d_x;        gpuErrchk(cudaMalloc(&d_x, N * sizeof(double)));   
     gpuErrchk(cudaMemcpy(d_x, fin, N * sizeof(double), cudaMemcpyHostToDevice));
 
     // --- Solve for solution
@@ -259,8 +269,12 @@ void GPU_interface_routines::TDsolve( int calculations_per_loop, int n_systems,
     // --- Copy back into host
     cudaMemcpy(fin, d_x, N * sizeof(double), cudaMemcpyDeviceToHost);
 
-    cudaFree(d_ld);cudaFree(d_ud);cudaFree(d_d);cudaFree(d_x);
+    // cudaFree(d_ld);cudaFree(d_ud);cudaFree(d_d);cudaFree(d_x);
     cusparseSafeCall(cusparseDestroy(handle));
+}
+void GPU_interface_routines::setupTDsolve(double *d_ld, double *d_d, double *d_ud, double *d_x)
+{
+    cudaFree(d_ld);cudaFree(d_ud);cudaFree(d_d);cudaFree(d_x);
 }
 
 /********//********//********//********//********//********//********//********//********//********/

@@ -3,7 +3,9 @@
 
 namespace GPU_interface_routines
 {	
-
+	void setupTDsolve(double *d_ld, double *d_d, double *d_ud, double *d_x, int device);
+	void destroyTDsolve(double *d_ld, double *d_d, double *d_ud, double *d_x);
+	
 	void TDsolve( int calculations_per_loop, int n_systems,
                             double *ld, 
                             double *dd, 
