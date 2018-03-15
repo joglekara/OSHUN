@@ -70,7 +70,8 @@ Input::Input_List::Input_List():
 //          Output
     o_EHist(0),
     o_Ex(0), o_Ey(0), o_Ez(0), o_Bx(0), o_By(0), o_Bz(0), o_x1x2(0), o_pth(0), 
-    o_p1x1(0), o_p2x1(0), o_p3x1(0), o_p1p2x1(0), o_p1p3x1(0), o_p2p3x1(0), o_p1p2p3x1(0), o_allfs(0),
+    o_p1x1(0), o_p2x1(0), o_p3x1(0), o_p1p2x1(0), o_p1p3x1(0), o_p2p3x1(0), o_p1p2p3x1(0), 
+    o_allfs_f2(0), o_allfs_flogf(0),
     o_f0x1(0), o_f10x1(0), o_f11x1(0), o_f20x1(0), o_fl0x1(0),
 
     o_p1x2(0), o_p2x2(0), o_p3x2(0), o_p1p2x2(0), o_p1p3x2(0), o_p2p3x2(0), o_p1p2p3x2(0),
@@ -1357,14 +1358,23 @@ Input::Input_List::Input_List():
                 deckfile >> deckstringbool;
                 o_p1p2p3x1 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
-            if (deckstring == "o_allfs") {
+            if (deckstring == "o_allfs_f2") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
                     std::cout << "Error reading " << deckstring << std::endl;
                     exit(1);
                 }
                 deckfile >> deckstringbool;
-                o_allfs = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+                o_allfs_f2 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_allfs_flogf") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_allfs_flogf = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
             if (deckstring == "o_Ux") {
                 deckfile >> deckequalssign;
@@ -2035,7 +2045,8 @@ Input::Input_List::Input_List():
         oTags.push_back("f11");
         oTags.push_back("f20");
         oTags.push_back("fl0");
-        oTags.push_back("allfs");
+        oTags.push_back("allfs_f2");
+        oTags.push_back("allfs_flogf");
         oTags.push_back("pxpy");
 
 

@@ -85,7 +85,7 @@ namespace Input{
         bool o_p1x2, o_p2x2, o_p3x2, o_p1p2x2, o_p1p3x2, o_p2p3x2, o_p1p2p3x2;
         bool o_f0x2, o_f10x2, o_f11x2, o_f20x2, o_fl0x2;
 
-        bool o_p1x1x2, o_p2x1x2, o_p3x1x2, o_p1p2x1x2, o_p1p3x1x2, o_p2p3x1x2, o_p1p2p3x1x2, o_allfs;
+        bool o_p1x1x2, o_p2x1x2, o_p3x1x2, o_p1p2x1x2, o_p1p3x1x2, o_p2p3x1x2, o_p1p2p3x1x2, o_allfs_f2, o_allfs_flogf;
         bool o_f0x1x2, o_f10x1x2, o_f11x1x2, o_f20x1x2, o_fl0x1x2;
 
 

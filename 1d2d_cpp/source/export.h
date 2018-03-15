@@ -440,7 +440,9 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         void make_fp1p2p3(const State1D& Y, const Grid_Info& grid);
         void pxpypz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
          const Parallel_Environment_1D& PE);
-        void allfs(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        void allfs_f2(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE);
+        void allfs_flogf(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
             const Parallel_Environment_1D& PE);
 
 

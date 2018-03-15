@@ -494,7 +494,7 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
     }
     
     #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for (size_t ix(0); ix < szx; ++ix)
+    for (size_t ix = 0; ix < szx; ++ix)
     {
         valarray<double> fin(0.0, f00.nump());
         valarray<double> fout(0.0, f00.nump());
@@ -557,9 +557,9 @@ void self_f00_implicit_collisions::loop(const SHarmonic2D& f00, const Array2D<do
     }
 
     #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
-    for (size_t ix(0); ix < szx-2*Nbc; ++ix)
+    for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
     {
-        for (size_t iy(0); iy < szy-2*Nbc; ++iy)
+        for (size_t iy = 0; iy < szy-2*Nbc; ++iy)
         {
             valarray<double> fin(0.0, f00.nump());
             valarray<double> fout(0.0, f00.nump());
@@ -1650,7 +1650,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
-    GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
+    // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
 
     #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
     for (size_t ix = 0; ix < szx; ++ix)

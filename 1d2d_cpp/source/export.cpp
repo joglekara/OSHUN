@@ -307,7 +307,8 @@ void Export_Files::Folders(){
     if (  Input::List().o_p1x1 || Input::List().o_p2x1 || Input::List().o_p3x1 ||
       Input::List().o_p1p3x1 || Input::List().o_p1p2x1 || Input::List().o_p2p3x1 ||
       Input::List().o_f0x1 ||  Input::List().o_f10x1 ||  Input::List().o_f11x1 
-      ||  Input::List().o_f20x1 || Input::List().o_fl0x1 || Input::List().o_allfs) {
+      ||  Input::List().o_f20x1 || Input::List().o_fl0x1 
+      || Input::List().o_allfs_f2 || Input::List().o_allfs_flogf) {
         if (Makefolder("output/distributions") != 0)
             cout<<"Warning: Folder 'output/distributions' exists" << endl;
 
@@ -415,7 +416,8 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
         fvsx.push_back( "f11");
         fvsx.push_back( "f20");
         fvsx.push_back( "fl0");
-        fvsx.push_back( "allfs");
+        fvsx.push_back( "allfs_f2");
+        fvsx.push_back( "allfs_flogf");
     }
 
 //  p-p-x
@@ -1577,9 +1579,13 @@ void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_
     {
         // pxpypz( Y, grid, tout, time, dt, PE );
     }
-    if (Input::List().o_allfs)
+    if (Input::List().o_allfs_f2)
     {
-        allfs( Y, grid, tout, time, dt, PE );
+        allfs_f2( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_allfs_flogf)
+    {
+        allfs_flogf( Y, grid, tout, time, dt, PE );
     }
 
 
@@ -3644,7 +3650,7 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
 
 }
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+void Output_Data::Output_Preprocessor::allfs_f2(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
  const Parallel_Environment_1D& PE) {
 
     size_t Nbc = Input::List().BoundaryCells;
@@ -3691,10 +3697,61 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
         }
     }
 
-    if (PE.RANK() == 0) expo.Export_h5("allfs", xaxis, ell_axis, allfs_Global, tout, time, dt);
+    if (PE.RANK() == 0) expo.Export_h5("allfs_f2", xaxis, ell_axis, allfs_Global, tout, time, dt);
 
 }
 //--------------------------------------------------------------     
+//--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::allfs_flogf(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+ const Parallel_Environment_1D& PE) {
+
+    size_t Nbc = Input::List().BoundaryCells;
+    MPI_Status status;
+    
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+    size_t outNxGlobal(grid.axis.Nxg(0));
+    size_t Nl(grid.l0[0]);
+
+    double fpow(2.);
+    
+    int msg_sz((Nl+1)*outNxLocal); 
+    double allfsbuf[msg_sz];
+    double allfs_Globalbuf[(Nl+1)*outNxGlobal];
+
+    Array2D<double> allfs_Global(outNxGlobal,Nl+1);
+    vector<double> ell_axis;
+    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+        
+    for( int i = 0; i < Nl+1; i++ )  ell_axis.push_back( i );
+
+    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    for(size_t ix = 0; ix < outNxLocal; ++ix) 
+    {
+        for(size_t il = 0; il < Nl+1; ++il)    
+        {   
+            allfsbuf[ix*(Nl+1)+il] = 0.;
+
+            for(size_t ip(0); ip < grid.axis.Np(0); ++ip)       
+            {
+                allfsbuf[ix*(Nl+1)+il] += Y.DF(0)(il)(ip,ix).real()*log(abs(Y.DF(0)(il)(ip,ix).real()));
+            }
+        }
+    }
+
+    MPI_Gather( allfsbuf, msg_sz, MPI_DOUBLE, &allfs_Globalbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    for(size_t ix = 0; ix < outNxGlobal; ++ix) 
+    {
+        for(size_t il = 0; il < Nl+1; ++il)    
+        {
+            allfs_Global(ix,il) = allfs_Globalbuf[ix*(Nl+1)+il];
+        }
+    }
+
+    if (PE.RANK() == 0) expo.Export_h5("allfs_flogf", xaxis, ell_axis, allfs_Global, tout, time, dt);
+
+}
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::f0(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
  const Parallel_Environment_1D& PE) {
