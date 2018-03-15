@@ -38,11 +38,11 @@ private:
     valarray<double>  p2dp, p2dpm1, phdp, phdpm1, p4dp, laser_Inv_Uav6;
 
     ///     Rosenbluth Potentials
-    valarray<double>  C_RB, D_RB;
-    double            I4_Lnee;
+    // valarray<double>  C_RB, D_RB;
+    // double            I4_Lnee;
 
     ///     Chang-Cooper weighting delta
-    valarray<double>  delta_CC;
+    // valarray<double>  delta_CC;
 
     ///     Constants
     double c_kpre;
@@ -50,10 +50,10 @@ private:
 
     Formulary formulas;
 
-    void   update_C_Rosenbluth( valarray<double>& fin);
+    void   update_C_Rosenbluth(valarray<double> &C_RB, double &I4_Lnee, valarray<double>& fin);
     double update_D_Rosenbluth(const size_t& k, valarray<double>& fin, const double delta);
-    void   update_D_and_delta(valarray<double>& fin);
-    void   update_D_inversebremsstrahlung(const double Z0, const double heatingcoefficient, const double vos);
+    void   update_D_and_delta(valarray<double> &C_RB, valarray<double> &D_RB, valarray<double> &delta_CC, valarray<double>& fin);
+    void   update_D_inversebremsstrahlung(valarray<double> &C_RB, valarray<double> &D_RB, const double I4_Lnee, const double Z0, const double heatingcoefficient, const double vos);
     double calc_delta_ChangCooper(const size_t& k, const double C, const double D);
 
 public:
@@ -88,7 +88,7 @@ public:
 
 private:
     //  Variables
-    valarray<double>            fin, fout;
+    // valarray<double>            fin, fout;
     valarray<double>            xgrid, ygrid;
     bool                        ib;
     self_f00_implicit_step      collide;
@@ -264,18 +264,15 @@ class self_f00_explicit_step {
             
             Formulary formulas;
 
-            // double *d_ld;
-            // double *d_d;
-            // double *d_ud;
+            valarray<double> ld_GPU, dd_GPU, ud_GPU, fin_GPU;
+
+            // FokkerPlanckOnGPU FPGPU;
 
         public:
 //          Constructors/Destructors
             // self_flm_implicit_step(double pmax, size_t nump, double mass); 
             self_flm_implicit_step(const size_t numxtotal, const size_t l0, const size_t m0, const valarray<double>& dp); 
-            ~self_flm_implicit_step()
-            {
-                // GPU_destroyTDsolve(double *d_ld, double *d_d, double *d_ud, double *d_x);
-            }
+
 //          Calculate the coefficients
             void reset_coeff_FP(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
             void reset_coeff_LB(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);

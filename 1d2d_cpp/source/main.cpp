@@ -452,6 +452,9 @@ int main(int argc, char** argv) {
                     Particle_Push.push(Y,theclock.dt());
                     PE.particle_Neighbor_Communications(Y);
                 }
+
+                // Y.checknan();
+
                 // Y = RK(Y,0.5*theclock.dt(),&rkF);
                 // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
 
