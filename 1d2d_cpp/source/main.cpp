@@ -95,6 +95,7 @@
 
         std::cout << "\n\n";
         std::cout << "--------------- OSHUN Beta - 1/2D+3P --------------- \n";
+        std::cout << "------------ git commit hash #  ------------- \n";
         std::cout << "    Particle-in-Cell and Kinetic Simulation Center   \n";
         std::cout << "------------------- UCLA - 2017 -------------------- \n";
         
