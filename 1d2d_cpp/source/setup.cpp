@@ -538,6 +538,9 @@ void Setup_Y::initialize(State1D &Y, Grid_Info &grid){
         // Parser::parseprofile(grid.axis.x(0), Input::List().f_pedestal[s], pedestal_profile);
         // std::cout << "\n14\n";
         init_f0(s, Y.SH(s,0,0), grid.axis.p(s), grid.axis.x(0), dens_profile, temp_profile, Y.DF(s).mass(), pedestal_profile);
+
+        for (size_t i(1); i < Y.DF(s).dim(); ++i)
+            init_flm(Y.DF(s)(i));
         // std::cout << "\n15\n";
         if (Input::List().init_f1) init_f1(s, Y.SH(s,1,0), grid.axis.p(s), grid.axis.x(0), dens_profile, temp_profile, f10x_profile, Y.SH(s,0,0), Y.DF(s).mass());
         
@@ -621,14 +624,6 @@ void Setup_Y::initialize(State2D &Y, Grid_Info &grid){
 
     }
 
-    // for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
-    // {
-    //     for (size_t iy(0);iy<Y.SH(0,0,0).numy();++iy)
-    //     {
-
-    //         std::cout << "T[" << ix << "," << iy << "] = " << temp_profile(ix,iy) << "\n";
-    //     }
-    // }
     
 //      - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //      - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -786,13 +781,33 @@ void Setup_Y:: init_f1(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
     coeff = m/alpha/alpha/alpha/tgamma(3.0/m);
     coeff *= sqrt(M_PI)/4.0;
 
-
-    for (int j(0); j < h.numx(); ++j){
-
+    for (int j(0); j < h.numx(); ++j)
+    {
         coefftemp = coeff*density[j]/pow(2.0*M_PI*temperature[j]*mass,1.5)*f10x[j];
-        for (int k(0); k < h.nump(); ++k){
+        for (int k(0); k < h.nump(); ++k)
+        {
             // New formulation for temperature distribution and super-Gaussians
             h(k,j) = idp*df0(k,j)*f10x[j];
+        }
+    }
+}
+//----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------
+/**
+ * @brief      To initialize f1 by using the steady state linearized vlasov equation. This menas using
+ *              collision term, v grad f, and E df0/dv term in the VFP equation. This gives f1 = -v^3 * ( v df0/dx - E(x) df/dv)
+ *              Assuming no df0/dx, it gives the result below.
+ */
+//----------------------------------------------------------------------------------------------------------------------------
+void Setup_Y:: init_flm(SHarmonic1D& h)
+{
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+    for (int j(0); j < h.numx(); ++j)
+    {
+        for (int k(0); k < h.nump(); ++k)
+        {            
+            h(k,j) = (double(rand())/double(RAND_MAX)-0.5)*Input::List().flm_noise_window;
         }
 
     }

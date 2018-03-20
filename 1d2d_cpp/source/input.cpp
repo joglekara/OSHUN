@@ -106,7 +106,7 @@ Input::Input_List::Input_List():
     hydromotion(0),
     hydromass(100), hydrocharge(79),
     polarization_direction(0),
-    init_f1(0), init_f2(0),
+    init_f1(0), init_f2(0), flm_noise_window(0.),
     MX_cooling(0),
     super_gaussian_m(2.0),
 
@@ -1624,6 +1624,15 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> deckstringbool;
                 init_f2 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "flm_noise_window") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckreal;
+                flm_noise_window = deckreal;
             }
 
 

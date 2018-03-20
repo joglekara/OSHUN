@@ -341,13 +341,13 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
 
     ip = fin.size() - 1;
 
-    LHS(ip    , ip) = 1.0 ;//- oneoverv2[ip] * collisional_coefficient
-                // * (C_RB[ip + 1] * delta_CC[ip + 1]
-                   // - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
+    LHS(ip    , ip) = 1.0  - oneoverv2[ip] * collisional_coefficient
+                * (C_RB[ip + 1] * delta_CC[ip + 1]
+                   - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
 
-    // LHS(ip, ip - 1) = oneoverv2[ip] * collisional_coefficient
-          // * (C_RB[ip] * delta_CC[ip]
-             // - D_RB[ip] / dvr[ip]);
+    LHS(ip, ip - 1) = oneoverv2[ip] * collisional_coefficient
+          * (C_RB[ip] * delta_CC[ip]
+             - D_RB[ip] / dvr[ip]);
 
     // std::cout << "\n\n LHS = \n";
     // for (size_t i(0); i < LHS.dim1(); ++i) {
@@ -415,13 +415,13 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
 
     ip = fin.size() - 1;
 
-    // LHS(ip    , ip)  = 1.0 - I2_temperature/4./deltav/deltav;
-    // LHS(ip    , ip) += (vr[ip]+2.*I2_temperature/vr[ip])/(deltav);
-    // LHS(ip    , ip) *= collisional_coefficient;
+    LHS(ip    , ip)  = 1.0 ;//- I2_temperature/4./deltav/deltav;
+    LHS(ip    , ip) += vr[ip]/deltav;
+    LHS(ip    , ip) *= collisional_coefficient;
     LHS(ip    , ip) += 1.;
 
-    // LHS(ip, ip - 1)  = -vr[ip]/2/deltav + I2_temperature/deltav/deltav;
-    // LHS(ip, ip - 1) *= collisional_coefficient;
+    LHS(ip, ip - 1)  = -vr[ip]/deltav;
+    LHS(ip, ip - 1) *= collisional_coefficient;
 
     // std::cout << "\n\n LHS = \n";
     // for (size_t i(0); i < LHS.dim1(); ++i) {
@@ -1130,7 +1130,14 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
     Alpha_Tri = 0.0;
 
     double IvDnDm1, IvDnDp1, Ivsq2Dn;
-    Alpha_Tri(0,0) = 8.0 * M_PI * fin[0];                                         //  8*pi*f0[0]
+
+    IvDnDm1 = 1.0 / (vr[0] * (vr[1]-vr[0]) * (vr[1] - vr[0]));       //  ( v*D_n*D_{n-1/2} )^(-1)
+    IvDnDp1 = 1.0 / (vr[0] * (vr[1]-vr[0]) * (vr[1] - vr[0]));       //  ( v*D_n*D_{n+1/2} )^(-1)
+    Ivsq2Dn = 1.0 / (vr[0] * vr[0]                 * (vr[2] - vr[0]));       //  ( v^2 * 2*D_n )^(-1)
+
+    Alpha_Tri(0,0) = 8.0 * M_PI * fin[0]; //TriI1[0] * Ivsq2Dn - 2.*TriI2[0] * IvDnDp1;                                         //  8*pi*f0[0]
+    // Alpha_Tri(0,1) = TriI2[0] * IvDnDp1 + 2.*TriI1[0] * Ivsq2Dn;                                                                             //  
+
     #pragma ivdep
     for (size_t i(1); i < TriI1.size()-1; ++i)
     {
@@ -1142,6 +1149,10 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
         Alpha_Tri(i, i-1) = TriI2[i] * IvDnDm1 - TriI1[i] * Ivsq2Dn;
         Alpha_Tri(i, i+1) = TriI2[i] * IvDnDp1 + TriI1[i] * Ivsq2Dn;                                                                             //  
     }
+
+    Alpha_Tri(fin.size()-1, fin.size()-1) = 8.0 * M_PI * fin[fin.size()-1] +  2.*TriI1[fin.size()-1] * Ivsq2Dn;// - TriI2[i] * (IvDnDm1 + IvDnDp1);
+    Alpha_Tri(fin.size()-1, fin.size()-2) = -2.*TriI1[fin.size()-1] * Ivsq2Dn;
+
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt;         // (-1) because the matrix moves to the LHS in the equation

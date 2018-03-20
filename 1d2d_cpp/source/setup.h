@@ -85,6 +85,8 @@ namespace Setup_Y {
     void init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, const valarray<double>& x,
     valarray<double>& density, valarray<double>& temperature,const double mass, const valarray<double>& pedestal);
 
+    void init_flm(SHarmonic1D& h);
+
     void init_f1(size_t s, SHarmonic1D& h, const valarray<double>& p, const valarray<double>& x,
     valarray<double>& density, valarray<double>& temperature, valarray<double>& f10x, const SHarmonic1D& f0, const double mass);
 

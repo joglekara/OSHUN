@@ -115,6 +115,7 @@ namespace Input{
         double hydromass, hydrocharge;
         int polarization_direction;
         bool init_f1, init_f2;
+        double flm_noise_window;
         bool MX_cooling;
 
         double super_gaussian_m;        
