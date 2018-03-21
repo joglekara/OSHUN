@@ -1161,50 +1161,37 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
     //     Evaluate the derivative
 
 
+    //     Evaluate the derivative
+    //     Evaluate the second derivative
+    //        -df/dv_{n-1/2}
+
     for (size_t n(1); n < fin.size()-1; ++n) {
-        df0[n]  = fin[n+1]-fin[n-1];
-        df0[n] /= vr[n+1]-vr[n-1];
+        df0[n]  = (fin[n+1]-fin[n-1])/(vr[n+1]-vr[n-1])/vr[n]/vr[n];
+        ddf0[n]  = (fin[n+1]-2.*fin[n]+fin[n-1])/2./vr[n] ;
+        ddf0[n] /= (vr[n] - vr[n-1])*(vr[n] - vr[n-1]) ;
         // std::cout << "df0[" << n << "] = " << df0[n] <<"\n";
-    }
-    
-
-    // exit(1);
-
-//     Evaluate the second derivative
-//        -df/dv_{n-1/2}
-    for (size_t n(1); n < fin.size(); ++n) {
-        ddf0[n]  = (fin[n-1]-fin[n]) ;
-        ddf0[n] /= vr[n] - vr[n-1] ;
-    }
-//        D(df/dv)/Dv
-    for (size_t n(1); n < fin.size()-1; ++n) {
-        ddf0[n] -= ddf0[n+1];
-        ddf0[n]  /= 0.5*(vr[n+1]-vr[n-1]);
     }
 
     // df0[0]  = fin[1]-fin[0];
-    df0[0]  = -fin[2]+4.*fin[1]-3.*fin[0];
+    df0[0]  = (-fin[2]+4.*fin[1]-3.*fin[0])/vr[0]/vr[0];
     df0[0] /= 2.*(vr[1]-vr[0]);
 
     df0[fin.size()-1]  = fin[fin.size()-3]-4.*fin[fin.size()-2]+3.*fin[fin.size()-1];
     df0[fin.size()-1] /= 2.*(vr[fin.size()-1]-vr[fin.size()-2]);
+    df0[fin.size()-1] /= (vr[fin.size()-1]*vr[fin.size()-1]);
 
-    ddf0[0]  = -fin[3]+4.*fin[2]-5.*fin[1]+2.*fin[0];
+    ddf0[0]  = (-fin[3]+4.*fin[2]-5.*fin[1]+2.*fin[0])/2./vr[0] ;
     ddf0[0] /= (vr[1]-vr[0])*(vr[1]-vr[0]);
 
     ddf0[fin.size()-1]  = -fin[fin.size()-4]+4.*fin[fin.size()-3]-5.*fin[fin.size()-2]+2.*fin[fin.size()-1];
     ddf0[fin.size()-1] /= (vr[1]-vr[0])*(vr[1]-vr[0]);
+    ddf0[fin.size()-1] /= (2.*(vr[fin.size-1]));
 
 // //     Calculate zeroth cell
     // double f00 = ( fin[0] - ( (vr[0]*vr[0])/(vr[1]*vr[1]) ) *fin[1] )
     //              / (1.0 - (vr[0]*vr[0])/(vr[1]*vr[1]));
     // ddf0[0] = 2.0 * (fin[1] - f00) / (vr[1]*vr[1]);
     // df0[0] = ddf0[0] * vr[0];
-
-//     Calculate 1/(2v)*(d^2f)/(dv^2),  1/v^2*df/dv
-    df0  /= vr*vr;
-    ddf0 /= 2.0*vr;
-    
     //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     // Collect all terms to share with matrix solve routine
     (_LOGee_x)[position] = _LOGee;
