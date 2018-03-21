@@ -1185,7 +1185,7 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
 
     ddf0[fin.size()-1]  = -fin[fin.size()-4]+4.*fin[fin.size()-3]-5.*fin[fin.size()-2]+2.*fin[fin.size()-1];
     ddf0[fin.size()-1] /= (vr[1]-vr[0])*(vr[1]-vr[0]);
-    ddf0[fin.size()-1] /= (2.*(vr[fin.size-1]));
+    ddf0[fin.size()-1] /= (2.*(vr[fin.size()-1]));
 
 // //     Calculate zeroth cell
     // double f00 = ( fin[0] - ( (vr[0]*vr[0])/(vr[1]*vr[1]) ) *fin[1] )
