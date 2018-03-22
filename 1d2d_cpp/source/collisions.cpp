@@ -1464,7 +1464,7 @@ void  self_flm_implicit_step::collide_f0withRBflm(valarray<complex<double> >& fi
 
     double deltav = vr[2]-vr[1];
 
-    fv2dv[0] = pow(vr[0],2.)*fin_singleharmonic[0]*deltav;
+    fv2dv[0] = 4. * M_PI * pow(vr[0],2.)*fin_singleharmonic[0]*deltav;
 
     I_ellplustwo[0] = fv2dv[0];
     I_ell[0]        = fv2dv[0];
