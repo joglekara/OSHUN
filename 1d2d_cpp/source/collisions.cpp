@@ -382,7 +382,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     collisional_coefficient  = formulas.LOGee(C_RB[C_RB.size()-1],I2_temperature);
     collisional_coefficient *= 4.0*M_PI/3.0*c_kpre;
     collisional_coefficient *= pow(I2_temperature,-1.5);
-    collisional_coefficient *= step_size;           /// Step size incorporated here
+    collisional_coefficient *= -step_size;           /// Step size incorporated here
 
     double deltav = vr[2]-vr[1];
 
@@ -417,12 +417,13 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
 
     ip = fin.size() - 1;
 
-    LHS(ip    , ip)  = 1.0 ;//- 3.*I2_temperature/deltav/deltav;
+    // LHS(ip    , ip)  = I2_temperature/deltav/deltav;
     // LHS(ip    , ip) += vr[ip]/deltav;
     // LHS(ip    , ip) *= collisional_coefficient;
-    // LHS(ip    , ip) += 1.;
+    LHS(ip    , ip) += 1.;
 
-    // LHS(ip, ip - 1)  = -vr[ip]/deltav + I2_temperature/deltav/deltav;
+    // LHS(ip, ip - 1)  = -vr[ip]/deltav 
+    // LHS(ip, ip - 1) += -I2_temperature/deltav/deltav;
     // LHS(ip, ip - 1) *= collisional_coefficient;
 
     // std::cout << "\n\n LHS = \n";
