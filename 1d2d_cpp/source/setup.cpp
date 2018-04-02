@@ -15,10 +15,10 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cfloat>
-
 #include <math.h>
 // #include <boost/math/special_functions/bessel.hpp>
 #include <map>
+#include <mpi.h>
 
 //  My libraries
 #include "lib-array.h"
@@ -803,6 +803,10 @@ void Setup_Y:: init_flm(SHarmonic1D& h)
 {
 //----------------------------------------------------------------------------------------------------------------------
 //----------------------------------------------------------------------------------------------------------------------
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    srand(rank);
+
     for (int j(0); j < h.numx(); ++j)
     {
         for (int k(0); k < h.nump(); ++k)
