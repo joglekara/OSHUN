@@ -381,7 +381,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     double collisional_coefficient;
     collisional_coefficient  = formulas.LOGee(C_RB[C_RB.size()-1],I2_temperature);
     collisional_coefficient *= 4.0*M_PI/3.0*c_kpre;
-    collisional_coefficient *= pow(I2_temperature,-1.5);
+    collisional_coefficient *= pow(I2_temperature,-1.0);
     collisional_coefficient *= -step_size;           /// Step size incorporated here
 
     double deltav = vr[2]-vr[1];
@@ -1291,7 +1291,7 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
         // std::cout << "\nScattering_TermBBB[" << i << "] = " << Scattering_Term[i] << "\n";
     }
 
-    Scattering_Term *=  kpre * Dt / pow(I2_temperature,1.5); 
+    Scattering_Term *=  kpre * Dt / pow(I2_temperature,1.0); 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 //     MAKE TRIDIAGONAL ARRAY
@@ -1333,7 +1333,7 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
     // Alpha_Tri(ip    , ip) += 1.;
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt / pow(I2_temperature,1.5);         // (-1) because the matrix moves to the LHS in the equation
+    Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt / pow(I2_temperature,1.0);         // (-1) because the matrix moves to the LHS in the equation
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     // Collect all terms to share with matrix solve routine
