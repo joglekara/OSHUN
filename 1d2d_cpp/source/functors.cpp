@@ -7,13 +7,14 @@
  */
 //--------------------------------------------------------------
 //  Standard libraries
+
 #include <iostream>
 #include <vector>
 #include <valarray>
 #include <complex>
 #include <algorithm>
 #include <cstdlib>
-
+#include <omp.h>
 #include <math.h>
 #include <map>
 
@@ -177,64 +178,132 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
     for (size_t s(0); s < Yin.Species(); ++s) 
     {
 
-        if (Yin.DF(s).m0() == 0) {
+        if (Yin.DF(s).m0() == 0) 
+        {
 
-            // GA[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
-            
-            // if (debug) 
-            // {
-            //     std::cout << "\n\n f at start:";
-            //     for (size_t ip(0); ip < Yin.SH(0,0,0).nump(); ++ip){
-            //         std::cout << "\nf(" << ip << ") = " << Yin.SH(0,1,0)(ip,4);
-            //     }
-
-            //     std::cout << "\n\n E at start:";
-            //     for (size_t ix(0); ix < Yin.SH(0,0,0).numx(); ++ix){
-            //         std::cout << "\nEx(" << ix << ") = " << Yin.EMF().Ex()(ix);
-            //     }            
-            // }
             // EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-            // if (Input::List().flm_acc)
-            // {
-            //     EF[s].gpu1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-            //     // SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
-            // }
-            // else
-            // { 
-                EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-                
-            // }
-
-            // if (debug) 
-            // {
-            //     std::cout << "\n\nf after E:";
-            //     for (size_t ip(0); ip < Yin.SH(0,0,0).nump(); ++ip){
-            //         std::cout << "\nf(" << ip << ") = " << Yslope.SH(0,1,0)(ip,4);
-            //     }
-            // }
             JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
+            // SA[s].es1d(Yin.DF(s),Yslope.DF(s));
+
+            size_t l0(Yin.DF(s).l0());
+
+            #pragma omp parallel num_threads(Input::List().ompthreads)
+            {   
+                size_t this_thread  = omp_get_thread_num();
+                // std::cout << "\n hi i'm " << this_thread << "\n";
+
+                size_t f_start_thread(EF[s].get_f_start(this_thread));
+                size_t f_end_thread(EF[s].get_f_end(this_thread));
 
 
+                // std::cout << "\n els[ " << this_thread << "] = " << f_start_thread << "....\n";
+                // std::cout << "\n ele[ " << this_thread << "] = " << f_end_thread << "....\n";
+                //  Initialize work variables
+                SHarmonic1D fd1(SA[s].get_vr().size(),Yin.DF(s)(0,0).numx()),fd2(SA[s].get_vr().size(),Yin.DF(s)(0,0).numx());
+                
+                valarray<complex<double> > vtemp(SA[s].get_vr());
+                vtemp /= Yin.DF(s).mass();
+                
+                valarray<complex<double> > Ex(Yin.FLD(0).array());
+                Ex *= Yin.DF(s).q();
+                
 
-            // if (debug) 
-            // {
-            //     std::cout << "\n\n after J:";
-            //     for (size_t ix(0); ix < Yin.SH(0,0,0).numx(); ++ix){
-            //         std::cout << "\nEx(" << ix << ") = " << Yslope.EMF().Ex()(ix);
-            //     }            
-            // }
-            
-            SA[s].es1d(Yin.DF(s),Yslope.DF(s));
-            // SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
-            // if (debug) 
-            // {
-            //     std::cout << "\n\n after SA:";
-            //     for (size_t ip(0); ip < Yin.SH(0,0,0).nump(); ++ip){
-            //         std::cout << "\nf(" << ip << ") = " << Yslope.SH(0,1,0)(ip,4);
-            //     }
-            // }
-            // 
-            // collide.advance(Yin,Yslope,time,dt);
+                //  -------------------------------------------------------- //
+                //   First thread takes the boundary conditions (l = 0)
+                //   Last thread takes the boundary condition (l = l0)
+                //  Rest proceed to chunks
+                //  -------------------------------------------------------- //
+                if (this_thread == 0)
+                {
+
+                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    //      m = 0, l = 0
+                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    EF[s].MakeG00(Yin.DF(s)(0,0),fd1);
+                    Ex *= EF[s].getA1(0,0);  Yslope.DF(s)(1,0) += fd1.mxaxis(Ex);
+
+
+                    fd1 = Yin.DF(s)(0,0);                         fd1 = fd1.Dx(Input::List().dbydx_order);
+                    vtemp *= SA[s].getA1(0,0);                       Yslope.DF(s)(1,0) += fd1.mpaxis(vtemp);
+                    vtemp /= SA[s].getA1(0,0);
+
+                    f_start_thread = 1;
+                }
+
+                if (this_thread == Input::List().ompthreads - 1)    
+                {
+                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    //      m = 0,  l = l0
+                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    EF[s].MakeGH(Yin.DF(s)(l0,0),fd1,fd2,l0);
+                    Ex *= EF[s].getA2(l0,0);  Yslope.DF(s)(l0-1,0) += fd2.mxaxis(Ex);
+                    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+                    Ex /= EF[s].getA2(l0,0);             // Reset Ex
+                    
+                        
+                    fd1 = Yin.DF(s)(l0,0);                        fd1 = fd1.Dx(Input::List().dbydx_order);
+                    vtemp *= SA[s].getA2(l0,0);                      Yslope.DF(s)(l0-1,0) += fd1.mpaxis(vtemp);
+                    vtemp /= SA[s].getA2(l0,0);
+
+                    f_end_thread -= 1;
+                }
+
+                //  -------------------------------------------------------- //
+                //  Do the chunks
+                //  Initialize vtemp so that it starts correctly
+                //  -------------------------------------------------------- //
+                vtemp *= SA[s].getA1(f_start_thread-1,0);
+                Ex *= EF[s].getA1(f_start_thread-1,0);
+
+
+                for (size_t l = f_start_thread; l < f_end_thread; ++l)
+                {
+                    EF[s].MakeGH(Yin.DF(s)(l,0),fd1,fd2,l);
+
+                    Ex *= EF[s].getA2(l,0) / EF[s].getA1(l-1,0);  Yslope.DF(s)(l-1,0) += fd2.mxaxis(Ex);
+                    Ex *= EF[s].getA1(l,0) / EF[s].getA2(l,0);   Yslope.DF(s)(l+1,0) += fd1.mxaxis(Ex);
+
+                    fd1 = Yin.DF(s)(l,0);  //std::cout << "\n \n before dx, l = " << l << " \n";          
+                    fd1 = fd1.Dx(Input::List().dbydx_order);  //std::cout << " \n after dx\n";
+
+                    vtemp *= SA[s].getA2(l,0)/SA[s].getA1(l-1,0);    fd2 = fd1;  Yslope.DF(s)(l-1,0) += fd1.mpaxis(vtemp);
+                    vtemp *= SA[s].getA1(l,0)/SA[s].getA2(l  ,0);                Yslope.DF(s)(l+1,0) += fd2.mpaxis(vtemp);
+                }
+            }
+
+            //  -------------------------------------------------------- //
+            //  Do the boundaries between the chunks
+            //  -------------------------------------------------------- //
+            #pragma omp parallel for num_threads(Input::List().ompthreads-1)
+            for (size_t threadboundaries = 0; threadboundaries < Input::List().ompthreads - 1; ++threadboundaries)
+            {
+                SHarmonic1D fd1(Yin.DF(s)(0,0).nump(),Yin.DF(s)(0,0).numx()),fd2(Yin.DF(s)(0,0).nump(),Yin.DF(s)(0,0).numx());
+                valarray<complex<double> > vtemp(SA[s].get_vr());
+                vtemp /= Yin.DF(s).mass();    
+
+                valarray<complex<double> > Ex(Yin.FLD(0).array());
+                Ex *= Yin.DF(s).q();
+
+            //  Initialize Ex so that it its ready for loop iteration l
+                Ex *= EF[s].getA1(EF[s].get_f_end(threadboundaries)-1,0);    
+                
+                vtemp *= SA[s].getA1(EF[s].get_f_end(threadboundaries)-1,0);
+
+                for (size_t l = EF[s].get_f_end(threadboundaries); l < EF[s].get_f_start(threadboundaries+1); ++l)
+                {   
+                    EF[s].MakeGH(Yin.DF(s)(l,0),fd1,fd2,l);
+
+                    Ex *= EF[s].getA2(l,0) / EF[s].getA1(l-1,0);     Yslope.DF(s)(l-1,0) += fd2.mxaxis(Ex);
+                    Ex *= EF[s].getA1(l,0) / EF[s].getA2(l,0);       Yslope.DF(s)(l+1,0) += fd1.mxaxis(Ex); 
+
+                    fd1 = Yin.DF(s)(l,0);  //std::cout << "\n \n before dx, l = " << l << " \n";          
+                    fd1 = fd1.Dx(Input::List().dbydx_order); //std::cout << " \n after dx\n";
+
+                    vtemp *= SA[s].getA2(l,0)/SA[s].getA1(l-1,0);    fd2 = fd1;  Yslope.DF(s)(l-1,0) += fd1.mpaxis(vtemp);
+                    vtemp *= SA[s].getA1(l,0)/SA[s].getA2(l  ,0);                Yslope.DF(s)(l+1,0) += fd2.mpaxis(vtemp);
+                }
+            }         
+
         }
         else
         {
@@ -260,11 +329,11 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
 
                 JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
             }
+
+            AM[0](Yin.EMF(),Yslope.EMF());
+            FA[0](Yin.EMF(),Yslope.EMF());
         }
     }
-    
-    AM[0](Yin.EMF(),Yslope.EMF());
-    FA[0](Yin.EMF(),Yslope.EMF());
 
     if (Input::List().trav_wave) WD.applytravelingwave(Yslope.EMF(),time);
     

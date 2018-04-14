@@ -31,6 +31,12 @@ public:
     void f1only(const DistFunc1D& Din, DistFunc1D& Dh);
     void f1only(const DistFunc2D& Din, DistFunc2D& Dh);
 
+    complex<double> getA1(size_t el, size_t em) {return A1(el,em);}
+    complex<double> getA2(size_t el, size_t em) {return A2(el,em);}
+    
+    size_t get_f_start(size_t this_thread) {return f_start[this_thread];}
+    size_t get_f_end(size_t this_thread) {return f_end[this_thread];}
+    valarray< complex<double> > get_vr() {return vr;}
 private:
     Array2D< complex<double> >      A1, A2, C2, C4;
 
@@ -99,7 +105,12 @@ public:
     void Implicit_Ey_f1only(const DistFunc2D& Din, const Field2D& FEy, DistFunc2D& Dh);
     void Implicit_Ez_f1only(const DistFunc2D& Din, const Field2D& FEz, DistFunc2D& Dh);
 
-private:
+    complex<double> getA1(size_t el, size_t em) {return A1(el,em);}
+    complex<double> getA2(size_t el, size_t em) {return A2(el,em);}
+
+    size_t get_f_start(size_t this_thread) {return f_start[this_thread];}
+    size_t get_f_end(size_t this_thread) {return f_end[this_thread];}
+
     // void MakeG00(SHarmonic1D& f);
     void MakeG00(const SHarmonic1D& f, SHarmonic1D& G);
     void MakeG00(const SHarmonic2D& f, SHarmonic2D& G);
@@ -107,7 +118,8 @@ private:
     void MakeGH(const SHarmonic1D& f, SHarmonic1D& G, SHarmonic1D& H, size_t l);   // OMP version
     void MakeGH(const SHarmonic2D& f, SHarmonic2D& G, SHarmonic2D& H, size_t l);   // OMP version
 
-    
+
+private:
 
     complex<double>                 A100, C100, A210, B211, C311, A310;
 
