@@ -295,18 +295,18 @@ void Export_Files::Folders(){
                 cout<<"Warning: Folder 'output/moments/Ti' exists" << endl;
         }
 
-        if (Input::List().particlepusher) {
-            if (Makefolder("output/particles") != 0)
-                cout<<"Warning: Folder 'output/particles' exists" << endl;
-            if (Makefolder("output/particles/prtx") != 0)
-                cout<<"Warning: Folder 'output/particles/prtx' exists" << endl;
-            if (Makefolder("output/particles/prtpx") != 0)
-                cout<<"Warning: Folder 'output/particles/prtpx' exists" << endl;
-            if (Makefolder("output/particles/prtpy") != 0)
-                cout<<"Warning: Folder 'output/particles/prtpy' exists" << endl;
-            if (Makefolder("output/particles/prtpz") != 0)
-                cout<<"Warning: Folder 'output/particles/prtpz' exists" << endl;
-        }
+        // if (Input::List().particlepusher) {
+        //     if (Makefolder("output/particles") != 0)
+        //         cout<<"Warning: Folder 'output/particles' exists" << endl;
+        //     if (Makefolder("output/particles/prtx") != 0)
+        //         cout<<"Warning: Folder 'output/particles/prtx' exists" << endl;
+        //     if (Makefolder("output/particles/prtpx") != 0)
+        //         cout<<"Warning: Folder 'output/particles/prtpx' exists" << endl;
+        //     if (Makefolder("output/particles/prtpy") != 0)
+        //         cout<<"Warning: Folder 'output/particles/prtpy' exists" << endl;
+        //     if (Makefolder("output/particles/prtpz") != 0)
+        //         cout<<"Warning: Folder 'output/particles/prtpz' exists" << endl;
+        // }
     }
 
     if (  Input::List().o_p1x1 || Input::List().o_p2x1 || Input::List().o_p3x1 ||
@@ -594,17 +594,17 @@ Export_Files::Xport::Xport(const Algorithms::AxisBundle<double>& _axis,
     } // <--
 
 //  Tags for Particles -->
-    for (size_t i(0); i < dTags.part.size(); ++i) {
+    // for (size_t i(0); i < dTags.part.size(); ++i) {
 
-        //     If this tag is an output tag
-        if ( find(oTags.begin(),oTags.end(), dTags.part[i]) != oTags.end() ) {
+    //     //     If this tag is an output tag
+    //     if ( find(oTags.begin(),oTags.end(), dTags.part[i]) != oTags.end() ) {
 
-            string nounits = dTags.part[i].substr(0, dTags.part[i].find("_"));
-            string folder = homedir + "output/particles/" + nounits + "/";
-            //         Generate a header file for this tag
-            Hdr[nounits] = Header(axis_units, dTags.part[i], folder);
-        }
-    } // <--
+    //         string nounits = dTags.part[i].substr(0, dTags.part[i].find("_"));
+    //         string folder = homedir + "output/particles/" + nounits + "/";
+    //         //         Generate a header file for this tag
+    //         Hdr[nounits] = Header(axis_units, dTags.part[i], folder);
+    //     }
+    // } // <--
 
 
 //  Tags for p-x -->
@@ -1525,12 +1525,12 @@ void Output_Data::Output_Preprocessor::operator()(const State1D& Y, const Grid_I
         Ti( Y, grid, tout, time, dt, PE );
     }
 
-    if (Input::List().particlepusher) {
-        particles_x( Y, grid, tout, time, dt, PE );
-        particles_px( Y, grid, tout, time, dt, PE );
-        particles_py( Y, grid, tout, time, dt, PE );
-        particles_pz( Y, grid, tout, time, dt, PE );
-    }
+    // if (Input::List().particlepusher) {
+    //     particles_x( Y, grid, tout, time, dt, PE );
+    //     particles_px( Y, grid, tout, time, dt, PE );
+    //     particles_py( Y, grid, tout, time, dt, PE );
+    //     particles_pz( Y, grid, tout, time, dt, PE );
+    // }
 
 }
 //--------------------------------------------------------------
@@ -4755,196 +4755,196 @@ void Output_Data::Output_Preprocessor::n(const State1D& Y, const Grid_Info& grid
 }
 //--------------------------------------------------------------    
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::particles_x(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-    const Parallel_Environment_1D& PE) {
+// void Output_Data::Output_Preprocessor::particles_x(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//     const Parallel_Environment_1D& PE) {
 
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    int msg_sz(Y.particles().numpar()) ; 
-    double buf[msg_sz];
-    vector<double> pGlobal(Y.particles().numpar()); 
-    vector<double> prtaxis(Y.particles().numpar());
+//     int msg_sz(Y.particles().numpar()) ; 
+//     double buf[msg_sz];
+//     vector<double> pGlobal(Y.particles().numpar()); 
+//     vector<double> prtaxis(Y.particles().numpar());
 
-    for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-        buf[ip] = Y.particles().x(ip)* (double (Y.particles().ishere(ip)));
-        prtaxis.push_back( ip );
-    }
+//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
+//         buf[ip] = Y.particles().x(ip)* (double (Y.particles().ishere(ip)));
+//         prtaxis.push_back( ip );
+//     }
 
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < msg_sz; i++) {
-                pGlobal[i] += buf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < msg_sz; i++) {
-                    pGlobal[i] += buf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < msg_sz; i++) {
-            pGlobal[i] = buf[i];
-        }
-    }
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < msg_sz; i++) {
+//                 pGlobal[i] += buf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < msg_sz; i++) {
+//                     pGlobal[i] += buf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < msg_sz; i++) {
+//             pGlobal[i] = buf[i];
+//         }
+//     }
     
-    if (PE.RANK() == 0) expo.Export_h5("prtx", prtaxis, pGlobal, tout, time, dt);
+//     if (PE.RANK() == 0) expo.Export_h5("prtx", prtaxis, pGlobal, tout, time, dt);
 
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------    
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::particles_px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-    const Parallel_Environment_1D& PE) {
-
-
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-
-    int msg_sz(Y.particles().numpar()) ; 
-    double buf[msg_sz];
-    vector<double> pGlobal(Y.particles().numpar()); 
-    vector<double> prtaxis(Y.particles().numpar());
-
-    for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-        buf[ip] = Y.particles().px(ip)* (double (Y.particles().ishere(ip)));
-    }
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------    
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::particles_px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//     const Parallel_Environment_1D& PE) {
 
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < msg_sz; i++) {
-                pGlobal[i] += buf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < msg_sz; i++) {
-                    pGlobal[i] += buf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < msg_sz; i++) {
-            pGlobal[i] = buf[i];
-        }
-    }
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    if (PE.RANK() == 0) expo.Export_h5("prtpx", prtaxis, pGlobal, tout, time, dt);
+//     int msg_sz(Y.particles().numpar()) ; 
+//     double buf[msg_sz];
+//     vector<double> pGlobal(Y.particles().numpar()); 
+//     vector<double> prtaxis(Y.particles().numpar());
 
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------    
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::particles_py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-    const Parallel_Environment_1D& PE) {
+//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
+//         buf[ip] = Y.particles().px(ip)* (double (Y.particles().ishere(ip)));
+//     }
 
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < msg_sz; i++) {
+//                 pGlobal[i] += buf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < msg_sz; i++) {
+//                     pGlobal[i] += buf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < msg_sz; i++) {
+//             pGlobal[i] = buf[i];
+//         }
+//     }
 
-    int msg_sz(Y.particles().numpar()) ; 
-    double buf[msg_sz];
-    vector<double> pGlobal(Y.particles().numpar()); 
-    vector<double> prtaxis(Y.particles().numpar());
+//     if (PE.RANK() == 0) expo.Export_h5("prtpx", prtaxis, pGlobal, tout, time, dt);
 
-    for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-        buf[ip] = Y.particles().py(ip)* (double (Y.particles().ishere(ip)));
-    }
-
-
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < msg_sz; i++) {
-                pGlobal[i] += buf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < msg_sz; i++) {
-                    pGlobal[i] += buf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < msg_sz; i++) {
-            pGlobal[i] = buf[i];
-        }
-    }
-
-    if (PE.RANK() == 0) expo.Export_h5("prtpy", prtaxis, pGlobal, tout, time, dt);
-
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------    
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::particles_pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-    const Parallel_Environment_1D& PE) {
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------    
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::particles_py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//     const Parallel_Environment_1D& PE) {
 
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    int msg_sz(Y.particles().numpar()) ; 
-    double buf[msg_sz];
-    vector<double> pGlobal(Y.particles().numpar()); 
-    vector<double> prtaxis(Y.particles().numpar());
+//     int msg_sz(Y.particles().numpar()) ; 
+//     double buf[msg_sz];
+//     vector<double> pGlobal(Y.particles().numpar()); 
+//     vector<double> prtaxis(Y.particles().numpar());
 
-    for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-        buf[ip] = Y.particles().pz(ip)* (double (Y.particles().ishere(ip)));
-    }
+//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
+//         buf[ip] = Y.particles().py(ip)* (double (Y.particles().ishere(ip)));
+//     }
 
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < msg_sz; i++) {
-                pGlobal[i] += buf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < msg_sz; i++) {
-                    pGlobal[i] += buf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < msg_sz; i++) {
-            pGlobal[i] = buf[i];
-        }
-    }
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < msg_sz; i++) {
+//                 pGlobal[i] += buf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < msg_sz; i++) {
+//                     pGlobal[i] += buf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < msg_sz; i++) {
+//             pGlobal[i] = buf[i];
+//         }
+//     }
 
-    if (PE.RANK() == 0) expo.Export_h5("prtpz", prtaxis, pGlobal, tout, time, dt);
+//     if (PE.RANK() == 0) expo.Export_h5("prtpy", prtaxis, pGlobal, tout, time, dt);
 
-}
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------    
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::particles_pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//     const Parallel_Environment_1D& PE) {
+
+
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+
+//     int msg_sz(Y.particles().numpar()) ; 
+//     double buf[msg_sz];
+//     vector<double> pGlobal(Y.particles().numpar()); 
+//     vector<double> prtaxis(Y.particles().numpar());
+
+//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
+//         buf[ip] = Y.particles().pz(ip)* (double (Y.particles().ishere(ip)));
+//     }
+
+
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < msg_sz; i++) {
+//                 pGlobal[i] += buf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < msg_sz; i++) {
+//                     pGlobal[i] += buf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < msg_sz; i++) {
+//             pGlobal[i] = buf[i];
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("prtpz", prtaxis, pGlobal, tout, time, dt);
+
+// }
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::T(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
     const Parallel_Environment_1D& PE) {

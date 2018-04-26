@@ -339,15 +339,6 @@ Node_Communications_1D:: Node_Communications_1D() :
     msg_sizeX *= Nbc;  //(IN().inp().y.dim()*Nbc);
                        //
     par_sizeX = 0;
-
-    if (Input::List().particlepusher)
-    {
-        par_sizeX += Input::List().numparticles; // Going Left or Right?
-        par_sizeX += Input::List().numparticles; // Position
-        par_sizeX += Input::List().numparticles; // X-momentum
-        par_sizeX += Input::List().numparticles; // Y-momentum
-        par_sizeX += Input::List().numparticles; // Z-momentum
-    }
     
     msg_bufX = new complex<double>[msg_sizeX];
     par_bufX = new double[par_sizeX];
@@ -369,41 +360,6 @@ Node_Communications_1D:: ~Node_Communications_1D(){
 int Node_Communications_1D:: BNDX()  const {return bndX;}
 //--------------------------------------------------------------
 
-//--------------------------------------------------------------
-
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//  Send and receive in the X direction
-//- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-void Node_Communications_1D::Send_particles_right_X(State1D& Y, int dest) {
-//--------------------------------------------------------------
-//  X-axis : Read data from the right boundary and send them 
-//           to the node on the right
-//--------------------------------------------------------------
-    size_t bufind(0);
-
-    for (int ip(0); ip < Y.particles().numpar(); ++ip)
-    {          
-        // if (Y.particles().x(ip) > Input::List().xmaxGlobal[0]){
-        //     std::cout << " global max = " << Input::List().xmaxGlobal[0] << "\n";
-        //     Y.particles().x(ip) -= Input::List().xmaxGlobal[0]-Input::List().xminGlobal[0];
-        // }
-        // if (Y.particles().goingright(ip) == 1)
-        // {
-            par_bufX[bufind]   = Y.particles().goingright(ip);
-            par_bufX[bufind+1] = Y.particles().x(ip);
-            par_bufX[bufind+2] = Y.particles().px(ip);
-            par_bufX[bufind+3] = Y.particles().py(ip);
-            par_bufX[bufind+4] = Y.particles().pz(ip);    
-
-            // Y.particles().goingright(ip) = 0;
-        // }
-        
-
-        bufind += 4;
-    }
-
-    MPI_Send(par_bufX, par_sizeX, MPI_DOUBLE, dest, 0, MPI_COMM_WORLD);
-}
 //--------------------------------------------------------------
 void Node_Communications_1D::Send_right_X(State1D& Y, int dest) {
 //--------------------------------------------------------------
@@ -478,52 +434,6 @@ void Node_Communications_1D::Send_right_X(State1D& Y, int dest) {
 
 }
 //--------------------------------------------------------------
-//--------------------------------------------------------------
-void Node_Communications_1D::Recv_particles_from_left_X(State1D& Y, int origin) {
-//--------------------------------------------------------------
-//  X-axis : Receive data from the node on the left and update
-//           the left guard cells
-//--------------------------------------------------------------
-    size_t bufind(0);
-    
-    MPI_Status status;
-
-    // Receive Data
-    MPI_Recv(par_bufX, par_sizeX, MPI_DOUBLE, origin, 0, MPI_COMM_WORLD, &status);
-
-    for (int ip(0); ip < Y.particles().numpar(); ++ip)
-    {
-        // See if particle is now in local box, but wasn't before. 
-        // Only overwrite if so.
-        // If not, step over buffer and go to next particle.
-        
-        // if (((msg_bufX[bufind]).real() < Input::List().xmaxLocalnobnd[0] && (msg_bufX[bufind]).real() >= Input::List().xminLocalnobnd[0])
-        //     // && (Y.particles().x(ip) >= Input::List().xmaxLocal || Y.particles().x(ip) < Input::List().xminLocal[0]))
-        //     && !(Y.particles().ishere(ip)) && (Y.particles().goingleft(ip)))
-        //     
-        if (int (par_bufX[bufind]) == 1)
-        {
-            
-            // if (ip == 2){
-            // std::cout << "\n\n\n origin = " << origin << "\n";
-            // std::cout << "in cell = " << Input::List().xminLocalnobnd[0] << "\n" ;
-            // std::cout << "is it here? "<< Y.particles().ishere(ip) << "\n\n";  
-
-            if (par_bufX[bufind+1] >= Input::List().xmaxGlobal[0]){
-                Y.particles().x(ip) = (par_bufX[bufind+1]) - Input::List().xmaxGlobal[0] + Input::List().xminGlobal[0];
-            }
-            else Y.particles().x(ip)  = (par_bufX[bufind+1]);
-
-
-            Y.particles().px(ip) = (par_bufX[bufind+2]);
-            Y.particles().py(ip) = (par_bufX[bufind+3]);
-            Y.particles().pz(ip) = (par_bufX[bufind+4]);
-            Y.particles().ishere(ip) = 1;
-        }
-        
-        bufind+=4;  // Go to next particle in buffer
-    }
-}
 //--------------------------------------------------------------
 void Node_Communications_1D::Recv_from_left_X(State1D& Y, int origin) {
 //--------------------------------------------------------------
@@ -602,30 +512,6 @@ void Node_Communications_1D::Recv_from_left_X(State1D& Y, int origin) {
 }
 //--------------------------------------------------------------
 
-void Node_Communications_1D::Send_particles_left_X(State1D& Y, int dest) {
-
-    
-
-    // Send all
-    // Receive routine is the discriminator
-    size_t bufind(0);
-
-    for (int ip(0); ip < Y.particles().numpar(); ++ip)
-    {          
-        // if (Y.particles().goingright(ip) == -1){
-        //     Y.particles().x(ip) += Input::List().xmaxGlobal[0]-Input::List().xminGlobal[0];
-
-        par_bufX[bufind] = Y.particles().goingright(ip);
-        par_bufX[bufind+1] = Y.particles().x(ip);
-        par_bufX[bufind+2] = Y.particles().px(ip);
-        par_bufX[bufind+3] = Y.particles().py(ip);
-        par_bufX[bufind+4] = Y.particles().pz(ip);
-
-        bufind += 4;
-    }
-
-    MPI_Send(par_bufX, par_sizeX, MPI_DOUBLE, dest, 1, MPI_COMM_WORLD);
-}
 //--------------------------------------------------------------
 void Node_Communications_1D::Send_left_X(State1D& Y, int dest) {
 //--------------------------------------------------------------
@@ -698,56 +584,6 @@ void Node_Communications_1D::Send_left_X(State1D& Y, int dest) {
 }
 
 //--------------------------------------------------------------
-
-//--------------------------------------------------------------
-void Node_Communications_1D::Recv_particles_from_right_X(State1D& Y, int origin) {
-//--------------------------------------------------------------
-//  X-axis : Receive data from the node on the right and update
-//           the right guard cells
-//--------------------------------------------------------------
-    size_t bufind(0);
-    MPI_Status status;
-
-    // Receive Data
-    MPI_Recv(par_bufX, par_sizeX, MPI_DOUBLE, origin, 1, MPI_COMM_WORLD, &status);
-
-    for (int ip(0); ip < Y.particles().numpar(); ++ip){
-        
-
-        // See if particle is now in local box, but wasn't before. 
-        // Only overwrite if so.
-        // If not, step over buffer and go to next particle.
-        
-        // if (((msg_bufX[bufind]).real() < Input::List().xmaxLocalnobnd[0] && (msg_bufX[bufind]) >= Input::List().xminLocalnobnd[0])
-        //     // && (Y.particles().x(ip) >= Input::List().xmaxLocal || Y.particles().x(ip) < Input::List().xminLocal[0]))
-        //     && !(Y.particles().ishere(ip)))
-        // {
-
-            // if (ip == 2){
-            //     std::cout << "\n\n\n origin = " << origin << "\n";
-            //     std::cout << "in cell = " << Input::List().xminLocalnobnd[0] << "\n" ;
-            //     std::cout << "is it here? "<< Y.particles().ishere(ip) << "\n\n";  
-            // } 
-        if (par_bufX[bufind] == -1)
-        {
-
-            if (par_bufX[bufind+1] < Input::List().xminGlobal[0]){
-                Y.particles().x(ip) = (par_bufX[bufind+1]) + Input::List().xmaxGlobal[0] - Input::List().xminGlobal[0];
-            }
-            else Y.particles().x(ip)  = (par_bufX[bufind+1]);
-
-            
-            Y.particles().px(ip) = (par_bufX[bufind+2]);
-            Y.particles().py(ip) = (par_bufX[bufind+3]);
-            Y.particles().pz(ip) = (par_bufX[bufind+4]);
-            Y.particles().ishere(ip) = 1;
-        }
-        
-        bufind+=4;  // Go to next particle in buffer
-    }
-
-
-}
 //--------------------------------------------------------------
 void Node_Communications_1D::Recv_from_right_X(State1D& Y, int origin) {
 //--------------------------------------------------------------
@@ -887,19 +723,6 @@ void Node_Communications_1D::mirror_bound_Xleft(State1D& Y) {
         }
     }
 
-    // if (Input::List().particlepusher)
-    // {
-    //     for (int ip(0); ip < Y.particles().numpar(); ++ip){
-    //         if (Y.particles().x(ip) < Input::List().xminLocalnobnd[0])  
-    //         {
-    //             Y.particles().x(ip) = Input::List().xminLocalnobnd[0] + (Input::List().xminLocalnobnd[0] - Y.particles().x(ip));
-    //             Y.particles().px(ip) *= -1.0;
-    //             Y.particles().ishere(ip) = 1;
-    //         }
-    //     }
-    // }
-
-
 }
 //--------------------------------------------------------------
 
@@ -957,19 +780,6 @@ void Node_Communications_1D::mirror_bound_Xright(State1D& Y) {
             Y.HYDRO().vx(Y.EMF().Ex().numx()-Nbc+c) *=  -1.0;
         }
     }
-
-    // if (Input::List().particlepusher)
-    // {
-    //     for (int ip(0); ip < Y.particles().numpar(); ++ip){
-    //         if (Y.particles().x(ip) > Input::List().xmaxLocalnobnd[0])  
-    //         {
-    //             Y.particles().x(ip) = Input::List().xmaxLocalnobnd[0] - (Y.particles().x(ip) - Input::List().xmaxLocalnobnd[0]);
-    //             Y.particles().px(ip) *= -1.0;
-    //             Y.particles().ishere(ip) = 1;
-    //         }
-    //     }
-    // }
-
 }
 //--------------------------------------------------------------
 
@@ -1154,24 +964,6 @@ void Node_Communications_1D::sameNode_mirror_X(State1D& Y) {
         }
     }
 
-    // if (Input::List().particlepusher)
-    // {
-    //     for (int ip(0); ip < Y.particles().numpar(); ++ip)
-    //     {
-    //         if (Y.particles().x(ip) > Input::List().xmaxLocalnobnd[0])
-    //         {
-    //             Y.particles().x(ip) = Input::List().xmaxLocalnobnd[0] - (Y.particles().x(ip) - Input::List().xmaxLocalnobnd[0]);
-    //             Y.particles().px(ip) *= -1.0;
-    //         }
-    //         else if (Y.particles().x(ip) < Input::List().xminLocalnobnd[0])
-    //         {
-    //             Y.particles().x(ip) = Input::List().xminLocalnobnd[0] + (Input::List().xminLocalnobnd[0] - Y.particles().x(ip));
-    //             Y.particles().px(ip) *= -1.0;
-    //         }
-
-    //     }
-    // }
-
 }
 //--------------------------------------------------------------
 
@@ -1335,7 +1127,7 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
     if (MPI_Processes() > 1) {
         //even nodes
 //        if (moduloX==0){
-        // std::cout << "\n before boundary on " << Input::List().xminLocalnobnd[0] << "? " << Y.particles().x(2) << "\n\n";  
+        
         if (BNDX() == 0) {
             if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
                 X_Data.Send_right_X(Y, RNx);                  //   (Send) 0 --> 1
@@ -1353,9 +1145,6 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
                 X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
                 X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
             }
-
-            Y.particles().par_goingright_array() = 0.0;
-
         } 
         else if (BNDX() == 1) {
             if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
@@ -1393,65 +1182,6 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
             }
 
         }
-        else {
-            cout << "Invalid Boundary." << endl;
-        }
-
-//            //odd nodes
-//        else {
-//            X_Data.Recv_from_left_X(Y,LNx);               //           0 --> 1 (Receive)
-//            if ((RANK()!=(MPI_Processes()-1)) || (BNDX()==0)){
-//                X_Data.Send_right_X(Y,RNx);              //   (Send)  1 --> 0
-//                X_Data.Recv_from_right_X(Y,RNx);         // (Receive) 1 <-- 0
-//            }
-//            else {
-//                if (BNDX()==1) {
-//                    X_Data.mirror_bound_Xright(Y);        // Update node "N-1" in the x direction
-//                }
-//                else {
-//                    cout<<"Invalid Boundary." << endl;
-//                }
-//            }
-//            X_Data.Send_left_X(Y,LNx);                    //           0 <-- 1 (Send)
-//        }
-    } else { X_Data.sameNode_bound_X(Y); }
-
-}
-//--------------------------------------------------------------
-void Parallel_Environment_1D::particle_Neighbor_Communications(State1D& Y) {
-//--------------------------------------------------------------
-//  Information exchange between neighbors 
-//--------------------------------------------------------------
-
-    int moduloX(RANK() % 2);
-    int RNx((RANK() + 1) % MPI_Processes()),         // This is the right neighbor
-            LNx((RANK() - 1 + MPI_Processes()) % MPI_Processes()); // This is the left  neighbor
-
-    if (MPI_Processes() > 1) {
-        //even nodes
-//        if (moduloX==0){
-        // std::cout << "\n before boundary on " << Input::List().xminLocalnobnd[0] << "? " << Y.particles().x(2) << "\n\n";  
-        if (BNDX() == 0) {
-            if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
-                X_Data.Send_particles_right_X(Y, RNx);                  //   (Send) 0 --> 1
-                X_Data.Recv_particles_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_particles_left_X(Y, LNx);               //          1 <-- 0 (Send)
-                X_Data.Recv_particles_from_right_X(Y, RNx);               // (Receive) 0 <-- 1
-            } else if (RANK() == 0) {                         /// Update node "0" in the x direction
-                X_Data.Recv_particles_from_left_X(Y, MPI_Processes() - 1);          //          1 --> 0 (Receive)
-                X_Data.Send_particles_left_X(Y, MPI_Processes() - 1);               //          1 <-- 0 (Send)
-                X_Data.Send_particles_right_X(Y, RNx);                ///   (Send) 0 --> 1
-                X_Data.Recv_particles_from_right_X(Y, RNx);           /// (Receive) 0 <-- 1
-            } else if (RANK() == MPI_Processes() - 1) {               ///        // Update node "MPI_Processes()" in the x direction
-                X_Data.Send_particles_right_X(Y, 0);                  //   (Send) 0 --> 1
-                X_Data.Recv_particles_from_right_X(Y, 0);           /// (Receive) 0 <-- 1
-                X_Data.Recv_particles_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_particles_left_X(Y, LNx);               //          1 <-- 0 (Send)
-            }
-
-            Y.particles().par_goingright_array() = 0.0;
-
-        } 
         else {
             cout << "Invalid Boundary." << endl;
         }

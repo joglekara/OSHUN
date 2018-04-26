@@ -504,14 +504,14 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 
 
         // Particle tracker
-        void particles_x(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
-        void particles_px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
-        void particles_py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
-        void particles_pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
+        // void particles_x(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
+        // void particles_px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
+        // void particles_py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
+        // void particles_pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
 
         // f1 moments
         void Jx(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,

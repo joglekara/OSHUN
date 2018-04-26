@@ -85,12 +85,6 @@
             void Send_left_X(State1D& Y, int dest);
             void Recv_from_right_X(State1D& Y, int origin); 
 
-            void Send_particles_right_X(State1D& Y, int dest);
-            void Recv_particles_from_left_X(State1D& Y,int origin);
-            void Send_particles_left_X(State1D& Y, int dest);
-            void Recv_particles_from_right_X(State1D& Y, int origin); 
-
-
 //          Boundaries 
             void mirror_bound_Xleft(State1D& Y);
             void mirror_bound_Xright(State1D& Y);
@@ -142,7 +136,6 @@
 //          Information exchange
             void Neighbor_ImplicitE_Communications(State1D& Y);
             void Neighbor_Communications(State1D& Y);
-            void particle_Neighbor_Communications(State1D& Y);
 
         private:
 

@@ -113,10 +113,10 @@ Input::Input_List::Input_List():
     pth_ref(0.025),
 
     // Particles
-    particlepusher(0),
-    numparticles(0),
-    particlecharge(-1.0),
-    particlemass(1.0),
+    // particlepusher(0),
+    // numparticles(0),
+    // particlecharge(-1.0),
+    // particlemass(1.0),
 
 
     hydro_dens_profile_str("cst{0.0}"),
@@ -455,87 +455,87 @@ Input::Input_List::Input_List():
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
 
 
-            if (deckstring == "track_particles") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> deckstringbool;
-                particlepusher = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
-            }
-            if (deckstring == "number_of_particles") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> numparticles;
-            }
-            if (deckstring == "particles_position") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_xpos.push_back(deckreal);
-                }
-            }
-            if (deckstring == "particles_px") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_px.push_back(deckreal);
-                }
-            }
-            if (deckstring == "particles_py") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_py.push_back(deckreal);
-                }
-            }
-            if (deckstring == "particles_pz") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_pz.push_back(deckreal);
-                }
-            } 
-            if (deckstring == "particle_charge") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> particlecharge;
-            }
-            if (deckstring == "particle_mass") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> particlemass;
-            }
+            // if (deckstring == "track_particles") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> deckstringbool;
+            //     particlepusher = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            // }
+            // if (deckstring == "number_of_particles") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> numparticles;
+            // }
+            // if (deckstring == "particles_position") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_xpos.push_back(deckreal);
+            //     }
+            // }
+            // if (deckstring == "particles_px") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_px.push_back(deckreal);
+            //     }
+            // }
+            // if (deckstring == "particles_py") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_py.push_back(deckreal);
+            //     }
+            // }
+            // if (deckstring == "particles_pz") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_pz.push_back(deckreal);
+            //     }
+            // } 
+            // if (deckstring == "particle_charge") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> particlecharge;
+            // }
+            // if (deckstring == "particle_mass") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> particlemass;
+            // }
 
 
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////

@@ -54,7 +54,6 @@
 #include "functors.h"
 #include "parallel.h"
 #include "implicitE.h"
-#include "particletracker.h"
 #include "export.h"
 #include "stepper.h"
 #include "clock.h"
@@ -95,7 +94,7 @@
 
         std::cout << "\n\n";
         std::cout << "--------------- OSHUN Beta - 1/2D+3P --------------- \n";
-        std::cout << "------------ git commit hash #  ------------- \n";
+        std::cout << "------------ git commit hash # 158224c158224c ------------- \n";
         std::cout << "    Particle-in-Cell and Kinetic Simulation Center   \n";
         std::cout << "------------------- UCLA - 2017 -------------------- \n";
         
@@ -219,8 +218,8 @@ int main(int argc, char** argv) {
         State1D Y( grid.axis.Nx(0), Input::List().ls, Input::List().ms, 
             Input::List().dp, 
             Input::List().qs, Input::List().mass, 
-            Input::List().hydromass, Input::List().hydrocharge, 
-            Input::List().numparticles, Input::List().particlemass, Input::List().particlecharge);
+            Input::List().hydromass, Input::List().hydrocharge);
+            // Input::List().numparticles, Input::List().particlemass, Input::List().particlecharge);
         if (!PE.RANK()) std::cout << "     done \n";
     
         if (!PE.RANK()) std::cout << "Initializing plasma profile ...";
@@ -234,11 +233,6 @@ int main(int argc, char** argv) {
         
         if (!PE.RANK()) std::cout << "Initializing hydro module ...";
         Hydro_Functor         HydroFunc(grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0));
-        if (!PE.RANK()) std::cout << "     done \n";
-        
-        if (!PE.RANK()) std::cout << "Initializing particle tracker ...";
-        Particle_Pusher       Particle_Push(Input::List().par_xpos, Input::List().par_px, Input::List().par_py,  Input::List().par_pz,
-            grid.axis.x(0), Y.particles());
         if (!PE.RANK()) std::cout << "     done \n";
     
         if (Input::List().isthisarestart){
@@ -405,69 +399,11 @@ int main(int argc, char** argv) {
             // for(theclock; theclock.time() < Input::List().t_stop; ++theclock)
             for(theclock; theclock.time() < Input::List().t_stop; theclock.advance(Y, grid, output, Re, PE))                
             {
-                // --------------------------------------------------------------------------------------------------------------------------------
-                // --------------------------------------------------------------------------------------------------------------------------------
-                /// Output
-                // --------------------------------------------------------------------------------------------------------------------------------
-                // if (theclock.time() > next_dist_out)
-                // {
-                //     if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
-                //     output.distdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-                //     next_dist_out += dt_dist_out;
-                // }
-                
-                // if (theclock.time() > next_big_dist_out)
-                // {
-                //     if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
-                //     output.bigdistdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-                //     next_big_dist_out += dt_big_dist_out;
-                // }
 
-                // if (theclock.time() > next_restart)
-                // {
-                //     if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";
-                //     Re.Write(PE.RANK(), t_out, Y, theclock.time());
-                //     next_restart += dt_restart;
-                // }
-
-                // if (theclock.time() > next_out)
-                // {
-                //     if (!(PE.RANK()))
-                //     {
-                //         cout << "\n dt = " << theclock.dt();
-                //         cout << " , Output #" << t_out;                        
-                //     }
-
-                //     output(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-                //     Y.checknan();
-
-                //     next_out += dt_out;
-                //     ++t_out;
-                // }
 
                 if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
                 
                 theclock.do_step(Y_star, Y, Y_old, rkF, collide, PE);
-                
-                if (Input::List().particlepusher)
-                {
-                    Particle_Push.push(Y,theclock.dt());
-                    PE.particle_Neighbor_Communications(Y);
-                }
-
-                // Y.checknan();
-
-                // Y = RK(Y,0.5*theclock.dt(),&rkF);
-                // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
-
-                // if (Input::List().collisions){
-                //     collide.advance(Y,theclock.time(),theclock.dt());                                           ///  Fokker-Planck   //
-                //     PE.Neighbor_Communications(Y); 
-                // }
-
-                // RK(Y,0.5*theclock.dt(),&rkF);
-                // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
-                
 
                 // if (Input::List().hydromotion)
                 //     Y = RK(Y, theclock.dt(), &HydroFunc);                                                   /// Hydro Motion
