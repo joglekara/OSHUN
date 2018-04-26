@@ -96,33 +96,39 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
     Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
     Parallel_Environment_1D& PE) 
 {
-    // std::cout << "\n time = "  << current_time;
+    end_of_loop_time_updates();
 
-    Ex_history.push_back(Y_current.FLD(0).array());
+    if (Input::List().o_Exhist) Ex_history.push_back(Y_current.FLD(0).array());
+    if (Input::List().o_Eyhist) Ey_history.push_back(Y_current.FLD(1).array());
+    if (Input::List().o_Ezhist) Ez_history.push_back(Y_current.FLD(2).array());
+    if (Input::List().o_Bxhist) Bx_history.push_back(Y_current.FLD(3).array());
+    if (Input::List().o_Byhist) By_history.push_back(Y_current.FLD(4).array());
+    if (Input::List().o_Bzhist) Bz_history.push_back(Y_current.FLD(5).array());
+
     time_history.push_back(current_time);
 
-    if (current_time > next_dist_out)
+    if (current_time >= next_dist_out)
     {    
         if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
         output.distdump(Y_current, grid, t_out, current_time, _dt, PE);
         next_dist_out += dt_dist_out;
     }
     
-    if (current_time > next_big_dist_out)
+    if (current_time >= next_big_dist_out)
     {
         if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
         output.bigdistdump(Y_current, grid, t_out, current_time, _dt, PE);
         next_big_dist_out += dt_big_dist_out;
     }
     
-    if (current_time > next_restart)
+    if (current_time >= next_restart)
     {
         if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";        
         Re.Write(PE.RANK(), t_out, Y_current, current_time);
         next_restart += dt_restart;
     }
 
-    if (current_time > next_out)
+    if (current_time >= next_out)
     {
         if (!(PE.RANK()))
         {
@@ -130,19 +136,47 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
             cout << " , Output #" << t_out;                        
         }
         
-        output.histdump(Ex_history, time_history, grid,  t_out, current_time, _dt, PE, "Exhist");
+        if (Input::List().o_Exhist) 
+        {
+            output.histdump(Ex_history, time_history, grid,  t_out, current_time, _dt, PE, "Exhist");
+            Ex_history.clear();
+        }
+        if (Input::List().o_Eyhist) 
+        {
+            output.histdump(Ey_history, time_history, grid,  t_out, current_time, _dt, PE, "Eyhist");
+            Ey_history.clear();
+        }
+        if (Input::List().o_Ezhist) 
+        {
+            output.histdump(Ez_history, time_history, grid,  t_out, current_time, _dt, PE, "Ezhist");
+            Ez_history.clear();
+        }
+        if (Input::List().o_Bxhist) 
+        {
+            output.histdump(Bx_history, time_history, grid,  t_out, current_time, _dt, PE, "Bxhist");
+            Bx_history.clear();
+        }
+        if (Input::List().o_Byhist) 
+        {
+            output.histdump(By_history, time_history, grid,  t_out, current_time, _dt, PE, "Byhist");
+            By_history.clear();
+        }
+        if (Input::List().o_Bzhist) 
+        {
+            output.histdump(Bz_history, time_history, grid,  t_out, current_time, _dt, PE, "Bzhist");
+            Bz_history.clear();
+        }
+        
+
         output(Y_current, grid, t_out, current_time, _dt, PE);
         Y_current.checknan();
 
         next_out += dt_out;
         ++t_out;
 
-        Ex_history.clear();
         time_history.clear();
 
     }
-
-    end_of_loop_time_updates();
     
     return *this;
 }

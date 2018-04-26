@@ -73,7 +73,8 @@ private:
     double next_restart;
     double start_time;
 
-    vector<valarray<complex<double> > > Ex_history;
+    vector<valarray<complex<double> > > Ex_history, Ey_history, Ez_history;
+    vector<valarray<complex<double> > > Bx_history, By_history, Bz_history;
     vector<double>                      time_history;
 
     double* acceptabilitylist;

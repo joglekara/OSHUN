@@ -73,7 +73,9 @@ void Export_Files::Folders(){
     // }
 
     if ( Input::List().o_Ex ||  Input::List().o_Ey || Input::List().o_Ez ||
-     Input::List().o_Bx ||  Input::List().o_By || Input::List().o_Bz || Input::List().o_Exhist )  {
+     Input::List().o_Bx ||  Input::List().o_By || Input::List().o_Bz ||
+      Input::List().o_Exhist ||  Input::List().o_Eyhist ||  Input::List().o_Ezhist ||
+      Input::List().o_Bxhist ||  Input::List().o_Byhist ||  Input::List().o_Bzhist )  {
         if (Makefolder("output/fields") != 0)
             cout<<"Warning: Folder 'output/fields' exists" << endl;
 
@@ -101,10 +103,29 @@ void Export_Files::Folders(){
             if (Makefolder("output/fields/Bz") != 0)
                 cout<<"Warning: Folder 'output/fields/Bz' exists" << endl;
         }
-
         if (Input::List().o_Exhist) {
             if (Makefolder("output/fields/Exhist") != 0)
                 cout<<"Warning: Folder 'output/fields/Exhist' exists" << endl;
+        }
+        if (Input::List().o_Eyhist) {
+            if (Makefolder("output/fields/Eyhist") != 0)
+                cout<<"Warning: Folder 'output/fields/Eyhist' exists" << endl;
+        }
+        if (Input::List().o_Ezhist) {
+            if (Makefolder("output/fields/Ezhist") != 0)
+                cout<<"Warning: Folder 'output/fields/Ezhist' exists" << endl;
+        }
+        if (Input::List().o_Bxhist) {
+            if (Makefolder("output/fields/Bxhist") != 0)
+                cout<<"Warning: Folder 'output/fields/Bxhist' exists" << endl;
+        }
+        if (Input::List().o_Byhist) {
+            if (Makefolder("output/fields/Byhist") != 0)
+                cout<<"Warning: Folder 'output/fields/Byhist' exists" << endl;
+        }
+        if (Input::List().o_Bzhist) {
+            if (Makefolder("output/fields/Bzhist") != 0)
+                cout<<"Warning: Folder 'output/fields/Bzhist' exists" << endl;
         }
     }
 
@@ -367,6 +388,11 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
     fld.push_back( "Bz_si"  );
 
     fld.push_back( "Exhist"     );
+    fld.push_back( "Eyhist"     );
+    fld.push_back( "Ezhist"     );
+    fld.push_back( "Bxhist"     );
+    fld.push_back( "Byhist"     );
+    fld.push_back( "Bzhist"     );
 
 //  Moments
     mom.push_back( "P"      );
@@ -6748,8 +6774,6 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
             offset += outNxLocal;
         }
     }
-
-    // std::cout << " \n tag = " << tag << " \n ";
 
     if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
 }

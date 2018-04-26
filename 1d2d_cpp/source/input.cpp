@@ -68,7 +68,7 @@ Input::Input_List::Input_List():
     n_restarts(100),
 
 //          Output
-    o_Exhist(0),
+    o_Exhist(0), o_Eyhist(0), o_Ezhist(0), o_Bxhist(0), o_Byhist(0), o_Bzhist(0), 
     o_Ex(0), o_Ey(0), o_Ez(0), o_Bx(0), o_By(0), o_Bz(0), o_x1x2(0), o_pth(0), 
     o_p1x1(0), o_p2x1(0), o_p3x1(0), o_p1p2x1(0), o_p1p3x1(0), o_p2p3x1(0), o_p1p2p3x1(0), 
     o_allfs(0), o_allfs_f2(0), o_allfs_flogf(0),
@@ -899,6 +899,52 @@ Input::Input_List::Input_List():
                 deckfile >> deckstringbool;
                 o_Exhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
+            if (deckstring == "o_EyHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Eyhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_EzHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Ezhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_BxHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Bxhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }if (deckstring == "o_ByHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Byhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_BzHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Bzhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+
+
             if (deckstring == "o_Ex") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
@@ -2069,6 +2115,11 @@ Input::Input_List::Input_List():
         oTags.push_back("pxpy");
 
         oTags.push_back("Exhist");
+        oTags.push_back("Eyhist");
+        oTags.push_back("Ezhist");
+        oTags.push_back("Bxhist");
+        oTags.push_back("Byhist");
+        oTags.push_back("Bzhist");
 
         oTags.push_back("Ex");
         oTags.push_back("Ey");
