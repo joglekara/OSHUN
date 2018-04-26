@@ -1085,8 +1085,8 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
     valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
 
 
-    if (df.m0() > 0)
-    {
+    // if (df.m0() > 0)
+    // {
         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
         {
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
@@ -1099,14 +1099,18 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
                 }
             }
         }
-    }
-    else
-    {
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            pout1D_p1[ipx] += dist(s,x0)(ipx,floor(grid.axis.Npy(s)/2),floor(grid.axis.Npz(s)/2));
-        }
-    }
+    // }
+    // else
+    // {
+    //     for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    //     {
+    //         for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+    //         {
+    //             pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,floor(grid.axis.Npz(s)/2));
+    //         }
+    //             // pout1D_p1[ipx] += dist(s,x0)(ipx,floor(grid.axis.Npy(s)/2),floor(grid.axis.Npz(s)/2));
+    //     }
+    // }
 
     return pout1D_p1;
 }
@@ -1355,7 +1359,8 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
     size_t Nbc(Input::List().BoundaryCells);
     dist(s,x0-Nbc) = 0.;
 
-    #pragma omp parallel for num_threads(Input::List().ompthreads) 
+
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
     for(size_t il = 0; il < grid.l0[s]+1; ++il)
     {
         size_t im(0);
@@ -1389,54 +1394,57 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
         }
     }
     
-    #pragma omp parallel for schedule(dynamic) num_threads(Input::List().ompthreads)
-    for (size_t il=1; il < grid.l0[s]+1 ; ++il)
-    {
-        for (size_t im=1; im < ((grid.m0[s] < il)? grid.m0[s]:il)+1; ++im)
+    if (grid.m0[s] > 0)
+    {   
+        #pragma omp parallel for schedule(dynamic) num_threads(Input::List().ompthreads)
+        for (size_t il=1; il < grid.l0[s]+1 ; ++il)
         {
-            // std::cout << "(l,m) = " << il << "," << im << "\n";
-            vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-            vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
-                 
-            tk::spline splSH_r, splSH_i;
-            splSH_r.set_points(pvec[s],shdata_real);
-            splSH_i.set_points(pvec[s],shdata_imag);
-
-            size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-
-            double YSH_re, YSH_im;
-
-            double mphi,calcos,calsin;
-
-            // size_t index(0);
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+            for (size_t im=1; im < ((grid.m0[s] < il)? grid.m0[s]:il)+1; ++im)
             {
-                for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+                // std::cout << "(l,m) = " << il << "," << im << "\n";
+                vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
+                vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
+                     
+                tk::spline splSH_r, splSH_i;
+                splSH_r.set_points(pvec[s],shdata_real);
+                splSH_i.set_points(pvec[s],shdata_imag);
+
+                size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
+
+                double YSH_re, YSH_im;
+
+                double mphi,calcos,calsin;
+
+                // size_t index(0);
+                for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
                 {
-                    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+                    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
                     {
-                        mphi = im*phi[s](ipy,ipz);
-                        calcos = cos(mphi);
-                        calsin = sin(mphi);
+                        for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+                        {
+                            mphi = im*phi[s](ipy,ipz);
+                            calcos = cos(mphi);
+                            calsin = sin(mphi);
 
 
-                        if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                        {                       
-                            YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                            YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
+                            if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
+                            {                       
+                                YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
+                                YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
 
-                            YSH_re *= calcos; 
-                            YSH_im *= calsin; 
-                            YSH_re -= YSH_im;
+                                YSH_re *= calcos; 
+                                YSH_im *= calsin; 
+                                YSH_re -= YSH_im;
 
-                            YSH_re = static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);
+                                YSH_re = static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);
 
-                            // pout3D[s](ipx,ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
-                            #pragma omp atomic
-                                dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
+                                // pout3D[s](ipx,ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
+                                #pragma omp atomic
+                                    dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
+                            }
+                            // else pout3D[s](ipx,ipy,ipz) += 0.;
+                            // ++index;
                         }
-                        // else pout3D[s](ipx,ipy,ipz) += 0.;
-                        // ++index;
                     }
                 }
             }
@@ -2412,16 +2420,19 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
 
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
-    for(int s(0); s < Y.Species(); ++s) {
+    for(int s(0); s < Y.Species(); ++s) 
+    {
         size_t Npx(grid.axis.Npx(s));
         int msg_sz(outNxLocal*Npx);
         
         Array2D<double> p1x1Global(Npx,outNxGlobal); 
         vector<double> p1axis(valtovec(grid.axis.px(s)));
 
-        double pxbuf[Npx*outNxLocal];
-
-        for (size_t i(0); i < outNxLocal; ++i) 
+        valarray<double> pxbuf(0.,Npx*outNxLocal);
+        valarray<double> pxGbuf(0.,Npx*outNxGlobal);
+        
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for (size_t i = 0; i < outNxLocal; ++i) 
         {
             
             valarray<double> data1D = p_x.p1( Y.DF(s), i, s);
@@ -2431,37 +2442,56 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
             }
         }
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK()!=0) {
-                MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else {
-                // Fill data for rank = 0
-                for(size_t i(0); i < outNxLocal; i++) {
-                    for (size_t j(0); j < Npx; ++j) {
-                        p1x1Global(j,i) = pxbuf[j+i*Npx];
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                    MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                    for(size_t i(0); i < outNxLocal; i++) {
-                        for (size_t j(0); j < Npx; ++j) {
-                            p1x1Global(j,i + outNxLocal*rr) = pxbuf[j+i*Npx];
-                        }
+        MPI_Gather( &pxbuf[0], msg_sz, MPI_DOUBLE, &pxGbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+        if (PE.RANK() == 0) 
+        {
+            #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+            for (int rr = 0; rr < PE.MPI_Processes(); ++rr)
+            {
+                for(size_t i = 0; i < outNxLocal; i++) 
+                {
+                    for (size_t j(0); j < Npx; ++j) 
+                    {
+                        p1x1Global(j,i + outNxLocal*rr) = pxGbuf[j+i*Npx+outNxLocal*rr];
                     }
                 }
             }
-        }
-        else {
-            for(size_t i(0); i < outNxGlobal; i++) {
-                for (size_t j(0); j < Npx; ++j) {
-                    p1x1Global(j,i) = pxbuf[j+i*Npx];
-                }
-            }
+
+            expo.Export_h5("px", p1axis, xaxis, p1x1Global, tout, time, dt, s);
         }
 
-        if (PE.RANK() == 0) expo.Export_h5("px", p1axis, xaxis, p1x1Global, tout, time, dt, s);
+        // if (PE.MPI_Processes() > 1) {
+        //     if (PE.RANK()!=0) {
+        //         MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+        //     }
+        //     else {
+        //         // Fill data for rank = 0
+        //         for(size_t i(0); i < outNxLocal; i++) {
+        //             for (size_t j(0); j < Npx; ++j) {
+        //                 p1x1Global(j,i) = pxbuf[j+i*Npx];
+        //             }
+        //         }
+        //         // Fill data for rank > 0
+        //         for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+        //             MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+        //             for(size_t i(0); i < outNxLocal; i++) {
+        //                 for (size_t j(0); j < Npx; ++j) {
+        //                     p1x1Global(j,i + outNxLocal*rr) = pxbuf[j+i*Npx];
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
+        // else {
+        //     for(size_t i(0); i < outNxGlobal; i++) {
+        //         for (size_t j(0); j < Npx; ++j) {
+        //             p1x1Global(j,i) = pxbuf[j+i*Npx];
+        //         }
+        //     }
+        // }
+
+        
 
     }
 
@@ -3734,28 +3764,30 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
 
     MPI_Gather( &allfsbuf[0], msg_sz, MPI_DOUBLE, &allfs_Globalbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-
-    size_t offset(0);
-    size_t offset_x_local(0);
-    size_t gx(0);
-
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for(size_t iproc = 0; iproc < PE.MPI_Processes(); ++iproc)
+    if (PE.RANK() == 0) 
     {
-        for(size_t ix = 0; ix < outNxLocal; ++ix) 
+        size_t offset(0);
+        size_t offset_x_local(0);
+        size_t gx(0);
+
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t iproc = 0; iproc < PE.MPI_Processes(); ++iproc)
         {
-            gx = iproc*outNxLocal + ix;
-            for(size_t il = 0; il < Nl+1; ++il)    
+            for(size_t ix = 0; ix < outNxLocal; ++ix) 
             {
-                for(size_t ip = 0; ip < Np; ++ip)       
-                {   
-                    allfs_Global(gx,il,ip) = allfs_Globalbuf[iproc*outNxLocal*(Nl+1)*Np + ix*(Nl+1) + il*Np+ip];
+                gx = iproc*outNxLocal + ix;
+                for(size_t il = 0; il < Nl+1; ++il)    
+                {
+                    for(size_t ip = 0; ip < Np; ++ip)       
+                    {   
+                        allfs_Global(gx,il,ip) = allfs_Globalbuf[iproc*outNxLocal*(Nl+1)*Np + ix*(Nl+1) + il*Np+ip];
+                    }
                 }
             }
         }
-    }
 
-    if (PE.RANK() == 0) expo.Export_h5("allfs", xaxis, ell_axis, paxis, allfs_Global, tout, time, dt);
+        expo.Export_h5("allfs", xaxis, ell_axis, paxis, allfs_Global, tout, time, dt);
+    }
 
 }
 //--------------------------------------------------------------     
@@ -3797,17 +3829,20 @@ void Output_Data::Output_Preprocessor::allfs_f2(const State1D& Y, const Grid_Inf
     }
 
     MPI_Gather( allfsbuf, msg_sz, MPI_DOUBLE, &allfs_Globalbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
-
-    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
-    for(size_t ix = 0; ix < outNxGlobal; ++ix) 
+    
+    if (PE.RANK() == 0) 
     {
-        for(size_t il = 0; il < Nl+1; ++il)    
+        #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+        for(size_t ix = 0; ix < outNxGlobal; ++ix) 
         {
-            allfs_Global(ix,il) = allfs_Globalbuf[ix*(Nl+1)+il];
+            for(size_t il = 0; il < Nl+1; ++il)    
+            {
+                allfs_Global(ix,il) = allfs_Globalbuf[ix*(Nl+1)+il];
+            }
         }
-    }
 
-    if (PE.RANK() == 0) expo.Export_h5("allfs_f2", xaxis, ell_axis, allfs_Global, tout, time, dt);
+        expo.Export_h5("allfs_f2", xaxis, ell_axis, allfs_Global, tout, time, dt);
+    }
 
 }
 //--------------------------------------------------------------     
@@ -6760,22 +6795,25 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
 
     MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    size_t offset(0);
-    for (int rr(0); rr < PE.MPI_Processes(); ++rr)
-    {            
-        offset = rr*msg_sz;
+    if (PE.RANK() == 0) 
+    {
+        size_t offset(0);
+        for (int rr(0); rr < PE.MPI_Processes(); ++rr)
+        {            
+            offset = rr*msg_sz;
 
-        for(size_t it(0); it < number_of_time_steps; ++it) 
-        {
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
+            for(size_t it(0); it < number_of_time_steps; ++it) 
             {
-                ExtGlobal(it,ix+rr*outNxLocal) = ExtGlobalBuf[offset+ix];
+                for(size_t ix(0); ix < outNxLocal; ++ix) 
+                {
+                    ExtGlobal(it,ix+rr*outNxLocal) = ExtGlobalBuf[offset+ix];
+                }
+                offset += outNxLocal;
             }
-            offset += outNxLocal;
         }
-    }
 
-    if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+        expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+    }
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------

@@ -1,6 +1,6 @@
 /*! \brief Main Loop
  * \author PICKSC
- * \date   September 1, 2016
+ * \date   2018
  * \file   main.cpp
  *
  * This file includes
@@ -94,7 +94,7 @@
 
         std::cout << "\n\n";
         std::cout << "--------------- OSHUN Beta - 1/2D+3P --------------- \n";
-        std::cout << "------------ git commit hash # 158224c158224c ------------- \n";
+        std::cout << "------------ git commit hash #  ------------- \n";
         std::cout << "    Particle-in-Cell and Kinetic Simulation Center   \n";
         std::cout << "------------------- UCLA - 2017 -------------------- \n";
         
@@ -219,7 +219,7 @@ int main(int argc, char** argv) {
             Input::List().dp, 
             Input::List().qs, Input::List().mass, 
             Input::List().hydromass, Input::List().hydrocharge);
-            // Input::List().numparticles, Input::List().particlemass, Input::List().particlecharge);
+
         if (!PE.RANK()) std::cout << "     done \n";
     
         if (!PE.RANK()) std::cout << "Initializing plasma profile ...";
