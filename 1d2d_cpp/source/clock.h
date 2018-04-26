@@ -21,6 +21,9 @@ public:
     ~Clock();
 
     void end_of_loop_time_updates();
+    // void end_of_loop_output(Output_Data::Output_Preprocessor output);
+    // void end_of_loop_dist_output(Output_Data::Output_Preprocessor output);
+    // void end_of_loop_bigdist_output(Output_Data::Output_Preprocessor output);
 
     void do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
                         VlasovFunctor1D_explicitE& vF, collisions_1D& cF, Parallel_Environment_1D& PE);
@@ -35,6 +38,9 @@ public:
     void update_dt(const State2D& Y_old, const State2D& Ystar, State2D& Y_new);
 
     Clock& operator++();
+    Clock& advance(State1D& Y_current, Grid_Info& grid, 
+    Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
+    Parallel_Environment_1D& PE);
 
     double dt() {return _dt;}
     double nextdt() {return dt_next;}
@@ -59,9 +65,19 @@ private:
     // RKCK45 Solver;
     // RKDP85 Solver;
     RK4C Solver;
-    
+
+    int tout_start;
+    size_t t_out;
+    double dt_out, dt_dist_out, dt_big_dist_out, dt_restart;
+    double next_out, next_dist_out, next_big_dist_out;
+    double next_restart;
+    double start_time;
+
+    vector<valarray<complex<double> > > Ex_history;
+    vector<double>                      time_history;
 
     double* acceptabilitylist;
+
 };
 //--------------------------------------------------------------
 

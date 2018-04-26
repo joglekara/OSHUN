@@ -14,14 +14,18 @@
 #include <complex>
 #include <algorithm>
 #include <cstdlib>
-#include <mpi.h>
 
 #include <math.h>
 #include <map>
+#include <iomanip>
 
 //  My libraries
 #include "lib-array.h"
 #include "lib-algorithms.h"
+
+#include "external/exprtk.hpp"
+#include "external/spline.h"
+#include "external/highfive/H5DataSet.hpp"
 
 //  Declarations
 #include "state.h"
@@ -32,6 +36,7 @@
 #include "setup.h"
 #include "functors.h"
 #include "parallel.h"
+#include "export.h"
 #include "stepper.h"
 #include "clock.h"
 
@@ -41,7 +46,7 @@
 //--------------------------------------------------------------
 Clock::Clock(double starttime, double __dt, double abs_tol, double rel_tol, size_t _maxfails,
                     State1D& Y): 
-    current_time(starttime), dt_next(0.1*__dt), _dt(0.1*__dt),
+    current_time(starttime), dt_next(__dt), _dt(__dt),
     atol(abs_tol), rtol(rel_tol), 
     acceptability(0.), err_val(0.), 
     failed_steps(0), max_failures(_maxfails), _success(0),
@@ -53,7 +58,30 @@ Clock::Clock(double starttime, double __dt, double abs_tol, double rel_tol, size
 
         acceptabilitylist = new double[world_size];
 
+        /// /// /// /// /// /// /// /// /// //
+        // int tout_start;
+        if (Input::List().isthisarestart) 
+        {
+            tout_start = Input::List().restart_time;
+        }
+        else
+        {
+            tout_start = 0;
+        }
+        t_out = tout_start+1;
+        
+        dt_out = Input::List().t_stop / (Input::List().n_outsteps);
+        dt_dist_out = Input::List().t_stop / (Input::List().n_distoutsteps);
+        dt_big_dist_out = Input::List().t_stop / (Input::List().n_bigdistoutsteps);
+        dt_restart = Input::List().t_stop / (Input::List().n_restarts);
+        
+        next_out = t_out*dt_out;
+        next_dist_out = (tout_start*dt_out)+dt_dist_out;
+        next_big_dist_out = (tout_start*dt_out)+dt_big_dist_out;
 
+        next_restart = (tout_start*dt_out)+dt_restart;
+
+        start_time = tout_start*dt_out;
 
     }
 //--------------------------------------------------------------
@@ -62,6 +90,61 @@ Clock:: ~Clock(){
 //  Destructor
 //--------------------------------------------------------------
     delete[] acceptabilitylist;
+}
+//--------------------------------------------------------------
+Clock& Clock::advance(State1D& Y_current, Grid_Info& grid, 
+    Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
+    Parallel_Environment_1D& PE) 
+{
+    // std::cout << "\n time = "  << current_time;
+
+    Ex_history.push_back(Y_current.FLD(0).array());
+    time_history.push_back(current_time);
+
+    if (current_time > next_dist_out)
+    {    
+        if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
+        output.distdump(Y_current, grid, t_out, current_time, _dt, PE);
+        next_dist_out += dt_dist_out;
+    }
+    
+    if (current_time > next_big_dist_out)
+    {
+        if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
+        output.bigdistdump(Y_current, grid, t_out, current_time, _dt, PE);
+        next_big_dist_out += dt_big_dist_out;
+    }
+    
+    if (current_time > next_restart)
+    {
+        if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";        
+        Re.Write(PE.RANK(), t_out, Y_current, current_time);
+        next_restart += dt_restart;
+    }
+
+    if (current_time > next_out)
+    {
+        if (!(PE.RANK()))
+        {
+            cout << "\n dt = " << _dt;
+            cout << " , Output #" << t_out;                        
+        }
+        
+        output.histdump(Ex_history, time_history, grid,  t_out, current_time, _dt, PE, "Exhist");
+        output(Y_current, grid, t_out, current_time, _dt, PE);
+        Y_current.checknan();
+
+        next_out += dt_out;
+        ++t_out;
+
+        Ex_history.clear();
+        time_history.clear();
+
+    }
+
+    end_of_loop_time_updates();
+    
+    return *this;
 }
 //--------------------------------------------------------------
 Clock& Clock::operator++() 

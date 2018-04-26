@@ -156,6 +156,11 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
               const vector< string > oTags,
               string homedir=""); 
 
+            void Append_h5(const std::string tag, std::vector<double> &axis1, 
+                std::vector<double> &data, 
+                const size_t step, const double time, const double dt,
+                const int spec = -1);
+
             void Export_h5(const std::string tag, std::vector<double> &axis1, 
                 std::vector<double> &data, 
                 const size_t step, const double time, const double dt,
@@ -375,6 +380,9 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         void bigdistdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
             const Parallel_Environment_2D& PE);
 
+        void histdump(vector<valarray<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE, std::string tag);
+
     private:
         size_t                          Nbc;
         Export_Files::Xport             expo;
@@ -440,6 +448,8 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         void make_fp1p2p3(const State1D& Y, const Grid_Info& grid);
         void pxpypz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
          const Parallel_Environment_1D& PE);
+        void allfs(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE);
         void allfs_f2(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
             const Parallel_Environment_1D& PE);
         void allfs_flogf(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,

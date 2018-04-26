@@ -402,47 +402,48 @@ int main(int argc, char** argv) {
                 Input::List().abs_tol,Input::List().rel_tol,Input::List().max_fails,
                 Y);
             
-            for(theclock; theclock.time() < Input::List().t_stop; ++theclock)
+            // for(theclock; theclock.time() < Input::List().t_stop; ++theclock)
+            for(theclock; theclock.time() < Input::List().t_stop; theclock.advance(Y, grid, output, Re, PE))                
             {
                 // --------------------------------------------------------------------------------------------------------------------------------
                 // --------------------------------------------------------------------------------------------------------------------------------
                 /// Output
                 // --------------------------------------------------------------------------------------------------------------------------------
-                if (theclock.time() > next_dist_out)
-                {
-                    if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
-                    output.distdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-                    next_dist_out += dt_dist_out;
-                }
+                // if (theclock.time() > next_dist_out)
+                // {
+                //     if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
+                //     output.distdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
+                //     next_dist_out += dt_dist_out;
+                // }
                 
-                if (theclock.time() > next_big_dist_out)
-                {
-                    if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
-                    output.bigdistdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-                    next_big_dist_out += dt_big_dist_out;
-                }
+                // if (theclock.time() > next_big_dist_out)
+                // {
+                //     if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
+                //     output.bigdistdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
+                //     next_big_dist_out += dt_big_dist_out;
+                // }
 
-                if (theclock.time() > next_restart)
-                {
-                    if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";
-                    Re.Write(PE.RANK(), t_out, Y, theclock.time());
-                    next_restart += dt_restart;
-                }
+                // if (theclock.time() > next_restart)
+                // {
+                //     if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";
+                //     Re.Write(PE.RANK(), t_out, Y, theclock.time());
+                //     next_restart += dt_restart;
+                // }
 
-                if (theclock.time() > next_out)
-                {
-                    if (!(PE.RANK()))
-                    {
-                        cout << "\n dt = " << theclock.dt();
-                        cout << " , Output #" << t_out;                        
-                    }
+                // if (theclock.time() > next_out)
+                // {
+                //     if (!(PE.RANK()))
+                //     {
+                //         cout << "\n dt = " << theclock.dt();
+                //         cout << " , Output #" << t_out;                        
+                //     }
 
-                    output(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-                    Y.checknan();
+                //     output(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
+                //     Y.checknan();
 
-                    next_out += dt_out;
-                    ++t_out;
-                }
+                //     next_out += dt_out;
+                //     ++t_out;
+                // }
 
                 if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
                 

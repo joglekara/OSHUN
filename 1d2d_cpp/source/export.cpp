@@ -68,38 +68,43 @@ void Export_Files::Folders(){
 
     if (Makefolder("output") != 0) cout << "Warning: Folder 'output' exists" << endl;
 
-    if ( Input::List().o_EHist ) {
-        if ( Makefolder("output/NUM") != 0) cout << "Warning: Folder 'output/NUM' exists" << endl;
-    }
+    // if ( Input::List().o_EHist ) {
+    //     if ( Makefolder("output/fields") != 0) cout << "Warning: Folder 'output/NUM' exists" << endl;
+    // }
 
     if ( Input::List().o_Ex ||  Input::List().o_Ey || Input::List().o_Ez ||
-     Input::List().o_Bx ||  Input::List().o_By || Input::List().o_Bz )  {
+     Input::List().o_Bx ||  Input::List().o_By || Input::List().o_Bz || Input::List().o_Exhist )  {
         if (Makefolder("output/fields") != 0)
             cout<<"Warning: Folder 'output/fields' exists" << endl;
 
         if (Input::List().o_Ex) {
             if (Makefolder("output/fields/Ex") != 0)
-                cout<<"Warning: Folder 'output/fields/EX' exists" << endl;
+                cout<<"Warning: Folder 'output/fields/Ex' exists" << endl;
         }
         if (Input::List().o_Ey) {
             if (Makefolder("output/fields/Ey") != 0)
-                cout<<"Warning: Folder 'output/fields/EY' exists" << endl;
+                cout<<"Warning: Folder 'output/fields/Ey' exists" << endl;
         }
         if (Input::List().o_Ez) {
             if (Makefolder("output/fields/Ez") != 0)
-                cout<<"Warning: Folder 'output/fields/EZ' exists" << endl;
+                cout<<"Warning: Folder 'output/fields/Ez' exists" << endl;
         }
         if (Input::List().o_Bx) {
             if (Makefolder("output/fields/Bx") != 0)
-                cout<<"Warning: Folder 'output/fields/BX' exists" << endl;
+                cout<<"Warning: Folder 'output/fields/Bx' exists" << endl;
         }
         if (Input::List().o_By) {
             if (Makefolder("output/fields/By") != 0)
-                cout<<"Warning: Folder 'output/fields/BY' exists" << endl;
+                cout<<"Warning: Folder 'output/fields/By' exists" << endl;
         }
         if (Input::List().o_Bz) {
             if (Makefolder("output/fields/Bz") != 0)
-                cout<<"Warning: Folder 'output/fields/BZ' exists" << endl;
+                cout<<"Warning: Folder 'output/fields/Bz' exists" << endl;
+        }
+
+        if (Input::List().o_Exhist) {
+            if (Makefolder("output/fields/Exhist") != 0)
+                cout<<"Warning: Folder 'output/fields/Exhist' exists" << endl;
         }
     }
 
@@ -308,7 +313,7 @@ void Export_Files::Folders(){
       Input::List().o_p1p3x1 || Input::List().o_p1p2x1 || Input::List().o_p2p3x1 ||
       Input::List().o_f0x1 ||  Input::List().o_f10x1 ||  Input::List().o_f11x1 
       ||  Input::List().o_f20x1 || Input::List().o_fl0x1 
-      || Input::List().o_allfs_f2 || Input::List().o_allfs_flogf) {
+      || Input::List().o_allfs || Input::List().o_allfs_f2 || Input::List().o_allfs_flogf) {
         if (Makefolder("output/distributions") != 0)
             cout<<"Warning: Folder 'output/distributions' exists" << endl;
 
@@ -360,6 +365,8 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
     fld.push_back( "Bz"     );
     fld.push_back( "Bz_cgs" );
     fld.push_back( "Bz_si"  );
+
+    fld.push_back( "Exhist"     );
 
 //  Moments
     mom.push_back( "P"      );
@@ -416,6 +423,7 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
         fvsx.push_back( "f11");
         fvsx.push_back( "f20");
         fvsx.push_back( "fl0");
+        fvsx.push_back( "allfs");
         fvsx.push_back( "allfs_f2");
         fvsx.push_back( "allfs_flogf");
     }
@@ -1547,38 +1555,6 @@ void Output_Data::Output_Preprocessor::distdump(const State1D& Y, const Grid_Inf
     if (Input::List().o_fl0x1){
         fl0( Y, grid, tout, time, dt, PE );
     }
-
-}
-
-void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-   const Parallel_Environment_1D& PE) 
-{
-
-    make_fp1p2p3(Y, grid);
-
-    
-    if (Input::List().o_p1x1){
-        px( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p2x1){
-        py( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p1p2x1)
-    {
-        pxpy( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p1p3x1)
-    {
-        pxpz( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p2p3x1)
-    {
-        pypz( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p1p2p3x1)
-    {
-        // pxpypz( Y, grid, tout, time, dt, PE );
-    }
     if (Input::List().o_allfs_f2)
     {
         allfs_f2( Y, grid, tout, time, dt, PE );
@@ -1587,11 +1563,52 @@ void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_
     {
         allfs_flogf( Y, grid, tout, time, dt, PE );
     }
-
+    if (Input::List().o_p1x1 || Input::List().o_p2x1 || Input::List().o_p3x1)
+    {
+        make_fp1p2p3(Y, grid);
+        if (Input::List().o_p1x1){
+            px( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_p2x1){
+            py( Y, grid, tout, time, dt, PE );
+        }
+    }
 
 }
-//--------------------------------------------------------------
-//--------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+   const Parallel_Environment_1D& PE) 
+{
+
+    if (Input::List().o_allfs)
+    {
+        allfs( Y, grid, tout, time, dt, PE );
+    }
+    else
+    {
+        make_fp1p2p3(Y, grid);
+
+        if (Input::List().o_p1p2x1)
+        {
+            pxpy( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_p1p3x1)
+        {
+            pxpz( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_p2p3x1)
+        {
+            pypz( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_p1p2p3x1)
+        {
+            // pxpypz( Y, grid, tout, time, dt, PE );
+        }
+    }
+}
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 void Output_Data::Output_Preprocessor::operator()(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
  const Parallel_Environment_2D& PE) {
@@ -3649,6 +3666,75 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
     }
 
 }
+//--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+ const Parallel_Environment_1D& PE) {
+
+    size_t Nbc = Input::List().BoundaryCells;
+    MPI_Status status;
+    
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+    size_t outNxGlobal(grid.axis.Nxg(0));
+    size_t Nl(grid.l0[0]);
+    size_t Np(grid.axis.Np(0));
+
+    int msg_sz((Nl+1)*outNxLocal*grid.axis.Np(0)); 
+
+    valarray<double> allfsbuf(0.,msg_sz);
+    
+    valarray<double> allfs_Globalbuf(0.,outNxGlobal*(Nl+1)*Np);
+    
+    Array3D<double> allfs_Global(outNxGlobal,Nl+1,Np);
+    vector<double> ell_axis;
+    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+    vector<double> paxis(valtovec(grid.axis.p(0)));
+    
+    for( int i = 0; i < Nl+1; i++ )  ell_axis.push_back( i );
+
+    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    for(size_t ix = 0; ix < outNxLocal; ++ix) 
+    {
+        for(size_t il = 0; il < Nl+1; ++il)    
+        {   
+            // allfsbuf[ix*(Nl+1)+il*Np+ip] = 0.;
+
+            for(size_t ip(0); ip < Np; ++ip)       
+            {
+                allfsbuf[ix*(Nl+1)+il*Np+ip] = Y.DF(0)(il)(ip,ix).real();
+                // allfsbuf[ix*(Nl+1)+il] += pow(Y.DF(0)(il)(ip,ix).real(), fpow);
+            }
+        }
+    }
+
+    MPI_Gather( &allfsbuf[0], msg_sz, MPI_DOUBLE, &allfs_Globalbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+
+    size_t offset(0);
+    size_t offset_x_local(0);
+
+    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    for(size_t iproc = 0; iproc < PE.MPI_Processes(); ++iproc)
+    {
+        // offset = ;
+        
+        for(size_t ix = 0; ix < outNxLocal; ++ix) 
+        {
+            // offset_x_local = ix*(Nl+1);
+
+            for(size_t il = 0; il < Nl+1; ++il)    
+            {
+                for(size_t ip(0); ip < Np; ++ip)       
+                {   
+                    allfs_Global(ix,il,ip) = allfs_Globalbuf[iproc*outNxLocal*(Nl+1)*Np + ix*(Nl+1) + il*Np+ip];
+                }
+            }
+        }
+    }
+
+    if (PE.RANK() == 0) expo.Export_h5("allfs", xaxis, ell_axis, paxis, allfs_Global, tout, time, dt);
+
+}
+//--------------------------------------------------------------     
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::allfs_f2(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
  const Parallel_Environment_1D& PE) {
@@ -6622,7 +6708,55 @@ void Output_Data::Output_Preprocessor::Ti(const State1D& Y, const Grid_Info& gri
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+   const Parallel_Environment_1D& PE, std::string tag) 
+{
 
+    size_t Nbc = Input::List().BoundaryCells;
+    MPI_Status status;
+    
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+    size_t outNxGlobal(grid.axis.Nxg(0));
+    size_t number_of_time_steps(time_history.size());
+    int msg_sz(number_of_time_steps*outNxLocal);
+    
+    valarray<double> ExtBuf(msg_sz);
+    valarray<double> ExtGlobalBuf(number_of_time_steps*outNxGlobal);
+    
+    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+    Array2D<double> ExtGlobal(number_of_time_steps,outNxGlobal);
+
+    for(size_t it(0); it < number_of_time_steps; ++it) 
+    {
+        for(size_t ix(0); ix < outNxLocal; ++ix) 
+        {
+            ExtBuf[it*outNxLocal+ix] = fieldhistory[it][ix].real();
+        }
+    }
+
+    MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    size_t offset(0);
+    for (int rr(0); rr < PE.MPI_Processes(); ++rr)
+    {            
+        offset = rr*msg_sz;
+
+        for(size_t it(0); it < number_of_time_steps; ++it) 
+        {
+            for(size_t ix(0); ix < outNxLocal; ++ix) 
+            {
+                ExtGlobal(it,ix+rr*outNxLocal) = ExtGlobalBuf[offset+ix];
+            }
+            offset += outNxLocal;
+        }
+    }
+
+    std::cout << " \n tag = " << tag << " \n ";
+
+    if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------
 //--------------------------------------------------------------
 void Export_Files::Xport:: Export_h5(const std::string tag,
  std::vector<double> &axis1, std::vector<double> &data,
@@ -6681,7 +6815,7 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     //     cout << "ERROR "<< tag <<" : "  << Hdr[tag].dim() << " dimensions != 2D structure\n";
     //     exit(1);
     // }
-
+    std::cout << "\n filename = " << filename << "\n";
     //  Open File
     filename.append(tag).append(oH5Fextension(step,spec));
     // we create a new hdf5 file

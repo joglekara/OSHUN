@@ -76,7 +76,7 @@ namespace Input{
         int restart_time;  int n_restarts;
 
 //          Output
-        bool o_EHist;
+        bool o_Exhist;
         bool o_Ex, o_Ey, o_Ez, o_Bx, o_By, o_Bz, o_x1x2, o_pth;
         
         bool o_p1x1, o_p2x1, o_p3x1, o_p1p2x1, o_p1p3x1, o_p2p3x1, o_p1p2p3x1;
@@ -85,7 +85,8 @@ namespace Input{
         bool o_p1x2, o_p2x2, o_p3x2, o_p1p2x2, o_p1p3x2, o_p2p3x2, o_p1p2p3x2;
         bool o_f0x2, o_f10x2, o_f11x2, o_f20x2, o_fl0x2;
 
-        bool o_p1x1x2, o_p2x1x2, o_p3x1x2, o_p1p2x1x2, o_p1p3x1x2, o_p2p3x1x2, o_p1p2p3x1x2, o_allfs_f2, o_allfs_flogf;
+        bool o_p1x1x2, o_p2x1x2, o_p3x1x2, o_p1p2x1x2, o_p1p3x1x2, o_p2p3x1x2, o_p1p2p3x1x2;
+        bool o_allfs, o_allfs_f2, o_allfs_flogf;
         bool o_f0x1x2, o_f10x1x2, o_f11x1x2, o_f20x1x2, o_fl0x1x2;
 
 
