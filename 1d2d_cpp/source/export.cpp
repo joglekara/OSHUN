@@ -1040,10 +1040,10 @@ Output_Data::fulldist::fulldist( const Grid_Info& _G): grid(_G)
         {
             for (size_t ix(0); ix < szx; ++ix)
             {
-                temp.push_back(Array3D<double>( _G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
+                // temp.push_back(Array3D<double>( _G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
             }
         }
-        pout3D.push_back(temp); 
+        // pout3D.push_back(temp); 
         
         pradius.push_back(Array3D<double>(_G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
         phi.push_back(Array2D<double>(_G.axis.Npy(s),_G.axis.Npz(s)));  phi[s] = 0.;
@@ -1203,7 +1203,7 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc2D& df, size_t x0, size_t y0
             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
             {
                 
-                pout1D_p1[ipx] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
+                // pout1D_p1[ipx] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
             }
         }
     }
@@ -1226,7 +1226,7 @@ valarray<double>  Output_Data::fulldist::p2(DistFunc1D& df, size_t x0, size_t s)
             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
             {
                 
-                pout1D_p2[ipy] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
+                // pout1D_p2[ipy] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
             }
         }
     }
@@ -1248,7 +1248,7 @@ valarray<double>  Output_Data::fulldist::p2(DistFunc2D& df, size_t x0, size_t y0
             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
             {
                 
-                pout1D_p2[ipy] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
+                // pout1D_p2[ipy] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
             }
         }
     }
@@ -1272,7 +1272,7 @@ valarray<double>  Output_Data::fulldist::p3(DistFunc1D& df, size_t x0, size_t s)
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
                 
-                pout1D_p3[ipz] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
+                // pout1D_p3[ipz] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
             }
         }
     }
@@ -1294,7 +1294,7 @@ valarray<double>  Output_Data::fulldist::p3(DistFunc2D& df, size_t x0, size_t y0
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
                 
-                pout1D_p3[ipz] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
+                // pout1D_p3[ipz] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
             }
         }
     }
@@ -1315,7 +1315,7 @@ Array2D<double>  Output_Data::fulldist::p1p2(DistFunc1D& df, size_t x0, size_t s
         {
             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
             {
-                pout2D_p1p2(ipx,ipy) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
+                // pout2D_p1p2(ipx,ipy) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
             }
         }
     }
@@ -1336,7 +1336,7 @@ Array2D<double>  Output_Data::fulldist::p1p2(DistFunc2D& df, size_t x0,  size_t 
         {
             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
             {
-                pout2D_p1p2(ipx,ipy) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
+                // pout2D_p1p2(ipx,ipy) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
             }
         }
     }
@@ -1357,7 +1357,7 @@ Array2D<double>  Output_Data::fulldist::p2p3(DistFunc1D& df, size_t x0, size_t s
         {
             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
             {   
-                pout2D_p2p3(ipy,ipz) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
+                // pout2D_p2p3(ipy,ipz) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
             }
         }
     }
@@ -1378,7 +1378,7 @@ Array2D<double>  Output_Data::fulldist::p2p3(DistFunc2D& df, size_t x0, size_t y
         {
             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
             {   
-                pout2D_p2p3(ipy,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
+                // pout2D_p2p3(ipy,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
             }
         }
     }
@@ -1399,7 +1399,7 @@ Array2D<double>  Output_Data::fulldist::p1p3(DistFunc1D& df, size_t x0, size_t s
         {    
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
-                pout2D_p1p3(ipx,ipz) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
+                // pout2D_p1p3(ipx,ipz) += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
             }
         }
     }
@@ -1420,7 +1420,7 @@ Array2D<double>  Output_Data::fulldist::p1p3(DistFunc2D& df, size_t x0, size_t y
         {    
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
-                pout2D_p1p3(ipx,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
+                // pout2D_p1p3(ipx,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
             }
         }
     }
@@ -1434,7 +1434,7 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
 //  into a cartesian grid.
 //--------------------------------------------------------------
     size_t Nbc(Input::List().BoundaryCells);
-    dist(s,x0-Nbc) = 0.;
+    // dist(s,x0-Nbc) = 0.;
 
 
     #pragma omp parallel for num_threads(Input::List().ompthreads)
@@ -1461,8 +1461,8 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
 
                         // pout3D[s](ipx,ipy,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy));
 
-                        #pragma omp atomic
-                            dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
+                        // #pragma omp atomic
+                        //     dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
                     }
                     // else pout3D[s](ipx,ipy,ipz) += 0.;
                     // ++index;
@@ -1516,8 +1516,8 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
                                 YSH_re = static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);
 
                                 // pout3D[s](ipx,ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
-                                #pragma omp atomic
-                                    dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
+                                // #pragma omp atomic
+                                //     dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
                             }
                             // else pout3D[s](ipx,ipy,ipz) += 0.;
                             // ++index;
@@ -3722,7 +3722,7 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
                 {
                     for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
                     {
-                        pbuf[ind]=p_x.dist(s,i+Nbc)(ipx,ipy,ipz);
+                        // pbuf[ind]=p_x.dist(s,i+Nbc)(ipx,ipy,ipz);
                         ++ind;
                     }
                 }
@@ -3748,7 +3748,7 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
                         {
                             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
                             {
-                                pxpypzGlobal(ipx,ipy,ipz,i) = pbuf[ind];
+                                // pxpypzGlobal(ipx,ipy,ipz,i) = pbuf[ind];
                                 ++ind;
                             }
                         }
@@ -3767,7 +3767,7 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
                             {
                                 for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
                                 {
-                                    pxpypzGlobal(ipx,ipy,ipz,i + outNxLocal*rr) = pbuf[ind];
+                                    // pxpypzGlobal(ipx,ipy,ipz,i + outNxLocal*rr) = pbuf[ind];
                                     ++ind;
                                 }
                             }

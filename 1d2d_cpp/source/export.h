@@ -292,8 +292,8 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 
             // Access
             Grid_Info           gridinfo()                   const   { return grid;}
-            Array3D<double>&    dist(size_t s, size_t ix)   { return pout3D[s][ix];}
-            Array3D<double>&    dist(size_t s, size_t ix, size_t iy)   { return pout3D[s][iy*(grid.axis.Nx(0) - 2*Input::List().BoundaryCells)+ix];}
+            // Array3D<double>&    dist(size_t s, size_t ix)   { return pout3D[s][ix];}
+            // Array3D<double>&    dist(size_t s, size_t ix, size_t iy)   { return pout3D[s][iy*(grid.axis.Nx(0) - 2*Input::List().BoundaryCells)+ix];}
         
 
         private:
@@ -306,7 +306,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
             vector< PLegendre2D     >  PL2D;
             // vector< valarray<double>  >  pout1D_p1, pout1D_p2, pout1D_p3;
             // vector< Array2D<double>  >  pout2D_p1p2, pout2D_p1p3, pout2D_p2p3;
-            vector< vector<Array3D<double> > >  pout3D;
+            // vector< vector<Array3D<double> > >  pout3D;
 
             // Interpolation quantities
             vector< Array3D<double>  >  pradius;
