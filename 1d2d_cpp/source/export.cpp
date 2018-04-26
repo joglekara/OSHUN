@@ -1025,17 +1025,18 @@ Output_Data::fulldist::fulldist( const Grid_Info& _G): grid(_G)
 {
     size_t szx = _G.axis.Nx(0) - 2*Input::List().BoundaryCells;
     size_t szy = _G.axis.Nx(1) - 2*Input::List().BoundaryCells;
-    double py_sq, pz_sqppy_sq;
+    double py_sq, pz_sqppy_sq, pr;
     size_t pindlt;
 
     //  Generate the required structures
     for (size_t s(0); s < _G.axis.pdim(); ++s) 
     {   
         pvec.push_back(valtovec(_G.axis.p(s)));
+        
         PL2D.push_back( PLegendre2D( _G.l0[s], _G.m0[s],
           (_G.axis.pmax(s)), _G.axis.px(s), _G.axis.py(s) ) );  
 
-        vector<Array3D<double> > temp;
+        // vector<Array3D<double> > temp;
         for (size_t iy(0); iy < szy; ++iy)
         {
             for (size_t ix(0); ix < szx; ++ix)
@@ -1045,7 +1046,7 @@ Output_Data::fulldist::fulldist( const Grid_Info& _G): grid(_G)
         }
         // pout3D.push_back(temp); 
         
-        pradius.push_back(Array3D<double>(_G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
+        // pradius.push_back(Array3D<double>(_G.axis.Npx(s),_G.axis.Npy(s),_G.axis.Npz(s)));
         phi.push_back(Array2D<double>(_G.axis.Npy(s),_G.axis.Npz(s)));  phi[s] = 0.;
         
         for (size_t ipy(0); ipy < _G.axis.Npy(s); ++ipy)
@@ -1056,9 +1057,11 @@ Output_Data::fulldist::fulldist( const Grid_Info& _G): grid(_G)
                 pz_sqppy_sq = py_sq + (_G.axis.pz(s))[ipz]*(_G.axis.pz(s))[ipz];
                 for (size_t ipx(0); ipx < _G.axis.Npx(s); ++ipx)
                 {
-                    pradius[s](ipx,ipy,ipz) = sqrt((_G.axis.px(s))[ipx]*(_G.axis.px(s))[ipx]+pz_sqppy_sq);
+                    // pradius[s](ipx,ipy,ipz) = sqrt((_G.axis.px(s))[ipx]*(_G.axis.px(s))[ipx]+pz_sqppy_sq);
+                    
+                    pr = sqrt(pz_sqppy_sq + _G.axis.px(s)[ipx]*_G.axis.px(s)[ipx]);
 
-                    if (pradius[s](ipx,ipy,ipz) < _G.axis.pmax(s))
+                    if (pr < _G.axis.pmax(s))
                     { 
                         phi[s](ipy,ipz) = (atan2((_G.axis.pz(s))[ipz],(_G.axis.py(s))[ipy]) + M_PI);
                     }
@@ -1094,16 +1097,23 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
         splSH.set_points(pvec[s],shdata_real);
 
         double YSH_re;
+        double px_sq, px_sqppy_sq, pr;
 
         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
         {
+            px_sq = grid.axis.px(s)[ipx]*grid.axis.px(s)[ipx];
+
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
+                px_sqppy_sq = px_sq + grid.axis.py(s)[ipy]*grid.axis.py(s)[ipy];
+
                 for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
                 {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
+                    pr = sqrt(px_sqppy_sq + grid.axis.pz(s)[ipz]*grid.axis.pz(s)[ipz]);
+
+                    if (pr <= grid.axis.pmax(s))
                     {                       
-                        YSH_re = static_cast<double>(splSH(pradius[s](ipx,ipy,ipz)) * (PL2D[s])(i_dist)(ipx,ipy));
+                        YSH_re = static_cast<double>(splSH(pr) * (PL2D[s])(i_dist)(ipx,ipy));
 
                         pout1D_p1[ipx] += YSH_re*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
                     }
@@ -1129,25 +1139,31 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
                 size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
 
                 double YSH_re, YSH_im;
-
+                double px_sq, px_sqppy_sq, pr;
                 double mphi,calcos,calsin;
 
                 // size_t index(0);
                 for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
                 {
+                    px_sq = grid.axis.px(s)[ipx]*grid.axis.px(s)[ipx];
+
                     for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
                     {
+                        px_sqppy_sq = px_sq + grid.axis.py(s)[ipy]*grid.axis.py(s)[ipy];
+
                         for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
                         {
+                            pr = sqrt(px_sqppy_sq + grid.axis.pz(s)[ipz]*grid.axis.pz(s)[ipz]);
+
                             mphi = im*phi[s](ipy,ipz);
                             calcos = cos(mphi);
                             calsin = sin(mphi);
 
 
-                            if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
+                            if (pr <= grid.axis.pmax(s))
                             {                       
-                                YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                                YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
+                                YSH_re = (splSH_r(pr));
+                                YSH_im = (splSH_i(pr));
 
                                 YSH_re *= calcos; 
                                 YSH_im *= calsin; 
@@ -1433,100 +1449,100 @@ void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
 //  Turn the Distribution function at some spatial location (x0,y0) 
 //  into a cartesian grid.
 //--------------------------------------------------------------
-    size_t Nbc(Input::List().BoundaryCells);
-    // dist(s,x0-Nbc) = 0.;
+    // size_t Nbc(Input::List().BoundaryCells);
+    // // dist(s,x0-Nbc) = 0.;
 
 
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for(size_t il = 0; il < grid.l0[s]+1; ++il)
-    {
-        size_t im(0);
-        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
-        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-        tk::spline splSH;
-        splSH.set_points(pvec[s],shdata_real);
+    // #pragma omp parallel for num_threads(Input::List().ompthreads)
+    // for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    // {
+    //     size_t im(0);
+    //     size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
+    //     vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
+    //     tk::spline splSH;
+    //     splSH.set_points(pvec[s],shdata_real);
 
-        double YSH_re;
-        // size_t index(0);
+    //     double YSH_re;
+    //     // size_t index(0);
 
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                {
-                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                    {                       
-                        YSH_re = static_cast<double>(splSH(pradius[s](ipx,ipy,ipz)) * (PL2D[s])(i_dist)(ipx,ipy));
+    //     for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    //     {
+    //         for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+    //         {
+    //             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+    //             {
+    //                 if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
+    //                 {                       
+    //                     YSH_re = static_cast<double>(splSH(pradius[s](ipx,ipy,ipz)) * (PL2D[s])(i_dist)(ipx,ipy));
 
-                        // pout3D[s](ipx,ipy,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy));
+    //                     // pout3D[s](ipx,ipy,ipz) += static_cast<double>(YSH_re * (PL2D[s])(i_dist)(ipx,ipy));
 
-                        // #pragma omp atomic
-                        //     dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
-                    }
-                    // else pout3D[s](ipx,ipy,ipz) += 0.;
-                    // ++index;
-                }
-            }
-        }
-    }
+    //                     // #pragma omp atomic
+    //                     //     dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
+    //                 }
+    //                 // else pout3D[s](ipx,ipy,ipz) += 0.;
+    //                 // ++index;
+    //             }
+    //         }
+    //     }
+    // }
     
-    if (grid.m0[s] > 0)
-    {   
-        #pragma omp parallel for schedule(dynamic) num_threads(Input::List().ompthreads)
-        for (size_t il=1; il < grid.l0[s]+1 ; ++il)
-        {
-            for (size_t im=1; im < ((grid.m0[s] < il)? grid.m0[s]:il)+1; ++im)
-            {
-                // std::cout << "(l,m) = " << il << "," << im << "\n";
-                vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
-                vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
+    // if (grid.m0[s] > 0)
+    // {   
+    //     #pragma omp parallel for schedule(dynamic) num_threads(Input::List().ompthreads)
+    //     for (size_t il=1; il < grid.l0[s]+1 ; ++il)
+    //     {
+    //         for (size_t im=1; im < ((grid.m0[s] < il)? grid.m0[s]:il)+1; ++im)
+    //         {
+    //             // std::cout << "(l,m) = " << il << "," << im << "\n";
+    //             vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
+    //             vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
                      
-                tk::spline splSH_r, splSH_i;
-                splSH_r.set_points(pvec[s],shdata_real);
-                splSH_i.set_points(pvec[s],shdata_imag);
+    //             tk::spline splSH_r, splSH_i;
+    //             splSH_r.set_points(pvec[s],shdata_real);
+    //             splSH_i.set_points(pvec[s],shdata_imag);
 
-                size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
+    //             size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
 
-                double YSH_re, YSH_im;
+    //             double YSH_re, YSH_im;
 
-                double mphi,calcos,calsin;
+    //             double mphi,calcos,calsin;
 
-                // size_t index(0);
-                for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-                {
-                    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-                    {
-                        for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-                        {
-                            mphi = im*phi[s](ipy,ipz);
-                            calcos = cos(mphi);
-                            calsin = sin(mphi);
+    //             // size_t index(0);
+    //             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+    //             {
+    //                 for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+    //                 {
+    //                     for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+    //                     {
+    //                         mphi = im*phi[s](ipy,ipz);
+    //                         calcos = cos(mphi);
+    //                         calsin = sin(mphi);
 
 
-                            if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
-                            {                       
-                                YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
-                                YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
+    //                         if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
+    //                         {                       
+    //                             YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
+    //                             YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
 
-                                YSH_re *= calcos; 
-                                YSH_im *= calsin; 
-                                YSH_re -= YSH_im;
+    //                             YSH_re *= calcos; 
+    //                             YSH_im *= calsin; 
+    //                             YSH_re -= YSH_im;
 
-                                YSH_re = static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);
+    //                             YSH_re = static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);
 
-                                // pout3D[s](ipx,ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
-                                // #pragma omp atomic
-                                //     dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
-                            }
-                            // else pout3D[s](ipx,ipy,ipz) += 0.;
-                            // ++index;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    //                             // pout3D[s](ipx,ipy,ipz) += static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);//*dpy[s]*dpz[s];
+    //                             // #pragma omp atomic
+    //                             //     dist(s,x0-Nbc)(ipx,ipy,ipz) += YSH_re;
+    //                         }
+    //                         // else pout3D[s](ipx,ipy,ipz) += 0.;
+    //                         // ++index;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
 
     // size_t index(0);
     // for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
