@@ -27,6 +27,7 @@
     
 //  Declarations
     #include "input.h"
+    #include "gpu.h"
     #include "state.h"
     #include "formulary.h"
     #include "nmethods.h"

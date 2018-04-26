@@ -24,6 +24,7 @@
 #include "lib-algorithms.h"
 
 //  Declerations
+#include "gpu.h"
 #include "state.h"
 #include "input.h"
 #include "formulary.h"

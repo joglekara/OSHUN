@@ -272,6 +272,7 @@ class self_f00_explicit_step {
 //          Constructors/Destructors
             // self_flm_implicit_step(double pmax, size_t nump, double mass); 
             self_flm_implicit_step(const size_t numxtotal, const size_t l0, const size_t m0, const valarray<double>& dp); 
+            // ~self_flm_implicit_step();
 
 //          Calculate the coefficients
             void reset_coeff_FP(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);

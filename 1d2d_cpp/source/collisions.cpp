@@ -31,11 +31,11 @@
 
 //  Declarations
 #include "input.h"
+#include "gpu.h"
 #include "state.h"
 #include "parser.h"
 #include "formulary.h"
 #include "nmethods.h"
-#include "gpu.h"
 #include "collisions.h"
 
 
@@ -930,6 +930,7 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
             if_tridiagonal(Input::List().if_tridiagonal),
             Dt(0.),kpre(0.), id_low(2),
             dist_il((((m0+1)*(2*l0-m0+2))/2)),dist_im((((m0+1)*(2*l0-m0+2))/2))
+            // FPGPU()
 {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         // ------------------------------------------------------------------------ // 
@@ -990,7 +991,7 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
 
     ld_GPU.resize(totalsize); dd_GPU.resize(totalsize); ud_GPU.resize(totalsize); fin_GPU.resize(totalsize);
 
-    // FPGPU(nump,n_systems,device);
+    // FPGPU.initialize(nump,n_systems,device);
 
     size_t il(0), im(0);
     for (size_t id(0); id < dist_il.size(); ++id)
@@ -1032,7 +1033,8 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
 #pragma optimize("", on)
 // self_flm_implicit_step::~self_flm_implicit_step()
 // {
-    // GPU_interface_routines::destroyTDsolve(d_ld,d_d,d_ud,d_x);
+//     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+//     // FPGPU.destroy(device);
 // }
 //--------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -1603,7 +1605,8 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
-    // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
+    GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
+    // FPGPU.SolveTridiagonal(&ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
 
     #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
     for (size_t ix = 0; ix < szx; ++ix)

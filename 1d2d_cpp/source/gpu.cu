@@ -166,10 +166,18 @@ void GPU_interface_routines::TDsolve( int calculations_per_loop, int n_systems,
 /********//********//********//********//********//********//********//********//********//********/
 /********//********//********//********//********//********//********//********//********//********/
 /********//********//********//********//********//********//********//********//********//********/
-FokkerPlanckOnGPU::FokkerPlanckOnGPU(){}
-FokkerPlanckOnGPU::FokkerPlanckOnGPU(int calculations_per_loop, int n_systems, int device)
-        : calc_per_loop(calculations_per_loop), n_sys(n_systems)
+FokkerPlanckOnGPU::FokkerPlanckOnGPU()
 {
+    calc_per_loop = 0;
+    n_sys = 0;
+
+}
+void FokkerPlanckOnGPU::initialize(int calculations_per_loop, int n_systems, int device)
+        // : calc_per_loop(calculations_per_loop), n_sys(n_systems)
+{
+    calc_per_loop = calculations_per_loop;
+    n_sys = n_systems;
+
     cudaSetDevice(device);
     gpuErrchk(cudaMalloc(&d_ld, calc_per_loop * n_sys * sizeof(double)));
     gpuErrchk(cudaMalloc(&d_d,  calc_per_loop * n_sys * sizeof(double)));
@@ -178,14 +186,15 @@ FokkerPlanckOnGPU::FokkerPlanckOnGPU(int calculations_per_loop, int n_systems, i
 
 }
 /********//********//********//********//********//********//********//********//********//********/
-FokkerPlanckOnGPU::~FokkerPlanckOnGPU()
+void FokkerPlanckOnGPU::destroy(int device)
 {
+    cudaSetDevice(device);
     cudaFree(d_ld);cudaFree(d_ud);cudaFree(d_d);cudaFree(d_x);
 }
 /********//********//********//********//********//********//********//********//********//********/
-void FokkerPlanckOnGPU::SolveTridiagonal(double *ld, double *dd, double *ud, double *fin)
+void FokkerPlanckOnGPU::SolveTridiagonal(double *ld, double *dd, double *ud, double *fin, int device)
 {
-    // cudaSetDevice(device);
+    cudaSetDevice(device);
     // --- Initialize cuSPARSE
     cusparseHandle_t handle;    cusparseSafeCall(cusparseCreate(&handle));
 

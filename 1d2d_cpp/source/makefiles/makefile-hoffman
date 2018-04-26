@@ -25,7 +25,7 @@ INCLUDE_DIRS = -I/u/local/cuda/8.0/include -I/u/local/apps/hdf5/1.10.0-patch1/in
 EXEC_DIR = ../bin
 TMP_DIR = ../bin/tmp
 
-OBJECTS = input.o clock.o state.o gpu.o gpu_only.o stepper.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o particletracker.o implicitE.o parallel.o export.o main.o
+OBJECTS = input.o clock.o state.o gpu.o stepper.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o particletracker.o implicitE.o parallel.o export.o main.o
 
 EXEC = oshun.e
 

@@ -3711,21 +3711,19 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
 
     size_t offset(0);
     size_t offset_x_local(0);
+    size_t gx(0);
 
-    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
     for(size_t iproc = 0; iproc < PE.MPI_Processes(); ++iproc)
     {
-        // offset = ;
-        
         for(size_t ix = 0; ix < outNxLocal; ++ix) 
         {
-            // offset_x_local = ix*(Nl+1);
-
+            gx = iproc*outNxLocal + ix;
             for(size_t il = 0; il < Nl+1; ++il)    
             {
-                for(size_t ip(0); ip < Np; ++ip)       
+                for(size_t ip = 0; ip < Np; ++ip)       
                 {   
-                    allfs_Global(ix,il,ip) = allfs_Globalbuf[iproc*outNxLocal*(Nl+1)*Np + ix*(Nl+1) + il*Np+ip];
+                    allfs_Global(gx,il,ip) = allfs_Globalbuf[iproc*outNxLocal*(Nl+1)*Np + ix*(Nl+1) + il*Np+ip];
                 }
             }
         }
