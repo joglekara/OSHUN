@@ -1080,25 +1080,102 @@ Output_Data::fulldist::~fulldist(){
  * @brief      Creates p1 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s) {
+valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s) 
+{
 
-    valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
+    valarray<double> pout1D_p1(0.,grid.axis.Npx(s));
 
+    for(size_t il = 0; il < grid.l0[s]+1; ++il)
+    {
+        size_t im(0);
+        size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
+        vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
+        tk::spline splSH;
+        splSH.set_points(pvec[s],shdata_real);
 
-    // if (df.m0() > 0)
-    // {
+        double YSH_re;
+
         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
         {
             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
             {
                 for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
                 {
-                    // std::cout << "(ipx,ipy,ipz) = " << ipx << "," << ipy << "," << ipz << "\n";
-                    pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
-                    
+                    if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
+                    {                       
+                        YSH_re = static_cast<double>(splSH(pradius[s](ipx,ipy,ipz)) * (PL2D[s])(i_dist)(ipx,ipy));
+
+                        pout1D_p1[ipx] += YSH_re*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
+                    }
                 }
             }
         }
+    }
+
+    if (df.m0() > 0)
+    {
+        for (size_t il=1; il < grid.l0[s]+1 ; ++il)
+        {
+            for (size_t im=1; im < ((grid.m0[s] < il)? grid.m0[s]:il)+1; ++im)
+            {
+                // std::cout << "(l,m) = " << il << "," << im << "\n";
+                vector<double> shdata_real( vdouble_real(   df(il,im).xVec(x0)));
+                vector<double> shdata_imag( vdouble_imag(   df(il,im).xVec(x0)));
+                     
+                tk::spline splSH_r, splSH_i;
+                splSH_r.set_points(pvec[s],shdata_real);
+                splSH_i.set_points(pvec[s],shdata_imag);
+
+                size_t i_dist = ((il < grid.m0[s]+1)?((il*(il+1))/2+im):(il*(grid.m0[s]+1)-(grid.m0[s]*(grid.m0[s]+1))/2 + im));
+
+                double YSH_re, YSH_im;
+
+                double mphi,calcos,calsin;
+
+                // size_t index(0);
+                for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+                {
+                    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+                    {
+                        for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+                        {
+                            mphi = im*phi[s](ipy,ipz);
+                            calcos = cos(mphi);
+                            calsin = sin(mphi);
+
+
+                            if (pradius[s](ipx,ipy,ipz) <= grid.axis.pmax(s))
+                            {                       
+                                YSH_re = (splSH_r(pradius[s](ipx,ipy,ipz)));
+                                YSH_im = (splSH_i(pradius[s](ipx,ipy,ipz)));
+
+                                YSH_re *= calcos; 
+                                YSH_im *= calsin; 
+                                YSH_re -= YSH_im;
+
+                                YSH_re = static_cast<double>(2.0*(PL2D[s])(i_dist)(ipx,ipy)*YSH_re);
+
+                                pout1D_p1[ipx] += YSH_re*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+        // for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+        // {
+        //     for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+        //     {
+        //         for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+        //         {
+        //             // std::cout << "(ipx,ipy,ipz) = " << ipx << "," << ipy << "," << ipz << "\n";
+        //             pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
+                    
+        //         }
+        //     }
+        // }
     // }
     // else
     // {
@@ -1599,7 +1676,7 @@ void Output_Data::Output_Preprocessor::distdump(const State1D& Y, const Grid_Inf
     }
     if (Input::List().o_p1x1 || Input::List().o_p2x1 || Input::List().o_p3x1)
     {
-        make_fp1p2p3(Y, grid);
+        // make_fp1p2p3(Y, grid);
         if (Input::List().o_p1x1){
             px( Y, grid, tout, time, dt, PE );
         }
@@ -1621,7 +1698,7 @@ void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_
     }
     else
     {
-        make_fp1p2p3(Y, grid);
+        // make_fp1p2p3(Y, grid);
 
         if (Input::List().o_p1p2x1)
         {
@@ -2391,22 +2468,22 @@ void Output_Data::Output_Preprocessor::Bz(const State2D& Y, const Grid_Info& gri
 }
 //--------------------------------------------------------------   
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::make_fp1p2p3(const State1D& Y, const Grid_Info& grid)
-{
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+// void Output_Data::Output_Preprocessor::make_fp1p2p3(const State1D& Y, const Grid_Info& grid)
+// {
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
      
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
     
-    for(int s(0); s < Y.Species(); ++s) 
-    {
-        for (size_t ix(0); ix < outNxLocal; ++ix)
-        {
-            p_x.p1p2p3(Y.DF(s), ix+Nbc, s);
-        }
-    }
+//     for(int s(0); s < Y.Species(); ++s) 
+//     {
+//         for (size_t ix(0); ix < outNxLocal; ++ix)
+//         {
+//             p_x.p1p2p3(Y.DF(s), ix+Nbc, s);
+//         }
+//     }
 
-}
+// }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
@@ -2446,10 +2523,10 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
 
         if (PE.RANK() == 0) 
         {
-            #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
-            for (int rr = 0; rr < PE.MPI_Processes(); ++rr)
+            #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < outNxLocal; i++) 
             {
-                for(size_t i = 0; i < outNxLocal; i++) 
+                for (int rr = 0; rr < PE.MPI_Processes(); ++rr)
                 {
                     for (size_t j(0); j < Npx; ++j) 
                     {
