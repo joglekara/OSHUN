@@ -6749,7 +6749,7 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
         }
     }
 
-    std::cout << " \n tag = " << tag << " \n ";
+    // std::cout << " \n tag = " << tag << " \n ";
 
     if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
 }
@@ -6813,7 +6813,7 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     //     cout << "ERROR "<< tag <<" : "  << Hdr[tag].dim() << " dimensions != 2D structure\n";
     //     exit(1);
     // }
-    std::cout << "\n filename = " << filename << "\n";
+    // std::cout << "\n filename = " << filename << "\n";
     //  Open File
     filename.append(tag).append(oH5Fextension(step,spec));
     // we create a new hdf5 file
