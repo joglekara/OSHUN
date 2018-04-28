@@ -228,8 +228,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         class PLegendre2D {
         public:
 //      Constructors/Destructors
-            PLegendre2D(size_t Nl, size_t Nm, double pmax,
-             valarray<double> px , valarray<double> py);
+            PLegendre2D(size_t Nl, size_t Nm, valarray<double> px , valarray<double> p);
             PLegendre2D(const PLegendre2D& other);
             ~PLegendre2D();
 
@@ -301,16 +300,17 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 
             vector<vector<double> >    pvec;
             // vector<valarray<double> >  pxvec,pyvec,pzvec;
-            
+            vector<Array2D<double> >    p_cylindrical_polar_radius_squared;
+            vector<Array2D<double> >    px_over_p;
 
-            vector< PLegendre2D     >  PL2D;
+            // vector< PLegendre2D     >  PL2D;
             // vector< valarray<double>  >  pout1D_p1, pout1D_p2, pout1D_p3;
             // vector< Array2D<double>  >  pout2D_p1p2, pout2D_p1p3, pout2D_p2p3;
             // vector< vector<Array3D<double> > >  pout3D;
 
             // Interpolation quantities
-            vector< Array3D<double>  >  pradius;
-            vector< Array2D<double>  >  phi;
+            // vector< Array3D<double>  >  pradius;
+            // vector< Array2D<double>  >  phi;
             // vector< valarray<double> >            dpx,dpy,dpz;
         };
 //--------------------------------------------------------------
@@ -445,7 +445,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
          const Parallel_Environment_2D& PE);
 
         // Full distribution
-        // void make_fp1p2p3(const State1D& Y, const Grid_Info& grid);
+        void make_fp1p2p3(const State1D& Y, const Grid_Info& grid);
         void pxpypz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
          const Parallel_Environment_1D& PE);
         void allfs(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
