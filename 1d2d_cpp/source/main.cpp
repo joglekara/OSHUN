@@ -96,7 +96,7 @@
         std::cout << "--------------- OSHUN Beta - 1/2D+3P --------------- \n";
         std::cout << "------------ git commit hash #  ------------- \n";
         std::cout << "    Particle-in-Cell and Kinetic Simulation Center   \n";
-        std::cout << "------------------- UCLA - 2017 -------------------- \n";
+        std::cout << "------------------- UCLA - 2018 -------------------- \n";
         
         std::cout << "----------------- Reference Units ------------------ \n";
         std::cout << "normalizing density                   = " << formulas.n << " / cc \n";

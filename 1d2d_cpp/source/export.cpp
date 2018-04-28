@@ -909,61 +909,61 @@ string Export_Files::Restart_Facility::rFextension(const int rank, const size_t 
 //--------------------------------------------------------------
 Output_Data::PLegendre2D::PLegendre2D( size_t Nl, size_t Nm, valarray<double> px, valarray<double> p)
 {
-    size_t sz(((Nm+1)*(2*Nl-Nm+2))/2);
+//     size_t sz(((Nm+1)*(2*Nl-Nm+2))/2);
 
-//  Generate the structure to save the polynomials
-    std::cout << "\n sz = " << sz << " \n";
+// //  Generate the structure to save the polynomials
+//     std::cout << "\n sz = " << sz << " \n";
 
-    for (size_t i(0);i < sz; ++i)
-    {
-        plegendre.push_back(Array2D<double>(px.size(),p.size()));
-    }
+//     for (size_t i(0);i < sz; ++i)
+//     {
+//         plegendre.push_back(Array2D<double>(px.size(),p.size()));
+//     }
 
-    std::cout << "\n stop? \n";
+//     std::cout << "\n stop? \n";
     
-    Array2D<double> vL(Nl+1,Nm+1);
+//     Array2D<double> vL(Nl+1,Nm+1);
 
-//  Generate the polynomial values for each cos(theta) = px/p 
-    if (Nl > 1)
-    {
-        for (size_t ip(0); ip < p.size(); ++ip) 
-        {
-            std::cout << "\n ip = " << ip << " \n";
+// //  Generate the polynomial values for each cos(theta) = px/p 
+//     if (Nl > 1)
+//     {
+//         for (size_t ip(0); ip < p.size(); ++ip) 
+//         {
+//             std::cout << "\n ip = " << ip << " \n";
             
-            for (size_t ipx(0); ipx < px.size(); ++ipx) 
-            {
-                // For given px/p generate all the polynomial values ...
-                Algorithms::Legendre(static_cast<double> (abs(px[ipx]) / p[ip]), Nl, Nm, vL);
-                //          ... and save them
-                size_t k(0);
-                for (size_t il(0); il < Nl + 1; ++il) 
-                {
-                    for (size_t im(0); im < ((Nm < il) ? Nm : il) + 1; ++im) 
-                    {
+//             for (size_t ipx(0); ipx < px.size(); ++ipx) 
+//             {
+//                 // For given px/p generate all the polynomial values ...
+//                 // Algorithms::Legendre(static_cast<double> (abs(px[ipx]) / p[ip]), Nl, Nm, vL);
+//                 //          ... and save them
+//                 size_t k(0);
+//                 for (size_t il(0); il < Nl + 1; ++il) 
+//                 {
+//                     for (size_t im(0); im < ((Nm < il) ? Nm : il) + 1; ++im) 
+//                     {
                         
                         
-                        k = ((il < Nm+1)?((il*(il+1))/2+im):
-                              (il*(Nm+1)-(Nm*(Nm+1))/2 + im));
+//                         k = ((il < Nm+1)?((il*(il+1))/2+im):
+//                               (il*(Nm+1)-(Nm*(Nm+1))/2 + im));
 
-                        // std::cout << "\n k = " << k << " \n";
+//                         // std::cout << "\n k = " << k << " \n";
 
-                        (plegendre)[k](ipx, ip) = vL(il, im);
+//                         (plegendre)[k](ipx, ip) = vL(il, im);
                         
-                    }
-                }
-                // exit(1);
-            }
-        }
-    }
+//                     }
+//                 }
+//                 // exit(1);
+//             }
+//         }
+//     }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 Output_Data::PLegendre2D::PLegendre2D( const PLegendre2D& other ) {
 
 //  Generate the structure to save the polynomials
-    for (size_t i(0); i < other.dim(); ++i) {
-        (plegendre).push_back( other(i) );
-    }
+    // for (size_t i(0); i < other.dim(); ++i) {
+    //     (plegendre).push_back( other(i) );
+    // }
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -1070,7 +1070,7 @@ Output_Data::fulldist::fulldist( const Grid_Info& _G): grid(_G)
             for (size_t ip(0); ip < _G.axis.Np(s); ++ip)
             {
                 p_cylindrical_polar_radius_squared[s](ipx,ip) = pow(grid.axis.p(s)[ip],2.) - pow(grid.axis.px(s)[ipx],2.);
-                px_over_p[s](ipx,ip) = abs(grid.axis.px(s)[ipx])/grid.axis.p(s)[ip];
+                px_over_p[s](ipx,ip) = (grid.axis.px(s)[ipx])/grid.axis.p(s)[ip];
             }
         }
 
@@ -1111,40 +1111,15 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
 
     valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
 
-
-    // if (df.m0() > 0)
-    // {
-    //     for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-    //     {
-    //         for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-    //         {
-    //             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-    //             {
-    //                 // std::cout << "(ipx,ipy,ipz) = " << ipx << "," << ipy << "," << ipz << "\n";
-    //                 pout1D_p1[ipx] += dist(s,x0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
-                    
-    //             }
-    //         }
-    //     }
-    // }
-    // else
-    // {
-    //     for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-    //     {
-    //         pout1D_p1[ipx] += dist(s,x0)(ipx,floor(grid.axis.Npy(s)/2),floor(grid.axis.Npz(s)/2));
-    //     }
-    // }
-
     size_t Npx(grid.axis.Npx(s));
     size_t Np(grid.axis.Np(s));
     size_t Nl(grid.l0[s]);
+    size_t Nbc(Input::List().BoundaryCells);
 
     double p_im1(0.0), p_ip1(0.0);
     double integrant_low(0.0);
     double integrant_high(0.0);
-    // double p_cylindrical_polar_radius_squared(0.);
 
-    // valarray<double> InPx(0.,Npx);
     double InPx;
     valarray<double> LP1D(0.,Nl+1);
     double LP0(0.);
@@ -1152,22 +1127,17 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
     double LPC(0.);
     
     for (size_t ipx(0); ipx < Npx; ++ipx) // at each location in px
-    { 
-        // std::cout << "\n ipx = " << ipx  << "\n";
+    {
         InPx = 0.;
-
-        size_t ip(0);
-        // p_cylindrical_polar_radius_squared = pow(grid.axis.p(s)[ip],2.) - pow(grid.axis.px(s)[ipx],2.);
+        size_t ip(0);  
 
         while (p_cylindrical_polar_radius_squared[s](ipx,ip) < 0) // at each location in pr
         {
             ++ip; 
-            // p_cylindrical_polar_radius_squared  = pow(grid.axis.p(s)[ip],2.) - pow(grid.axis.px(s)[ipx],2.);
-        } 
+        }
 
         p_ip1 = sqrt(p_cylindrical_polar_radius_squared[s](ipx,ip));
         
-        // Algorithms::Legendre(abs(grid.axis.px(s)[ipx]) / grid.axis.p(s)[ip], Nl, LP1D);
         LP0 = 1.; LP1 = px_over_p[s](ipx,ip);
 
         for (size_t il(0); il < Nl+1; ++il) // calculate the integral for each harmonic separately
@@ -1185,19 +1155,12 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
                 if (il == 0) LPC = LP0;
                 else LPC = LP1;
             }
-            // integrant_high = (static_cast<double>((df(il,0)(ip,x0)).real())) * PL2D[s](il)(ipx, ip);
-            // integrant_high = (static_cast<double>((df(il,0)(ip,x0)).real())) * LP1D[il];
-            // InPx[ipx] += p_ip1 * (0.5*p_ip1) * integrant_high; 
 
-            integrant_high = (static_cast<double>((df(il,0)(ip,x0)).real())) * LPC;
+            integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)).real())) * LPC;
             InPx += p_ip1 * (0.5*p_ip1) * integrant_high; 
         }
   
-        // cout << "p("<<ip<<") = " << p_ip1 << ",    Dp = " << p_ip1-p_im1 << ",     " << axis.px(ipx) << " < " << axis.pr(ip) << "\n";
-        // cout << "L_"<< l<< "("<< axis.px(ipx)/axis.pr(ip)<< ") = " << legendre(l)(ipx, ip)<< "\n";
         ++ip;
-
-        // p_cylindrical_polar_radius_squared = pow(grid.axis.p(s)[ip],2.) - pow(grid.axis.px(s)[ipx],2.);
 
         while ( (ip <  Np) && (p_cylindrical_polar_radius_squared[s](ipx,ip) > 0 )  )   
         {  // at each location in pr
@@ -1206,7 +1169,6 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
 
             p_ip1 = sqrt(p_cylindrical_polar_radius_squared[s](ipx,ip));
             
-            // Algorithms::Legendre(abs(grid.axis.px(s)[ipx]) / grid.axis.p(s)[ip], Nl, LP1D);
             LP0 = 1.; LP1 = px_over_p[s](ipx,ip);
             
             for (size_t il(0); il < Nl+1; ++il) // calculate the integral for each harmonic separately
@@ -1224,12 +1186,9 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
                     if (il == 0) LPC = LP0;
                     else LPC = LP1;
                 }
-                // integrant_high =(static_cast<double>((df(il,0)(ip,x0)).real())) * LP1D[il];
-                // InPx[ipx] += p_im1 * (0.5*(p_ip1-p_im1)) * integrant_low; 
-                // InPx[ipx] += p_ip1 * (0.5*(p_ip1-p_im1)) * integrant_high; 
 
+                integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)).real())) * LPC;
 
-                integrant_high = (static_cast<double>((df(il,0)(ip,x0)).real())) * LPC;
                 InPx += p_im1 * (0.5*(p_ip1-p_im1)) * integrant_low; 
                 InPx += p_ip1 * (0.5*(p_ip1-p_im1)) * integrant_high; 
             }
@@ -1239,9 +1198,7 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
         pout1D_p1[ipx] += InPx;
     }
     
-
     pout1D_p1 *= 2.0 * M_PI;
-
 
     return pout1D_p1;
 }
@@ -1936,7 +1893,7 @@ void Output_Data::Output_Preprocessor::Ex(const State1D& Y, const Grid_Info& gri
 
     int msg_sz(outNxLocal); 
     
-    double Exbuf[msg_sz];
+    valarray<double> Exbuf(0.,msg_sz);
     vector<double> ExGlobal(outNxGlobal,0.);
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
@@ -1944,7 +1901,7 @@ void Output_Data::Output_Preprocessor::Ex(const State1D& Y, const Grid_Info& gri
         Exbuf[i] = static_cast<double>( Y.EMF().Ex()(Nbc+i).real() );
     }
 
-    MPI_Gather( Exbuf, msg_sz, MPI_DOUBLE, &ExGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather( &Exbuf[0], msg_sz, MPI_DOUBLE, &ExGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
 
     if (PE.RANK() == 0) expo.Export_h5("Ex", xaxis, ExGlobal, tout, time, dt);
@@ -2547,7 +2504,8 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
 
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
-    for(int s(0); s < Y.Species(); ++s) {
+    for(int s(0); s < Y.Species(); ++s) 
+    {
         size_t Npx(grid.axis.Npx(s));
         int msg_sz(outNxLocal*Npx);
         
@@ -2557,7 +2515,7 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
         double pxbuf[Npx*outNxLocal];
 
         #pragma omp parallel for num_threads(Input::List().ompthreads)
-        for (size_t i(0); i < outNxLocal; ++i) 
+        for (size_t i = 0; i < outNxLocal; ++i) 
         {
             valarray<double> data1D = p_x.p1( Y.DF(s), i, s);
             
@@ -3869,14 +3827,10 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
 
     MPI_Gather( &allfsbuf[0], msg_sz, MPI_DOUBLE, &allfs_Globalbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-
-    size_t offset(0);
-    size_t offset_x_local(0);
-    size_t gx(0);
-
     #pragma omp parallel for num_threads(Input::List().ompthreads)
     for(size_t iproc = 0; iproc < PE.MPI_Processes(); ++iproc)
     {
+        size_t gx(0);
         for(size_t ix = 0; ix < outNxLocal; ++ix) 
         {
             gx = iproc*outNxLocal + ix;
@@ -4915,197 +4869,6 @@ void Output_Data::Output_Preprocessor::n(const State1D& Y, const Grid_Info& grid
 
 }
 //--------------------------------------------------------------    
-//--------------------------------------------------------------
-// void Output_Data::Output_Preprocessor::particles_x(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-//     const Parallel_Environment_1D& PE) {
-
-
-//     size_t Nbc = Input::List().BoundaryCells;
-//     MPI_Status status;
-
-//     int msg_sz(Y.particles().numpar()) ; 
-//     double buf[msg_sz];
-//     vector<double> pGlobal(Y.particles().numpar()); 
-//     vector<double> prtaxis(Y.particles().numpar());
-
-//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-//         buf[ip] = Y.particles().x(ip)* (double (Y.particles().ishere(ip)));
-//         prtaxis.push_back( ip );
-//     }
-
-
-//     if (PE.MPI_Processes() > 1) {
-//         if (PE.RANK()!=0) {
-//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-//         }
-//         else {
-//             // Fill data for rank = 0
-//             for(size_t i(0); i < msg_sz; i++) {
-//                 pGlobal[i] += buf[i];
-//             }
-//             // Fill data for rank > 0
-//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-//                 for(size_t i(0); i < msg_sz; i++) {
-//                     pGlobal[i] += buf[i];
-//                 }
-//             }
-//         }
-//     }
-//         // Fill data for Nodes = 0
-//     else {
-//         for(size_t i(0); i < msg_sz; i++) {
-//             pGlobal[i] = buf[i];
-//         }
-//     }
-    
-//     if (PE.RANK() == 0) expo.Export_h5("prtx", prtaxis, pGlobal, tout, time, dt);
-
-// }
-// //--------------------------------------------------------------
-// //--------------------------------------------------------------    
-// //--------------------------------------------------------------
-// void Output_Data::Output_Preprocessor::particles_px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-//     const Parallel_Environment_1D& PE) {
-
-
-//     size_t Nbc = Input::List().BoundaryCells;
-//     MPI_Status status;
-
-//     int msg_sz(Y.particles().numpar()) ; 
-//     double buf[msg_sz];
-//     vector<double> pGlobal(Y.particles().numpar()); 
-//     vector<double> prtaxis(Y.particles().numpar());
-
-//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-//         buf[ip] = Y.particles().px(ip)* (double (Y.particles().ishere(ip)));
-//     }
-
-
-//     if (PE.MPI_Processes() > 1) {
-//         if (PE.RANK()!=0) {
-//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-//         }
-//         else {
-//             // Fill data for rank = 0
-//             for(size_t i(0); i < msg_sz; i++) {
-//                 pGlobal[i] += buf[i];
-//             }
-//             // Fill data for rank > 0
-//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-//                 for(size_t i(0); i < msg_sz; i++) {
-//                     pGlobal[i] += buf[i];
-//                 }
-//             }
-//         }
-//     }
-//         // Fill data for Nodes = 0
-//     else {
-//         for(size_t i(0); i < msg_sz; i++) {
-//             pGlobal[i] = buf[i];
-//         }
-//     }
-
-//     if (PE.RANK() == 0) expo.Export_h5("prtpx", prtaxis, pGlobal, tout, time, dt);
-
-// }
-// //--------------------------------------------------------------
-// //--------------------------------------------------------------    
-// //--------------------------------------------------------------
-// void Output_Data::Output_Preprocessor::particles_py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-//     const Parallel_Environment_1D& PE) {
-
-
-//     size_t Nbc = Input::List().BoundaryCells;
-//     MPI_Status status;
-
-//     int msg_sz(Y.particles().numpar()) ; 
-//     double buf[msg_sz];
-//     vector<double> pGlobal(Y.particles().numpar()); 
-//     vector<double> prtaxis(Y.particles().numpar());
-
-//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-//         buf[ip] = Y.particles().py(ip)* (double (Y.particles().ishere(ip)));
-//     }
-
-
-//     if (PE.MPI_Processes() > 1) {
-//         if (PE.RANK()!=0) {
-//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-//         }
-//         else {
-//             // Fill data for rank = 0
-//             for(size_t i(0); i < msg_sz; i++) {
-//                 pGlobal[i] += buf[i];
-//             }
-//             // Fill data for rank > 0
-//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-//                 for(size_t i(0); i < msg_sz; i++) {
-//                     pGlobal[i] += buf[i];
-//                 }
-//             }
-//         }
-//     }
-//         // Fill data for Nodes = 0
-//     else {
-//         for(size_t i(0); i < msg_sz; i++) {
-//             pGlobal[i] = buf[i];
-//         }
-//     }
-
-//     if (PE.RANK() == 0) expo.Export_h5("prtpy", prtaxis, pGlobal, tout, time, dt);
-
-// }
-// //--------------------------------------------------------------
-// //--------------------------------------------------------------    
-// //--------------------------------------------------------------
-// void Output_Data::Output_Preprocessor::particles_pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-//     const Parallel_Environment_1D& PE) {
-
-
-//     size_t Nbc = Input::List().BoundaryCells;
-//     MPI_Status status;
-
-//     int msg_sz(Y.particles().numpar()) ; 
-//     double buf[msg_sz];
-//     vector<double> pGlobal(Y.particles().numpar()); 
-//     vector<double> prtaxis(Y.particles().numpar());
-
-//     for (int ip(0); ip < Y.particles().numpar(); ++ip) {
-//         buf[ip] = Y.particles().pz(ip)* (double (Y.particles().ishere(ip)));
-//     }
-
-
-//     if (PE.MPI_Processes() > 1) {
-//         if (PE.RANK()!=0) {
-//             MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-//         }
-//         else {
-//             // Fill data for rank = 0
-//             for(size_t i(0); i < msg_sz; i++) {
-//                 pGlobal[i] += buf[i];
-//             }
-//             // Fill data for rank > 0
-//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-//                 MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-//                 for(size_t i(0); i < msg_sz; i++) {
-//                     pGlobal[i] += buf[i];
-//                 }
-//             }
-//         }
-//     }
-//         // Fill data for Nodes = 0
-//     else {
-//         for(size_t i(0); i < msg_sz; i++) {
-//             pGlobal[i] = buf[i];
-//         }
-//     }
-
-//     if (PE.RANK() == 0) expo.Export_h5("prtpz", prtaxis, pGlobal, tout, time, dt);
-
-// }
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::T(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
     const Parallel_Environment_1D& PE) {

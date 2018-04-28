@@ -291,9 +291,6 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 
             // Access
             Grid_Info           gridinfo()                   const   { return grid;}
-            // Array3D<double>&    dist(size_t s, size_t ix)   { return pout3D[s][ix];}
-            // Array3D<double>&    dist(size_t s, size_t ix, size_t iy)   { return pout3D[s][iy*(grid.axis.Nx(0) - 2*Input::List().BoundaryCells)+ix];}
-        
 
         private:
             Grid_Info           grid;  
