@@ -47,14 +47,16 @@ namespace Input{
         double ymin, ymax;
 
         double dt;
+
         bool filterdistribution;
         double filter_dp, filter_pmax;
 
 //          Algorithms
         bool if_tridiagonal;
         bool implicit_E;
-        size_t dbydx_order, dbydy_order;
-        double abs_tol, rel_tol;
+        size_t dbydx_order, dbydy_order, dbydv_order;
+        bool adaptive_dt;
+        double adaptive_tmin, abs_tol, rel_tol;
         size_t max_fails;
         bool relativity;
         bool implicit_B;
@@ -63,6 +65,7 @@ namespace Input{
         int flm_collisions;
         int flm_acc;
         bool ee_bool,ei_bool;
+        int coll_op;
 
         int BoundaryCells;
         
@@ -73,7 +76,7 @@ namespace Input{
         int restart_time;  int n_restarts;
 
 //          Output
-        bool o_EHist;
+        bool o_Exhist, o_Eyhist, o_Ezhist, o_Bxhist, o_Byhist, o_Bzhist;
         bool o_Ex, o_Ey, o_Ez, o_Bx, o_By, o_Bz, o_x1x2, o_pth;
         
         bool o_p1x1, o_p2x1, o_p3x1, o_p1p2x1, o_p1p3x1, o_p2p3x1, o_p1p2p3x1;
@@ -83,6 +86,7 @@ namespace Input{
         bool o_f0x2, o_f10x2, o_f11x2, o_f20x2, o_fl0x2;
 
         bool o_p1x1x2, o_p2x1x2, o_p3x1x2, o_p1p2x1x2, o_p1p3x1x2, o_p2p3x1x2, o_p1p2p3x1x2;
+        bool o_allfs, o_allfs_f2, o_allfs_flogf;
         bool o_f0x1x2, o_f10x1x2, o_f11x1x2, o_f20x1x2, o_fl0x1x2;
 
 
@@ -112,6 +116,7 @@ namespace Input{
         double hydromass, hydrocharge;
         int polarization_direction;
         bool init_f1, init_f2;
+        double flm_noise_window;
         bool MX_cooling;
 
         double super_gaussian_m;        

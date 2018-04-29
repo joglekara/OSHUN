@@ -43,13 +43,49 @@ public:
 };
 //--------------------------------------------------------------
 //--------------------------------------------------------------
+class WaveDriver {
 
+    public:
+        WaveDriver(double xmin, double xmax, size_t Nx,
+            double ymin, double ymax, size_t Ny);
+        // WaveDriver(Grid_Info& grid);
+        ~WaveDriver();
+        void applyexternalfields(State1D& Y, double time);
+        void applyexternalfields(State2D& Y, double time);
+        void applytravelingwave(EMF1D& fields, const double time);
+        void applytravelingwave(State2D& Y, const double time);
+
+    private:
+
+        valarray<double> Ex_profile_ext, Ex_profile_drive; 
+        valarray<double> Ey_profile_ext, Ey_profile_drive; 
+        valarray<double> Ez_profile_ext, Ez_profile_drive; 
+        valarray<double> Bx_profile_ext, Bx_profile_drive; 
+        valarray<double> By_profile_ext, By_profile_drive; 
+        valarray<double> Bz_profile_ext, Bz_profile_drive; 
+
+        Array2D<double> Ex_profile_ext_2D, Ex_profile_drive_2D; 
+        Array2D<double> Ey_profile_ext_2D, Ey_profile_drive_2D; 
+        Array2D<double> Ez_profile_ext_2D, Ez_profile_drive_2D; 
+        Array2D<double> Bx_profile_ext_2D, Bx_profile_drive_2D; 
+        Array2D<double> By_profile_ext_2D, By_profile_drive_2D; 
+        Array2D<double> Bz_profile_ext_2D, Bz_profile_drive_2D; 
+
+        valarray<double> xaxis, yaxis;
+
+        double time_coeff, pulse_start, pulse_end, normalized_time;
+
+        double ex_time_coeff, ey_time_coeff, ez_time_coeff, bx_time_coeff, by_time_coeff, bz_time_coeff;
+        
+    };
 
 namespace Setup_Y {
     // void startmessages(State1D& Y);
 
     void init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, const valarray<double>& x,
     valarray<double>& density, valarray<double>& temperature,const double mass, const valarray<double>& pedestal);
+
+    void init_flm(SHarmonic1D& h);
 
     void init_f1(size_t s, SHarmonic1D& h, const valarray<double>& p, const valarray<double>& x,
     valarray<double>& density, valarray<double>& temperature, valarray<double>& f10x, const SHarmonic1D& f0, const double mass);

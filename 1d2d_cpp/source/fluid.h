@@ -47,7 +47,7 @@
 //          Collect all the operators and apply on Yin
             void operator()(const State1D& Hin, State1D& Hslope);
             void operator()(const State1D& Hin, State1D& Hslope, size_t dir);
-            void operator()(const State1D& H1in, const State1D& H2in, State1D& Hslope);
+            void operator()(const State1D& H1in, State1D& Hslope, double time, double dt);
         private:
             //          Variables
             double idx;

@@ -509,23 +509,53 @@ template<class T> Array2D<T>& Array2D<T>::multid2(const valarray<T>& vmulti){
 //          3 7 11 15 19       -2 -2 -2 -2 19  
 // Requires at least 3 elements in d1 
 template<class T> Array2D<T>& Array2D<T>::Dd1(){
-    for(long i(0); i< long(d1*d2)-2; ++i) {
-        (*v)[i] -= (*v)[i+2];
-    }
-    for(long i(d1*d2-3); i>-1; --i) {
-        (*v)[i+1] = (*v)[i];
-    }
+    // for(long i(0); i< long(d1*d2)-2; ++i) {
+    //     (*v)[i] -= (*v)[i+2];
+    // }
+    // for(long i(d1*d2-3); i>-1; --i) {
+    //     (*v)[i+1] = (*v)[i];
+    // }
+    Array2D<T> temp(*this);
+
+    for (long i2(0); i2<long(d2);++i2)
+    {
+        for (long i1(1); i1<long(d1)-1;++i1)
+        {
+            temp(i1,i2) = (*this)(i1-1,i2);
+            temp(i1,i2) -= (*this)(i1+1,i2);
+        }
+   }
+
+   *this = temp; 
     return *this;
 }
 
 // Requires at least 3 elements in d1 
 template<class T> Array2D<T>& Array2D<T>::Dd1_2nd_order(){
-    for(long i(0); i< long(d1*d2)-2; ++i) {
-        (*v)[i] -= (*v)[i+2];
-    }
-    for(long i(d1*d2-3); i>-1; --i) {
-        (*v)[i+1] = (*v)[i];
-    }
+    // for(long i(0); i< long(d1*d2)-2; ++i) {
+    //     (*v)[i] -= (*v)[i+2];
+    // }
+    // for(long i(d1*d2-3); i>-1; --i) {
+    //     (*v)[i+1] = (*v)[i];
+    // }
+    // return *this;
+    // 
+    Array2D<T> temp(*this);
+
+    for (long i2(0); i2<long(d2);++i2)
+    {
+        temp(0,i2) = (-3.0*(*this)(0,i2) + 4.*(*this)(1,i2) - (*this)(2,i2));
+
+        for (long i1(1); i1<long(d1)-1;++i1)
+        {
+            temp(i1,i2) = (*this)(i1-1,i2);
+            temp(i1,i2) -= (*this)(i1+1,i2);
+        }
+
+        temp(long(d1)-1,i2) = (3.0*(*this)(long(d1)-1,i2) - 4.*(*this)(long(d1)-2,i2) + (*this)(long(d1)-3,i2));
+   }
+
+   *this = temp; 
     return *this;
 }
 
@@ -533,22 +563,29 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_2nd_order(){
 template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 
     Array2D<T> temp(*this);
+    // temp = static_cast<complex<double> > (0.);
 
-    double onesixth(2.0/12.0);
+    complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
+    complex<double> eight(static_cast<complex<double> >(8.));
 
     for (long i2(0); i2<long(d2);++i2)
     {
-        temp(0,i2) = -2.0*((*this)(1,i2)-(*this)(0,i2));
-        temp(1,i2) = -1.0*((*this)(2,i2)-(*this)(0,i2));
+        temp(0,i2) = -1./onesixth*(-3.0*(*this)(0,i2) + 4.*(*this)(1,i2) - (*this)(2,i2));
+        temp(1,i2) = ((*this)(0,i2)-(*this)(2,i2))/onesixth;
 
         for (long i1(2); i1<long(d1)-2;++i1)
         {
-            temp(i1,i2) = -onesixth*(-(*this)(i1+2,i2)+8.0*(*this)(i1+1,i2)-8.0*(*this)(i1-1,i2)+(*this)(i1-2,i2));
+            temp(i1,i2)  = ((*this)(i1+2,i2));
+            temp(i1,i2) -= eight*(*this)(i1+1,i2);
+            temp(i1,i2) += eight*(*this)(i1-1,i2);
+            temp(i1,i2) -= (*this)(i1-2,i2);
         }
         
-        temp(long(d1)-2,i2) = -1.0*((*this)(long(d1)-1,i2)-(*this)(long(d1)-3,i2));
-        temp(long(d1)-1,i2) = -2.0*((*this)(long(d1)-1,i2)-(*this)(long(d1)-2,i2));
+        temp(long(d1)-2,i2) = ((*this)(long(d1)-3,i2)-(*this)(long(d1)-1,i2))/onesixth;
+        temp(long(d1)-1,i2) = -1./onesixth*(3.0*(*this)(long(d1)-1,i2) - 4.*(*this)(long(d1)-2,i2) + (*this)(long(d1)-3,i2));
    }
+
+   temp *= onesixth;
 
    *this = temp; 
     return *this;
@@ -563,23 +600,22 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 template<class T> Array2D<T>& Array2D<T>::Dd2_4th_order(){
     Array2D<T> temp(*this);
 
-    double onesixth(2.0/12.0);
+    complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
+    complex<double> fourthirds(static_cast<complex<double> >(4./3.));
 
-    for (long i1(0); i1<long(d1);++i1)
+    for (long i2(2); i2<long(d2)-2;++i2)
     {
-        temp(i1,0) = -2.0*((*this)(i1,1)-(*this)(i1,0));
-        temp(i1,1) = -1.0*((*this)(i1,2)-(*this)(i1,0));
-
-        for (long i2(2); i2<long(d2)-2;++i2)
+        for (long i1(0); i1<long(d1);++i1)
         {
-            temp(i1,i2) = -onesixth*(-(*this)(i1,i2+2)+8.0*(*this)(i1,i2+1)-8.0*(*this)(i1,i2-1)+(*this)(i1,i2-2));
+            temp(i1,i2)  = onesixth*((*this)(i1,i2+2));
+            temp(i1,i2) -= fourthirds*(*this)(i1,i2+1);
+            temp(i1,i2) += fourthirds*(*this)(i1,i2-1);
+            temp(i1,i2) -= onesixth*(*this)(i1,i2-2);         
         }
-
-        temp(i1,long(d2)-2) = -1.0*((*this)(i1,long(d2)-1)-(*this)(i1,long(d2)-3));
-        temp(i1,long(d2)-1) = -2.0*((*this)(i1,long(d2)-1)-(*this)(i1,long(d2)-2));
    }
 
    *this = temp; 
+   
     return *this;
    ////////////////// ////////////////// //////////////////
 }
@@ -596,19 +632,32 @@ template<class T> Array2D<T>& Array2D<T>::Dd2_2nd_order(){
     /// 
    // std::cout << "\n d1*d2-twod1 = " << long(d1*d2)-2*d1 << "\n";
 
-   long twod1(2*d1);
-    for(long i(0); i< long(d1*d2)-twod1; ++i) {
-        // std::cout << "v[" << i << "] = " << (*v)[i] 
-        // <<  ", v[" << i+twod1 << "] = " << (*v)[i+twod1] << "\n";
+   // long twod1(2*d1);
+   //  for(long i(0); i< long(d1*d2)-twod1; ++i) {
+   //      // std::cout << "v[" << i << "] = " << (*v)[i] 
+   //      // <<  ", v[" << i+twod1 << "] = " << (*v)[i+twod1] << "\n";
 
-        (*v)[i] -= (*v)[i+twod1];
-    }
+   //      (*v)[i] -= (*v)[i+twod1];
+   //  }
     
-    for(long i(d1*d2-twod1-1); i>-1; --i) {
-        (*v)[i+d1] = (*v)[i];
-    }
+   //  for(long i(d1*d2-twod1-1); i>-1; --i) {
+   //      (*v)[i+d1] = (*v)[i];
+   //  }
+   //  return *this;
+   //  
+    Array2D<T> temp(*this);
+
+    for (long i2(1); i2<long(d2)-1;++i2)
+    {
+        for (long i1(0); i1<long(d1);++i1)
+        {    
+            temp(i1,i2) = (*this)(i1,i2-1);
+            temp(i1,i2) -= (*this)(i1,i2+1);
+        }
+   }
+
+   *this = temp; 
     return *this;
-   ////////////////// ////////////////// //////////////////
 }
 //--------------------------------------------------------------
 

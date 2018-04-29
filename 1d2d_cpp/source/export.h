@@ -156,6 +156,11 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
               const vector< string > oTags,
               string homedir=""); 
 
+            void Append_h5(const std::string tag, std::vector<double> &axis1, 
+                std::vector<double> &data, 
+                const size_t step, const double time, const double dt,
+                const int spec = -1);
+
             void Export_h5(const std::string tag, std::vector<double> &axis1, 
                 std::vector<double> &data, 
                 const size_t step, const double time, const double dt,
@@ -223,8 +228,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         class PLegendre2D {
         public:
 //      Constructors/Destructors
-            PLegendre2D(size_t Nl, size_t Nm, double pmax,
-             valarray<double> px , valarray<double> py);
+            PLegendre2D(size_t Nl, size_t Nm, valarray<double> px , valarray<double> p);
             PLegendre2D(const PLegendre2D& other);
             ~PLegendre2D();
 
@@ -243,14 +247,14 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 //  This class converts the state Y at a specific location
 //  "x0" and calculates the integral \int\int f*dpy*dpz 
 //--------------------------------------------------------------
-        class fulldistvsposition {
+        class fulldist {
 //--------------------------------------------------------------        
         public:
             // Constructor/Destructor
-            fulldistvsposition(const Grid_Info& _G);
+            fulldist(const Grid_Info& _G);
         
 
-            ~fulldistvsposition();
+            ~fulldist();
 
             // 1P at a single point
             valarray<double> p1(DistFunc1D& df, size_t x0, size_t s) ;
@@ -261,7 +265,7 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
             Array2D<double> p1p2(DistFunc1D& df, size_t x0, size_t s) ;
             Array2D<double> p2p3(DistFunc1D& df, size_t x0, size_t s) ;
             Array2D<double> p1p3(DistFunc1D& df, size_t x0, size_t s) ;
-            Array3D<double> p1p2p3(DistFunc1D& df, size_t x0, size_t s) ;
+            void p1p2p3(DistFunc1D& df, size_t x0, size_t s) ;
 
             // 1P, integrate over x or y
             // valarray<double> p1(size_t integrationdimension, DistFunc2D& df, size_t x0, size_t s) ;
@@ -286,25 +290,25 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
             // Array3D<double> p1p2p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) ;
 
             // Access
-            Grid_Info           gridinfo()              const   { return grid;}
-        
+            Grid_Info           gridinfo()                   const   { return grid;}
 
         private:
             Grid_Info           grid;  
 
             vector<vector<double> >    pvec;
-            vector<valarray<double> >  pxvec,pyvec,pzvec;
-            
+            // vector<valarray<double> >  pxvec,pyvec,pzvec;
+            vector<Array2D<double> >    p_cylindrical_polar_radius_squared;
+            vector<Array2D<double> >    px_over_p;
 
-            vector< PLegendre2D     >  PL2D;
-            vector< valarray<double>  >  pout1D_p1, pout1D_p2, pout1D_p3;
-            vector< Array2D<double>  >  pout2D_p1p2, pout2D_p1p3, pout2D_p2p3;
-            vector< Array3D<double>  >  pout3D;
+            // vector< PLegendre2D     >  PL2D;
+            // vector< valarray<double>  >  pout1D_p1, pout1D_p2, pout1D_p3;
+            // vector< Array2D<double>  >  pout2D_p1p2, pout2D_p1p3, pout2D_p2p3;
+            // vector< vector<Array3D<double> > >  pout3D;
 
             // Interpolation quantities
-            vector< Array3D<double>  >  pradius;
-            vector< Array2D<double>  >  phi;
-            vector< valarray<double> >            dpx,dpy,dpz;
+            // vector< Array3D<double>  >  pradius;
+            // vector< Array2D<double>  >  phi;
+            // vector< valarray<double> >            dpx,dpy,dpz;
         };
 //--------------------------------------------------------------
 
@@ -333,16 +337,16 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 //      Access
             size_t Species()         const { return nump.size(); }
             size_t Np(size_t s)     const  { return nump[s]; }
-            double  Pmin(size_t s)    const  { return pmin[s]; }
-            double  Pmax(size_t s)    const  { return pmax[s]; }
+            // double  Pmin(size_t s)    const  { return pmin[s]; }
+            // double  Pmax(size_t s)    const  { return pmax[s]; }
             // valarray<double> Dp(size_t s) const {return deltap[s];}
-            valarray<double> paxis(size_t s) const {return pvec[s];}
+            // valarray<double> paxis(size_t s) const {return pvec[s];}
 
         private:
-           vector<double> pmin, pmax;
+           // vector<double> pmin, pmax;
            vector<double> nump;
            // vector<valarray<double> > deltap;
-           vector<valarray<double> > pvec;
+           // vector<valarray<double> > pvec;
 
        };
 //--------------------------------------------------------------
@@ -373,10 +377,13 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         void bigdistdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
             const Parallel_Environment_2D& PE);
 
+        void histdump(vector<valarray<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE, std::string tag);
+
     private:
         size_t                          Nbc;
         Export_Files::Xport             expo;
-        fulldistvsposition              p_x;
+        fulldist                        p_x;
         harmonicvsposition              f_x;
         vector< string >                oTags;
         
@@ -435,8 +442,16 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
          const Parallel_Environment_2D& PE);
 
         // Full distribution
+        void make_fp1p2p3(const State1D& Y, const Grid_Info& grid);
         void pxpypz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
          const Parallel_Environment_1D& PE);
+        void allfs(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE);
+        void allfs_f2(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE);
+        void allfs_flogf(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE);
+
 
         // Raw distributions
         void f0(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
@@ -486,14 +501,14 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
 
 
         // Particle tracker
-        void particles_x(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
-        void particles_px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
-        void particles_py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
-        void particles_pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-            const Parallel_Environment_1D& PE);
+        // void particles_x(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
+        // void particles_px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
+        // void particles_py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
+        // void particles_pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+        //     const Parallel_Environment_1D& PE);
 
         // f1 moments
         void Jx(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,

@@ -70,6 +70,7 @@ public:
     SHarmonic1D& operator*=(const SHarmonic1D& shmulti);
     SHarmonic1D& operator+=(const complex<double> & d);
     SHarmonic1D& operator+=(const SHarmonic1D& shadd);
+    // SHarmonic1D& operator+=(const thrust::host_vector<double>& thadd);
     SHarmonic1D& operator-=(const complex<double> & d);
     SHarmonic1D& operator-=(const SHarmonic1D& shmin);
 
@@ -419,10 +420,11 @@ public:
     DistFunc1D& operator-=(const DistFunc1D& other);
 
 //      Filter
-    DistFunc1D& Filterp();
+    void Filterp();
 
 //      Debug
     void checknan();
+    void checknan() const;
 };
 //--------------------------------------------------------------------------------
 /** @} */
@@ -654,72 +656,72 @@ public:
  *   
  *   
 */
-class Particle1D {
-//-------------------------------------------------------------------
-private:
+// class Particle1D {
+// //-------------------------------------------------------------------
+// private:
     
-    valarray<double>  *par_posX, *par_momX, *par_momY, *par_momZ;
-    valarray<bool>    *par_ishere;
-    valarray<int>     *par_goingright;
+//     valarray<double>  *par_posX, *par_momX, *par_momY, *par_momZ;
+//     valarray<bool>    *par_ishere;
+//     valarray<int>     *par_goingright;
 
-    double particlemass, particlecharge;
+//     double particlemass, particlecharge;
 
-public:
-//      Constructors/Destructors
-    Particle1D(size_t numparticles, double _mass, double _charge);
-    Particle1D(const Particle1D& other);
-    ~Particle1D();
+// public:
+// //      Constructors/Destructors
+//     Particle1D(size_t numparticles, double _mass, double _charge);
+//     Particle1D(const Particle1D& other);
+//     ~Particle1D();
 
-//      Access to the underlying matrix
-    // valarray<complex<double> >& array() const {return (*fi);}
-    size_t numpar() const {return (*par_posX).size();}
-    double mass() const {return particlemass;}
-    double charge() const {return particlecharge;}
+// //      Access to the underlying matrix
+//     // valarray<complex<double> >& array() const {return (*fi);}
+//     size_t numpar() const {return (*par_posX).size();}
+//     double mass() const {return particlemass;}
+//     double charge() const {return particlecharge;}
 
-    // void Dx_vel(valarray<complex<double>>& vin);
-    double & x(size_t i){ return (*par_posX)[i];}             //1D-style
-    double   x(size_t i) const {return (*par_posX)[i];}
+//     // void Dx_vel(valarray<complex<double>>& vin);
+//     double & x(size_t i){ return (*par_posX)[i];}             //1D-style
+//     double   x(size_t i) const {return (*par_posX)[i];}
 
-    double & px(size_t i){ return (*par_momX)[i];}
-    double   px(size_t i) const {return (*par_momX)[i];}
+//     double & px(size_t i){ return (*par_momX)[i];}
+//     double   px(size_t i) const {return (*par_momX)[i];}
 
-    double & py(size_t i){ return (*par_momY)[i];}
-    double   py(size_t i) const {return (*par_momY)[i];}
+//     double & py(size_t i){ return (*par_momY)[i];}
+//     double   py(size_t i) const {return (*par_momY)[i];}
 
-    double & pz(size_t i){ return (*par_momZ)[i];}
-    double   pz(size_t i) const {return (*par_momZ)[i];}
+//     double & pz(size_t i){ return (*par_momZ)[i];}
+//     double   pz(size_t i) const {return (*par_momZ)[i];}
 
-    bool   & ishere(size_t i){ return (*par_ishere)[i];}             //1D-style
-    bool     ishere(size_t i) const {return (*par_ishere)[i];}
+//     bool   & ishere(size_t i){ return (*par_ishere)[i];}             //1D-style
+//     bool     ishere(size_t i) const {return (*par_ishere)[i];}
 
-    int   & goingright(size_t i){ return (*par_goingright)[i];}             //1D-style
-    int     goingright(size_t i) const {return (*par_goingright)[i];}
+//     int   & goingright(size_t i){ return (*par_goingright)[i];}             //1D-style
+//     int     goingright(size_t i) const {return (*par_goingright)[i];}
 
-    valarray<double >& par_posX_array()       const {return (*par_posX);}
-    valarray<double >& par_momX_array()            const {return (*par_momX);}
-    valarray<double >& par_momY_array()            const {return (*par_momY);}
-    valarray<double >& par_momZ_array()            const {return (*par_momZ);}
-    valarray<bool >& par_ishere_array()   const {return (*par_ishere);}
-    valarray<int >& par_goingright_array()   const {return (*par_goingright);}
+//     valarray<double >& par_posX_array()       const {return (*par_posX);}
+//     valarray<double >& par_momX_array()            const {return (*par_momX);}
+//     valarray<double >& par_momY_array()            const {return (*par_momY);}
+//     valarray<double >& par_momZ_array()            const {return (*par_momZ);}
+//     valarray<bool >& par_ishere_array()   const {return (*par_ishere);}
+//     valarray<int >& par_goingright_array()   const {return (*par_goingright);}
 
-//      Operators
-    Particle1D& operator=(const double & d);
-    Particle1D& operator=(const valarray<double >& other);
-    Particle1D& operator=(const Particle1D& other);
+// //      Operators
+//     Particle1D& operator=(const double & d);
+//     Particle1D& operator=(const valarray<double >& other);
+//     Particle1D& operator=(const Particle1D& other);
 
-    Particle1D& operator*=(const double & d);
-    Particle1D& operator*=(const valarray<double >& other);
-    Particle1D& operator*=(const Particle1D& other);
+//     Particle1D& operator*=(const double & d);
+//     Particle1D& operator*=(const valarray<double >& other);
+//     Particle1D& operator*=(const Particle1D& other);
 
-    Particle1D& operator+=(const double & d);
-    Particle1D& operator+=(const valarray<double >& other);
-    Particle1D& operator+=(const Particle1D& other);
+//     Particle1D& operator+=(const double & d);
+//     Particle1D& operator+=(const valarray<double >& other);
+//     Particle1D& operator+=(const Particle1D& other);
 
-    Particle1D& operator-=(const double & d);
-    Particle1D& operator-=(const valarray<double >& other);
-    Particle1D& operator-=(const Particle1D& other);
+//     Particle1D& operator-=(const double & d);
+//     Particle1D& operator-=(const valarray<double >& other);
+//     Particle1D& operator-=(const Particle1D& other);
 
-};
+// };
 
 /** \addtogroup st1d
  *  @{
@@ -732,7 +734,7 @@ private:
     vector<DistFunc1D> *sp;
     EMF1D *flds;
     Hydro1D *hydro;
-    Particle1D *prtcls;
+    // Particle1D *prtcls;
     size_t ns;
 
 public:
@@ -740,8 +742,8 @@ public:
     State1D(size_t nx, vector<size_t> l0, vector<size_t> m0, 
         vector<valarray<double> > dp, 
         vector<double> q, vector<double> ma, 
-        double hydromass, double hydrocharge,// double filter_dp, double filter_pmax,
-        size_t numparticles, double particlemass, double particlecharge);
+        double hydromass, double hydrocharge);//,// double filter_dp, double filter_pmax,
+        // size_t numparticles, double particlemass, double particlecharge);
     State1D(const State1D& other);
     ~State1D();
 
@@ -749,6 +751,7 @@ public:
     size_t Species() const {return ns;}
     size_t Fields() const  {return 6;}
     void   checknan();
+    void   checknan() const;
 
 //      Access to underlying structures
 //          Distributions
@@ -769,8 +772,8 @@ public:
     Hydro1D&  HYDRO() const   {return (*hydro);}
 
     //      Particles
-    Particle1D&  particles()         {return (*prtcls);}
-    Particle1D&  particles() const   {return (*prtcls);}
+    // Particle1D&  particles()         {return (*prtcls);}
+    // Particle1D&  particles() const   {return (*prtcls);}
 
     //      Copy assignment Operator
     State1D& operator=(const State1D& other);

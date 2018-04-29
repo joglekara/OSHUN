@@ -15,17 +15,17 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cfloat>
-
 #include <math.h>
 // #include <boost/math/special_functions/bessel.hpp>
 #include <map>
+#include <mpi.h>
 
 //  My libraries
 #include "lib-array.h"
 #include "lib-algorithms.h"
 #include "external/exprtk.hpp"
 
-//  Declerations
+//  Declarations
 #include "input.h"
 #include "state.h"
 #include "formulary.h"
@@ -34,16 +34,242 @@
 
 //**************************************************************
 //**************************************************************
+WaveDriver::WaveDriver(double xmin, double xmax, size_t Nx,
+            double ymin, double ymax, size_t Ny):
+
+    Ex_profile_ext(Nx), Ex_profile_drive(Nx),
+    Ey_profile_ext(Nx), Ey_profile_drive(Nx), 
+    Ez_profile_ext(Nx), Ez_profile_drive(Nx), 
+    Bx_profile_ext(Nx), Bx_profile_drive(Nx), 
+    By_profile_ext(Nx), By_profile_drive(Nx), 
+    Bz_profile_ext(Nx), Bz_profile_drive(Nx),
+
+    Ex_profile_ext_2D(Nx,Ny), Ex_profile_drive_2D(Nx,Ny),
+    Ey_profile_ext_2D(Nx,Ny), Ey_profile_drive_2D(Nx,Ny), 
+    Ez_profile_ext_2D(Nx,Ny), Ez_profile_drive_2D(Nx,Ny), 
+    Bx_profile_ext_2D(Nx,Ny), Bx_profile_drive_2D(Nx,Ny), 
+    By_profile_ext_2D(Nx,Ny), By_profile_drive_2D(Nx,Ny), 
+    Bz_profile_ext_2D(Nx,Ny), Bz_profile_drive_2D(Nx,Ny),
+
+    xaxis(Algorithms::MakeCAxis(xmin,xmax,Nx)), yaxis(Algorithms::MakeCAxis(ymin,ymax,Ny)),
+
+    time_coeff(0.),pulse_start(0.),pulse_end(0.),normalized_time(0.),
+    ex_time_coeff(0.),ey_time_coeff(0.),ez_time_coeff(0.),bx_time_coeff(0.), by_time_coeff(0.), bz_time_coeff(0.)
+{
+    // for (size_t ix(0); ix < Nx; ++ix)
+    // {
+    //     std::cout << "\n xaxis[" << ix << "] = " << xaxis[ix];
+    
+    // }
+
+    // exit(1);
+
+}
+/// ------------------------------------------------
+WaveDriver::~WaveDriver(){}
+/// ------------------------------------------------
+void WaveDriver::applyexternalfields(State1D& Y, double time)
+{
+    Parser::parseprofile(xaxis, Input::List().ex_profile_str, Ex_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().ey_profile_str, Ey_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().ez_profile_str, Ez_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().bx_profile_str, Bx_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().by_profile_str, By_profile_ext);
+    Parser::parseprofile(xaxis, Input::List().bz_profile_str, Bz_profile_ext);
+
+    Parser::parseprofile(time, Input::List().ex_time_profile_str, ex_time_coeff);
+    Parser::parseprofile(time, Input::List().ey_time_profile_str, ey_time_coeff);
+    Parser::parseprofile(time, Input::List().ez_time_profile_str, ez_time_coeff);
+    Parser::parseprofile(time, Input::List().bx_time_profile_str, bx_time_coeff);
+    Parser::parseprofile(time, Input::List().by_time_profile_str, by_time_coeff);
+    Parser::parseprofile(time, Input::List().bz_time_profile_str, bz_time_coeff);
+
+    for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+    {
+        if (ex_time_coeff > 1e-20) Y.EMF().Ex()(ix) = Ex_profile_ext[ix]*ex_time_coeff;
+        if (ey_time_coeff > 1e-20) Y.EMF().Ey()(ix) = Ey_profile_ext[ix]*ey_time_coeff;
+        if (ez_time_coeff > 1e-20) Y.EMF().Ez()(ix) = Ez_profile_ext[ix]*ez_time_coeff;
+        if (bx_time_coeff > 1e-20) Y.EMF().Bx()(ix) = Bx_profile_ext[ix]*bx_time_coeff;
+        if (by_time_coeff > 1e-20) Y.EMF().By()(ix) = By_profile_ext[ix]*by_time_coeff;
+        if (bz_time_coeff > 1e-20) Y.EMF().Bz()(ix) = Bz_profile_ext[ix]*bz_time_coeff;
+
+    }
+}
+/// ------------------------------------------------
+void WaveDriver::applyexternalfields(State2D& Y, double time)
+{
+    Parser::parseprofile(xaxis, yaxis, Input::List().ex_profile_str, Ex_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().ey_profile_str, Ey_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().ez_profile_str, Ez_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().bx_profile_str, Bx_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().by_profile_str, By_profile_ext_2D);
+    Parser::parseprofile(xaxis, yaxis, Input::List().bz_profile_str, Bz_profile_ext_2D);
+
+    Parser::parseprofile(time, Input::List().ex_time_profile_str, ex_time_coeff);
+    Parser::parseprofile(time, Input::List().ey_time_profile_str, ey_time_coeff);
+    Parser::parseprofile(time, Input::List().ez_time_profile_str, ez_time_coeff);
+    Parser::parseprofile(time, Input::List().bx_time_profile_str, bx_time_coeff);
+    Parser::parseprofile(time, Input::List().by_time_profile_str, by_time_coeff);
+    Parser::parseprofile(time, Input::List().bz_time_profile_str, bz_time_coeff);
+
+    for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+    {
+        for (size_t iy(0);iy<Y.SH(0,0,0).numy();++iy)
+        {
+            if (ex_time_coeff > 1e-20) Y.EMF().Ex()(ix,iy) = Ex_profile_ext_2D(ix,iy)*ex_time_coeff;
+            if (ey_time_coeff > 1e-20) Y.EMF().Ey()(ix,iy) = Ey_profile_ext_2D(ix,iy)*ey_time_coeff;
+            if (ez_time_coeff > 1e-20) Y.EMF().Ez()(ix,iy) = Ez_profile_ext_2D(ix,iy)*ez_time_coeff;
+            if (bx_time_coeff > 1e-20) Y.EMF().Bx()(ix,iy) = Bx_profile_ext_2D(ix,iy)*bx_time_coeff;
+            if (by_time_coeff > 1e-20) Y.EMF().By()(ix,iy) = By_profile_ext_2D(ix,iy)*by_time_coeff;
+            if (bz_time_coeff > 1e-20) Y.EMF().Bz()(ix,iy) = Bz_profile_ext_2D(ix,iy)*bz_time_coeff;
+        }
+
+    }
+}
+/// ------------------------------------------------
+void WaveDriver::applytravelingwave(EMF1D& fields, const double time)
+{
+    // std::cout << "\n time = " << time;
+    for (size_t n(0); n < Input::List().num_waves; ++n)
+    {
+        // std::cout << "\n10\n";
+        /// Parser::parse the strings
+        Parser::parseprofile(xaxis, time, Input::List().ex_wave_profile_str[n], Ex_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().ey_wave_profile_str[n], Ey_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().ez_wave_profile_str[n], Ez_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().bx_wave_profile_str[n], Bx_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().by_wave_profile_str[n], By_profile_drive);
+        Parser::parseprofile(xaxis, time, Input::List().bz_wave_profile_str[n], Bz_profile_drive);
+
+        time_coeff = -1.0;
+        pulse_start = Input::List().trav_wave_center[n] -
+                        Input::List().trav_wave_flat[n]*0.5 -
+                        Input::List().trav_wave_rise[n];
+        pulse_end = Input::List().trav_wave_center[n] +
+                        Input::List().trav_wave_flat[n]*0.5 +
+                        Input::List().trav_wave_fall[n] ;
+
+        normalized_time = 0.0;
+        
+        if (time >= pulse_start && time <= pulse_end)
+        {
+            if (time < Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - pulse_start)/ Input::List().trav_wave_rise[n];
+
+                time_coeff  = 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 15.0 * pow(normalized_time,4.0);
+                time_coeff += 10.0 * pow(normalized_time,3.0);
+            }
+            else if (time >= Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n] &&
+                time <= Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                time_coeff = 1.0;
+            }
+            else if (time > Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - (Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n]))
+                / Input::List().trav_wave_fall[n];
+
+                time_coeff  = 15.0 * pow(normalized_time,4.0);
+                time_coeff -= 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 10.0 * pow(normalized_time,3.0);
+                time_coeff += 1.0;
+            }
+
+            for (size_t ix(0);ix<xaxis.size();++ix)
+            {
+                fields.Ex()(ix) += Ex_profile_drive[ix]*time_coeff;
+                fields.Ey()(ix) += Ey_profile_drive[ix]*time_coeff;
+                fields.Ez()(ix) += Ez_profile_drive[ix]*time_coeff;
+                fields.Bx()(ix) += Bx_profile_drive[ix]*time_coeff;
+                fields.By()(ix) += By_profile_drive[ix]*time_coeff;
+                fields.Bz()(ix) += Bz_profile_drive[ix]*time_coeff;
+            }
+        }
+    }
+}
+//---------------------------------------------------------------------------
+void WaveDriver::applytravelingwave(State2D& Y, const double time)
+{
+
+    for (size_t n(0); n < Input::List().num_waves; ++n)
+    {
+
+        /// Parser::parse the strings
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().ex_wave_profile_str[n], Ex_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().ey_wave_profile_str[n], Ey_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().ez_wave_profile_str[n], Ez_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().bx_wave_profile_str[n], Bx_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().by_wave_profile_str[n], By_profile_drive_2D);
+        Parser::parseprofile(xaxis, yaxis, time, Input::List().bz_wave_profile_str[n], Bz_profile_drive_2D);
+
+
+        time_coeff = -1.0;
+
+        pulse_start = Input::List().trav_wave_center[n] -
+                        Input::List().trav_wave_flat[n]*0.5 -
+                        Input::List().trav_wave_rise[n];
+
+        pulse_end = Input::List().trav_wave_center[n] +
+                        Input::List().trav_wave_flat[n]*0.5 +
+                        Input::List().trav_wave_fall[n] ;
+
+        normalized_time = 0.0;
+        
+        
+        if (time >= pulse_start && time <= pulse_end)
+        {
+        
+            if (time < Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - pulse_start)/ Input::List().trav_wave_rise[n];
+
+                time_coeff  = 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 15.0 * pow(normalized_time,4.0);
+                time_coeff += 10.0 * pow(normalized_time,3.0);
+            }
+            else if (time >= Input::List().trav_wave_center[n] - 0.5*Input::List().trav_wave_flat[n] &&
+                time <= Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                time_coeff = 1.0;
+            }
+            else if (time > Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n])
+            {
+                normalized_time = (time - (Input::List().trav_wave_center[n] + 0.5*Input::List().trav_wave_flat[n]))
+                / Input::List().trav_wave_fall[n];
+
+                time_coeff  = 15.0 * pow(normalized_time,4.0);
+                time_coeff -= 6.0 * pow(normalized_time,5.0);
+                time_coeff -= 10.0 * pow(normalized_time,3.0);
+                time_coeff += 1.0;
+            }
+
+            for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+            {
+                for (size_t iy(0);iy<Y.SH(0,0,0).numy();++iy)
+                {
+                    Y.EMF().Ex()(ix,iy) += Ex_profile_drive_2D(ix,iy)*time_coeff;
+                    Y.EMF().Ey()(ix,iy) += Ey_profile_drive_2D(ix,iy)*time_coeff;
+                    Y.EMF().Ez()(ix,iy) += Ez_profile_drive_2D(ix,iy)*time_coeff;
+                    Y.EMF().Bx()(ix,iy) += Bx_profile_drive_2D(ix,iy)*time_coeff;
+                    Y.EMF().By()(ix,iy) += By_profile_drive_2D(ix,iy)*time_coeff;
+                    Y.EMF().Bz()(ix,iy) += Bz_profile_drive_2D(ix,iy)*time_coeff;
+                }
+            }
+        }
+    }
+}
 //--------------------------------------------------------------
 void Setup_Y::applyexternalfields(Grid_Info &grid, State1D& Y, double time)
 {
 
-    valarray<double> Ex_profile( grid.axis.Nx(0));
-    valarray<double> Ey_profile( grid.axis.Nx(0));
-    valarray<double> Ez_profile( grid.axis.Nx(0));
-    valarray<double> Bx_profile( grid.axis.Nx(0));
-    valarray<double> By_profile( grid.axis.Nx(0));
-    valarray<double> Bz_profile( grid.axis.Nx(0));
+    valarray<double> Ex_profile( grid.axis.Nx(0) );
+    valarray<double> Ey_profile( grid.axis.Nx(0) );
+    valarray<double> Ez_profile( grid.axis.Nx(0) );
+    valarray<double> Bx_profile( grid.axis.Nx(0) );
+    valarray<double> By_profile( grid.axis.Nx(0) );
+    valarray<double> Bz_profile( grid.axis.Nx(0) );
 
     double ex_time_coeff(0.0);
     double ey_time_coeff(0.0);
@@ -312,6 +538,9 @@ void Setup_Y::initialize(State1D &Y, Grid_Info &grid){
         // Parser::parseprofile(grid.axis.x(0), Input::List().f_pedestal[s], pedestal_profile);
         // std::cout << "\n14\n";
         init_f0(s, Y.SH(s,0,0), grid.axis.p(s), grid.axis.x(0), dens_profile, temp_profile, Y.DF(s).mass(), pedestal_profile);
+
+        for (size_t i(1); i < Y.DF(s).dim(); ++i)
+            init_flm(Y.DF(s)(i));
         // std::cout << "\n15\n";
         if (Input::List().init_f1) init_f1(s, Y.SH(s,1,0), grid.axis.p(s), grid.axis.x(0), dens_profile, temp_profile, f10x_profile, Y.SH(s,0,0), Y.DF(s).mass());
         
@@ -395,14 +624,6 @@ void Setup_Y::initialize(State2D &Y, Grid_Info &grid){
 
     }
 
-    // for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
-    // {
-    //     for (size_t iy(0);iy<Y.SH(0,0,0).numy();++iy)
-    //     {
-
-    //         std::cout << "T[" << ix << "," << iy << "] = " << temp_profile(ix,iy) << "\n";
-    //     }
-    // }
     
 //      - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //      - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -472,6 +693,8 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
             // New formulation for temperature distribution and super-Gaussians
             h(k,j) = coefftemp*exp(-1.0*pow((p[k])/alpha/sqrt(2.0*temperature[j]*mass),m));
             h(k,j)+= pedestal[j];
+
+            // h(k,j) = sin(2*M_PI*k/7.);
             // std::cout << "f0[" << p[k] << "] = " << exp(-1.0*pow((p[k])/alpha/sqrt(2.0*temperature[j]*mass),m)) << "\n";
             // 
             // Maxwell-Jutner distribution
@@ -517,6 +740,9 @@ void Setup_Y:: init_f0(size_t s, SHarmonic2D& h, const valarray<double>& p, cons
                 // New formulation for temperature distribution and super-Gaussians
                 h(k,ix,iy) = coefftemp*exp(-1.0*pow((p[k])/alpha/sqrt(2.0*temperature(ix,iy)*mass),m));
                 h(k,ix,iy)+= pedestal(ix,iy);
+
+                // h(k,ix,iy) = 1+k;
+                // h(k,ix,iy)+= pedestal(ix,iy);
                 // std::cout << "f0[" << ix << "," << iy << "," << p[k] << "] = " << h(k,ix,iy) << "\n";
                 // 
                 // Maxwell-Jutner distribution
@@ -555,13 +781,37 @@ void Setup_Y:: init_f1(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
     coeff = m/alpha/alpha/alpha/tgamma(3.0/m);
     coeff *= sqrt(M_PI)/4.0;
 
-
-    for (int j(0); j < h.numx(); ++j){
-
+    for (int j(0); j < h.numx(); ++j)
+    {
         coefftemp = coeff*density[j]/pow(2.0*M_PI*temperature[j]*mass,1.5)*f10x[j];
-        for (int k(0); k < h.nump(); ++k){
+        for (int k(0); k < h.nump(); ++k)
+        {
             // New formulation for temperature distribution and super-Gaussians
-            h(k,j) = idp*df0(k,j)*pow(p[k],3.0)*f10x[j];
+            h(k,j) = idp*df0(k,j)*f10x[j];
+        }
+    }
+}
+//----------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------------
+/**
+ * @brief      To initialize f1 by using the steady state linearized vlasov equation. This menas using
+ *              collision term, v grad f, and E df0/dv term in the VFP equation. This gives f1 = -v^3 * ( v df0/dx - E(x) df/dv)
+ *              Assuming no df0/dx, it gives the result below.
+ */
+//----------------------------------------------------------------------------------------------------------------------------
+void Setup_Y:: init_flm(SHarmonic1D& h)
+{
+//----------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------------------------------------
+    int rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    srand(rank);
+
+    for (int j(0); j < h.numx(); ++j)
+    {
+        for (int k(0); k < h.nump(); ++k)
+        {            
+            h(k,j) = (double(rand())/double(RAND_MAX)-0.5)*Input::List().flm_noise_window;
         }
 
     }

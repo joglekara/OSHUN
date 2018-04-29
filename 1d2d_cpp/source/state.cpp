@@ -36,7 +36,9 @@
 #include "lib-algorithms.h"
 
 // Declerations
+#include "nmethods.h"
 #include "state.h"
+#include "input.h"
 
 //--------------------------------------------------------------
 //  Definition of the 1D spherical harmonic
@@ -121,49 +123,165 @@ SHarmonic1D& SHarmonic1D::Re(){
 //--------------------------------------------------------------
 
 //  P-difference
-SHarmonic1D& SHarmonic1D::Dp(){
+SHarmonic1D& SHarmonic1D::Dp()
+{
     //--------------------------------------------------------//
     //--------------------------------------------------------//
     /// 2nd order
+        
+    
         valarray  <complex<double> >  plast(this->numx());
-
+    
         for (size_t i(0); i < plast.size(); ++i) {
             plast[i] = (*sh)(nump()-2,i) - (*sh)(nump()-1,i);
         }
-        *sh = (*sh).Dd1();
-        for (size_t i(0); i < plast.size(); ++i) {
-          // TODO                The Dp at the zeroth cell is taken care off
-          (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
-            (*sh)(nump()-1,i) = 2.0*plast[i];
+
+        if (Input::List().dbydv_order == 2)
+        {
+            *sh = (*sh).Dd1();
+        }
+        else if (Input::List().dbydv_order == 4)
+        {
+            *sh = (*sh).Dd1_4th_order();
         }
 
-    //--------------------------------------------------------//
-    //--------------------------------------------------------//
-    /// 4th order
-    // Array2D<complex<double> > df((*this).nump(),(*this).numx());
-
-    // for (long i2(0); i2<numx();++i2){
-
-    //     df(0,i2) = (*this)(1,i2)-(*this)(0,i2);
-    //     df(1,i2) = 1.0/12.0*((*this)(4,i2)-6.0*(*this)(3,i2)+18.0*(*this)(2,i2)-10.0*(*this)(1,i2)-3.0*(*this)(0,i2));
-
-    //     for (long i1(2); i1<nump()-2;++i1){
-    //         df(i1,i2) = 1.0/12.0*(-(*this)(i1+2,i2)+8.0*(*this)(i1+1,i2)-8.0*(*this)(i1-1,i2)+(*this)(i1-2,i2));
-    //     }
-
-    //     df(nump()-2,i2) = 0.0; //1.0/12.0*(3.0*(*this)(nump()-1,i2)+10.0*(*this)(nump()-2,i2)-18.0*(*this)(nump()-3,i2)+6.0*(*this)(nump()-4,i2)-(*this)(nump()-5,i2));
-    //     df(nump()-1,i2) = 0.0; //(*this)(nump()-1,i2)-(*this)(nump()-2,i2);
-
-    // }
-
-    // for (long i2(0); i2<numx();++i2) {
-    //     for (long i1(0); i1 < nump(); ++i1) {
-    //         (*this)(i1, i2) = -2.0*df(i1, i2);
-    //     }
-    // }
-
+        // for (size_t i(0); i < plast.size(); ++i) {
+            // TODO                The Dp at the zeroth cell is taken care off
+            // (*sh)(0,i) = 0.0;     //separately, both for the E-field and the collisions.
+            // (*sh)(nump()-1,i) = 2.0*plast[i];
+        // }
+    
     return *this;
 }
+    //--------------------------------------------------------//
+    //--------------------------------------------------------//
+    ///
+
+        // complex<double> seventeensixth(static_cast<complex<double> >(17./6.));
+        // complex<double> onesixth(static_cast<complex<double> >(1./6.));
+
+        // valarray<complex<double> > input(nump());
+        // valarray<complex<double> > output(nump());
+        
+        // Array2D<double> amat(nump(),nump());
+
+        // for (size_t ix(0); ix < numx(); ++ix)
+        // {
+        //     input[0]  = -seventeensixth*(*this)(0,ix);
+        //     input[0] += static_cast<complex<double> >(1.5)*(*this)(1,ix);
+        //     input[0] += static_cast<complex<double> >(1.5)*(*this)(2,ix);
+        //     input[0] -= onesixth*(*this)(3,ix);
+
+        //     amat(0,0) = 1.;
+        //     amat(0,1) = 3.;
+        //     // std::cout << "\n input[" << 0 << "] = " << input[0];
+
+        //     for (size_t ip(1); ip < nump()-1; ++ip)
+        //     {
+        //         input[ip]  = static_cast<complex<double> > (0.75)*(*this)(ip+1,ix);
+        //         input[ip] -= static_cast<complex<double> > (0.75)*(*this)(ip-1,ix);
+        //         amat(ip,ip-1) = 0.25;
+        //         amat(ip,ip+1) = 0.25;
+        //         amat(ip,ip) = 1.;
+        //         // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix); //input[ip];//
+        //     }
+
+            
+        //     input[nump()-1]  = seventeensixth*(*this)(nump()-1,ix);
+        //     input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-2,ix);
+        //     input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-3,ix);
+        //     input[nump()-1] += onesixth*(*this)(nump()-4,ix);
+        //     amat(nump()-1,nump()-1) = 1.;
+        //     amat(nump()-1,nump()-2) = 3.;
+
+        //     Thomas_Tridiagonal(amat,input,output);
+
+        //     for (size_t ip(0); ip < nump(); ++ip)
+        //     {
+        //         (*this)(ip,ix) = static_cast<complex<double> > (-2.)*output[ip];
+        //     }
+        // }
+        
+
+    // }
+    // else if (Input::List().dbydv_order == 6)
+    // {
+    //     valarray<complex<double> > input(nump());
+    //     valarray<complex<double> > output(nump());
+        
+    //     Array2D<double> amat(nump(),nump());
+
+    //     for (size_t ix(0); ix < numx(); ++ix)
+    //     {
+    //         input[0]  = static_cast<complex<double> >(-197./60.)*(*this)(0,ix);
+    //         input[0] += static_cast<complex<double> >(-5./12.)*(*this)(1,ix);
+    //         input[0] += static_cast<complex<double> >(5.)*(*this)(2,ix);
+    //         input[0] += static_cast<complex<double> >(-5./3.)*(*this)(3,ix);
+    //         input[0] += static_cast<complex<double> >(5./12.)*(*this)(4,ix);
+    //         input[0] += static_cast<complex<double> >(-1./20.)*(*this)(5,ix);
+            
+    //         input[1]  = static_cast<complex<double> >(-43./96.)*(*this)(0,ix);
+    //         input[1] += static_cast<complex<double> >(-5./6.)*(*this)(1,ix);
+    //         input[1] += static_cast<complex<double> >(9./8.)*(*this)(2,ix);
+    //         input[1] += static_cast<complex<double> >(1./6.)*(*this)(3,ix);
+    //         input[1] += static_cast<complex<double> >(-1./96.)*(*this)(4,ix);
+
+    //         amat(0,0) = 1.;
+    //         amat(0,1) = 5.;
+    //         amat(1,0) = 0.125;
+    //         amat(1,1) = 1.;
+    //         amat(1,2) = 0.25;
+
+
+    //         // std::cout << "\n input[" << 0 << "] = " << input[0];
+
+    //         for (size_t ip(2); ip < nump()-2; ++ip)
+    //         {
+    //             input[ip]  = static_cast<complex<double> > (14./18.)*(*this)(ip+1,ix);
+    //             input[ip] -= static_cast<complex<double> > (14./18.)*(*this)(ip-1,ix);
+    //             input[ip] += static_cast<complex<double> > (1./36.)*(*this)(ip+2,ix);
+    //             input[ip] -= static_cast<complex<double> > (1./36.)*(*this)(ip-2,ix);
+                
+    //             amat(ip,ip-1) = 1./3.;
+    //             amat(ip,ip+1) = 1./3.;
+    //             amat(ip,ip)   = 1.;
+
+    //             // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix); //input[ip];//
+    //         }
+
+    //         input[nump()-2]  = static_cast<complex<double> >(43./96.)*(*this)(nump()-1,ix);
+    //         input[nump()-2] += static_cast<complex<double> >(5./6.)*(*this)(nump()-2,ix);
+    //         input[nump()-2] += static_cast<complex<double> >(-9./8.)*(*this)(nump()-3,ix);
+    //         input[nump()-2] += static_cast<complex<double> >(-1./6.)*(*this)(nump()-4,ix);
+    //         input[nump()-2] += static_cast<complex<double> >(1./96.)*(*this)(nump()-5,ix);
+
+    //         input[nump()-1]  = static_cast<complex<double> >(197./60.)*(*this)(nump()-1,ix);
+    //         input[nump()-1] += static_cast<complex<double> >(5./12.)*(*this)(nump()-2,ix);
+    //         input[nump()-1] += static_cast<complex<double> >(-5.)*(*this)(nump()-3,ix);
+    //         input[nump()-1] += static_cast<complex<double> >(5./3.)*(*this)(nump()-4,ix);
+    //         input[nump()-1] += static_cast<complex<double> >(-5./12.)*(*this)(nump()-5,ix);
+    //         input[nump()-1] += static_cast<complex<double> >(1./20.)*(*this)(nump()-6,ix);
+
+    //         amat(nump()-2,nump()-1) = 0.125;
+    //         amat(nump()-2,nump()-2) = 1.;
+    //         amat(nump()-2,nump()-3) = 0.25;
+    //         amat(nump()-1,nump()-1) = 1.;
+    //         amat(nump()-1,nump()-2) = 5.;
+            
+
+    //         // std::cout << "\n input[" << nump()-1 << "] = " << input[nump()-1];
+
+    //         // TridiagonalSolve(a,b,c,input,output);
+
+    //         Thomas_Tridiagonal(amat,input,output);
+
+    //         for (size_t ip(0); ip < nump(); ++ip)
+    //         {
+    //             (*this)(ip,ix) = static_cast<complex<double> > (-2.)*output[ip];
+    //             // std::cout << "\n output[" << ip << "] = " << output[ip];
+    //         }
+    //     }
+    // }        
 //--------------------------------------------------------------
 
 //  X-difference
@@ -179,7 +297,7 @@ SHarmonic1D& SHarmonic1D::Dx(size_t order){
     // }
     if (order == 2) *sh = (*sh).Dd2_2nd_order();                          // Worry about boundaries elsewhere
     if (order == 4) *sh = (*sh).Dd2_4th_order();                          // Worry about boundaries elsewhere
-
+    
 
     
     
@@ -324,24 +442,157 @@ void SHarmonic1D::checknan(){
 //--------------------------------------------------------------
 //  P-difference with derivative at #0 set to 0, and f at #np equal to #np-1  
 //--------------------------------------------------------------
-        Array2D< complex<double> > plast(numx(), numy());
-        plast = 0.0;
+        if (Input::List().dbydv_order == 2)
+        {
+            Array2D< complex<double> > plast(numx(), numy());
+            plast = 0.0;
 
-        for (size_t ix(0); ix < numx(); ++ix) {
-            for (size_t iy(0); iy < numy(); ++iy) {
-                plast(ix,iy) = (*sh)(nump()-2,ix,iy) - (*sh)(nump()-1,ix,iy); 
+            for (size_t ix(0); ix < numx(); ++ix) {
+                for (size_t iy(0); iy < numy(); ++iy) {
+                    plast(ix,iy) = (*sh)(nump()-2,ix,iy) - (*sh)(nump()-1,ix,iy); 
+                }
             }
-        }
-        *sh = (*sh).Dd1();
-        for (size_t ix(0); ix < numx(); ++ix) {
-            for (size_t iy(0); iy < numy(); ++iy) {
-           // TODO                The Dp at the zeroth cell is taken care off
-                (*sh)(0,ix,iy) = 0.0;   //separately, both for the E-field and the collisions.                     
-                (*sh)(nump()-1,ix,iy) = 2.0*plast(ix,iy); 
+            *sh = (*sh).Dd1();
+            for (size_t ix(0); ix < numx(); ++ix) {
+                for (size_t iy(0); iy < numy(); ++iy) {
+               // TODO                The Dp at the zeroth cell is taken care off
+                    (*sh)(0,ix,iy) = 0.0;   //separately, both for the E-field and the collisions.                     
+                    (*sh)(nump()-1,ix,iy) = 2.0*plast(ix,iy); 
+                }
             }
         }
         
+        else if (Input::List().dbydv_order == 4)
+        {
+            complex<double> seventeensixth(static_cast<complex<double> >(17./6.));
+            complex<double> onesixth(static_cast<complex<double> >(1./6.));
 
+            valarray<complex<double> > input(nump());
+            valarray<complex<double> > output(nump());
+            
+            Array2D<double> amat(nump(),nump());
+
+            for (size_t ix(0); ix < numx(); ++ix)
+            {
+                for (size_t iy(0); iy < numy(); ++iy)
+                {
+                    input[0]  = -seventeensixth*(*this)(0,ix,iy);
+                    input[0] += static_cast<complex<double> >(1.5)*(*this)(1,ix,iy);
+                    input[0] += static_cast<complex<double> >(1.5)*(*this)(2,ix,iy);
+                    input[0] -= onesixth*(*this)(3,ix,iy);
+
+                    amat(0,0) = 1.;
+                    amat(0,1) = 3.;
+                    // std::cout << "\n input[" << 0 << "] = " << input[0];
+
+                    for (size_t ip(1); ip < nump()-1; ++ip)
+                    {
+                        input[ip]  = static_cast<complex<double> > (0.75)*(*this)(ip+1,ix,iy);
+                        input[ip] -= static_cast<complex<double> > (0.75)*(*this)(ip-1,ix,iy);
+                        amat(ip,ip-1) = 0.25;
+                        amat(ip,ip+1) = 0.25;
+                        amat(ip,ip) = 1.;
+                        // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix,iy); //input[ip];//
+                    }
+
+                    
+                    input[nump()-1]  = seventeensixth*(*this)(nump()-1,ix,iy);
+                    input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-2,ix,iy);
+                    input[nump()-1] -= static_cast<complex<double> >(1.5)*(*this)(nump()-3,ix,iy);
+                    input[nump()-1] += onesixth*(*this)(nump()-4,ix,iy);
+                    amat(nump()-1,nump()-1) = 1.;
+                    amat(nump()-1,nump()-2) = 3.;
+
+                    Thomas_Tridiagonal(amat,input,output);
+
+                    for (size_t ip(0); ip < nump(); ++ip)
+                    {
+                        (*this)(ip,ix,iy) = static_cast<complex<double> > (-2.)*output[ip];
+                    }
+                }
+            }
+        }
+        else if (Input::List().dbydv_order == 6)
+        {
+            valarray<complex<double> > input(nump());
+            valarray<complex<double> > output(nump());
+            
+            Array2D<double> amat(nump(),nump());
+
+            for (size_t ix(0); ix < numx(); ++ix)
+            {
+                for (size_t iy(0); iy < numy(); ++iy)
+                {
+                    input[0]  = static_cast<complex<double> >(-197./60.)*(*this)(0,ix,iy);
+                    input[0] += static_cast<complex<double> >(-5./12.)*(*this)(1,ix,iy);
+                    input[0] += static_cast<complex<double> >(5.)*(*this)(2,ix,iy);
+                    input[0] += static_cast<complex<double> >(-5./3.)*(*this)(3,ix,iy);
+                    input[0] += static_cast<complex<double> >(5./12.)*(*this)(4,ix,iy);
+                    input[0] += static_cast<complex<double> >(-1./20.)*(*this)(5,ix,iy);
+                    
+                    input[1]  = static_cast<complex<double> >(-43./96.)*(*this)(0,ix,iy);
+                    input[1] += static_cast<complex<double> >(-5./6.)*(*this)(1,ix,iy);
+                    input[1] += static_cast<complex<double> >(9./8.)*(*this)(2,ix,iy);
+                    input[1] += static_cast<complex<double> >(1./6.)*(*this)(3,ix,iy);
+                    input[1] += static_cast<complex<double> >(-1./96.)*(*this)(4,ix,iy);
+
+                    amat(0,0) = 1.;
+                    amat(0,1) = 5.;
+                    amat(1,0) = 0.125;
+                    amat(1,1) = 1.;
+                    amat(1,2) = 0.25;
+
+
+                    // std::cout << "\n input[" << 0 << "] = " << input[0];
+
+                    for (size_t ip(2); ip < nump()-2; ++ip)
+                    {
+                        input[ip]  = static_cast<complex<double> > (14./18.)*(*this)(ip+1,ix,iy);
+                        input[ip] -= static_cast<complex<double> > (14./18.)*(*this)(ip-1,ix,iy);
+                        input[ip] += static_cast<complex<double> > (1./36.)*(*this)(ip+2,ix,iy);
+                        input[ip] -= static_cast<complex<double> > (1./36.)*(*this)(ip-2,ix,iy);
+                        
+                        amat(ip,ip-1) = 1./3.;
+                        amat(ip,ip+1) = 1./3.;
+                        amat(ip,ip)   = 1.;
+
+                        // std::cout << "\n input[" << ip << "] = " << (*this)(ip,ix,iy); //input[ip];//
+                    }
+
+                    input[nump()-2]  = static_cast<complex<double> >(43./96.)*(*this)(nump()-1,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(5./6.)*(*this)(nump()-2,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(-9./8.)*(*this)(nump()-3,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(-1./6.)*(*this)(nump()-4,ix,iy);
+                    input[nump()-2] += static_cast<complex<double> >(1./96.)*(*this)(nump()-5,ix,iy);
+
+                    input[nump()-1]  = static_cast<complex<double> >(197./60.)*(*this)(nump()-1,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(5./12.)*(*this)(nump()-2,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(-5.)*(*this)(nump()-3,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(5./3.)*(*this)(nump()-4,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(-5./12.)*(*this)(nump()-5,ix,iy);
+                    input[nump()-1] += static_cast<complex<double> >(1./20.)*(*this)(nump()-6,ix,iy);
+
+                    amat(nump()-2,nump()-1) = 0.125;
+                    amat(nump()-2,nump()-2) = 1.;
+                    amat(nump()-2,nump()-3) = 0.25;
+                    amat(nump()-1,nump()-1) = 1.;
+                    amat(nump()-1,nump()-2) = 5.;
+                    
+
+                    // std::cout << "\n input[" << nump()-1 << "] = " << input[nump()-1];
+
+                    // TridiagonalSolve(a,b,c,input,output);
+
+                    Thomas_Tridiagonal(amat,input,output);
+
+                    for (size_t ip(0); ip < nump(); ++ip)
+                    {
+                        (*this)(ip,ix,iy) = static_cast<complex<double> > (-2.)*output[ip];
+                        // std::cout << "\n output[" << ip << "] = " << output[ip];
+                    }
+                }
+            }
+        }        
 
         // GSlice_iter< complex<double> > it1(p0(nump()-2)), it2(p0(nump()-1));  
         // for(int i=0; i< numx()*numy(); ++i){ 
@@ -961,7 +1212,8 @@ DistFunc1D& DistFunc1D::operator=(const DistFunc1D& other){
 }
 //  *=
 DistFunc1D& DistFunc1D::operator*=(const complex<double> & d){
-    for(size_t i(0); i < dim() ; ++i) {
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i = 0; i < dim() ; ++i) {
         (*df)[i] *= d;
     }
     return *this;
@@ -1005,12 +1257,15 @@ DistFunc1D& DistFunc1D::operator-=(const DistFunc1D& other){
     return *this;
 }
 
-DistFunc1D& DistFunc1D::Filterp(){
-    for(size_t i(1); i < dim() ; ++i) {
+void DistFunc1D::Filterp(){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i = 0; i < dim() ; ++i) 
+    {
+        (*df)[i] *= complex<double>(exp(-36.*pow(i/(dim()-1),36)));
         // (*df)[i].Filterp(i);
         // (*df)[i].Filterp(filter_ceiling[i]);
     }
-    return *this;
+    // return *this;
 }
 //--------------------------------------------------------------------------------------------------------------------------
 //  Moments for Hydro
@@ -1021,15 +1276,22 @@ valarray<double> DistFunc1D::getdensity(){
     valarray<double> out((*df)[0].numx());
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
     static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+    // valarray<complex<double> > dvr(vr);xwx
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
+    // dvr[0] = static_cast<complex<double> >(dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
+    // dvr[0] = static_cast<complex<double> >(dp[0]);
 
     for (size_t i(0); i<(*df)[0].numx();++i){
         out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,2.0)).real();
+        // out[i] = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(i),vr,dvr,2.0)).real();
     }
 
     return out;
@@ -1041,11 +1303,17 @@ valarray<double> DistFunc1D::getdensity() const {
 
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+    valarray<complex<double> > dvr(vr);
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
+    dvr[0] = static_cast<complex<double> >(dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        dvr[ip] = static_cast<complex<double> >(dp[ip]);
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     for (size_t i(0); i<(*df)[0].numx();++i){
@@ -1062,11 +1330,13 @@ valarray<double> DistFunc1D::getcurrent(size_t dir){
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
-        
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     if (dir == 0)
@@ -1105,11 +1375,15 @@ valarray<double> DistFunc1D::getcurrent(size_t dir) const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
+
     if (dir == 0)
     {
         for (size_t i(0); i<(*df)[0].numx();++i){
@@ -1136,8 +1410,6 @@ valarray<double> DistFunc1D::getcurrent(size_t dir) const{
     }
 
     return out;
-
-
 }
 //--------------------------------------------------------------------------------------------------------------------------    
 Array2D<double> DistFunc1D::getcurrent() const{
@@ -1147,10 +1419,13 @@ Array2D<double> DistFunc1D::getcurrent() const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     double current_c1(4.0/3.0*M_PI*charge/ma);
@@ -1176,10 +1451,13 @@ valarray<double> DistFunc1D::getrelativisticcurrent(size_t dir){
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     if (dir == 0)
@@ -1215,10 +1493,13 @@ valarray<double> DistFunc1D::getrelativisticcurrent(size_t dir) const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     if (dir == 0)
@@ -1257,10 +1538,13 @@ Array2D<double> DistFunc1D::getrelativisticcurrent() const{
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
         static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     double current_c1(4.0/3.0*M_PI*charge/ma);
@@ -1291,10 +1575,13 @@ valarray<double> DistFunc1D::getpressure(){
     valarray<complex<double> > vr(Algorithms::MakeCAxis(
             static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-    vr[0] = 0.5*dp[0];
+    vr[0] = static_cast<complex<double> > (0.5*dp[0]);
     for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        vr[ip] = vr[ip-1] + dp[ip];
+        vr[ip]  = static_cast<complex<double> > (dp[ip-1]);        
+        vr[ip] += static_cast<complex<double> > (dp[ip]);
+        vr[ip] *= static_cast<complex<double> > (0.5);
+        vr[ip] += vr[ip-1];
     }
 
     for (size_t i(0); i<(*df)[0].numx();++i){
@@ -1331,6 +1618,30 @@ void DistFunc1D::checknan(){
     return;
 
 
+}
+//--------------------------------------------------------------------------------------------------------------------------
+void DistFunc1D::checknan() const {
+
+    for (size_t indx(0); indx<dim();++indx){
+        for (size_t i(0); i<(*df)[indx].numx();++i){
+            for (size_t p(0); p<(*df)[indx].nump();++p){
+                if (  isnan((*df)[indx](p,i).real()) || isnan((*df)[indx](p,i).imag())   )
+                {
+                    std::cout << "NaN @ (" << indx << "," << p << "," << i << ")\n";
+                    int rank;
+                    MPI_Comm_rank(MPI_COMM_WORLD, &rank); 
+                    if (rank == 0)
+                    {
+                            fprintf(stderr, "Error: Program terminated with error code %d\n", 1);
+                    }
+                    MPI_Finalize();
+                    exit(1);
+                } 
+            }
+        }
+    }
+//    std::cout << "OK! \n";
+    return;
 }
 //*********************************************************************************************************************
 //  Definition of the 2D distribution function
@@ -2256,177 +2567,6 @@ Hydro2D& Hydro2D::operator-=(const Hydro2D& other){
     }
     return *this;
 }
-
-
-//**************************************************************
-//  Particle tracker
-//--------------------------------------------------------------
-//  Constructor and Destructor
-//--------------------------------------------------------------
-//  Constructor
-Particle1D::Particle1D(size_t numparticles, double _mass, double _charge): particlemass(_mass), particlecharge(_charge) {
-    
-    par_posX   = new valarray<double>(numparticles);
-    par_momX   = new valarray<double>(numparticles);
-    par_momY   = new valarray<double>(numparticles);
-    par_momZ   = new valarray<double>(numparticles);
-    par_ishere = new valarray<bool>(numparticles);
-    par_goingright = new valarray<int>(numparticles);
-}
-
-Particle1D::Particle1D(const Particle1D& other){
-    par_posX   = new valarray<double>(other.numpar());
-    *par_posX   = other.par_posX_array();
-
-    par_momX   = new valarray<double>(other.numpar());
-    *par_momX   = other.par_momX_array();
-
-    par_momY   = new valarray<double>(other.numpar());
-    *par_momY   = other.par_momY_array();
-
-    par_momZ   = new valarray<double>(other.numpar());
-    *par_momZ   = other.par_momZ_array();
-
-    par_ishere = new valarray<bool>(other.numpar());
-    *par_ishere = other.par_ishere_array();
-
-    par_goingright = new valarray<int>(other.numpar());
-    *par_goingright = other.par_goingright_array();
-}
-
-Particle1D:: ~Particle1D(){
-    delete par_posX;
-    delete par_momX;
-    delete par_momY;
-    delete par_momZ;
-    delete par_ishere;
-    delete par_goingright;
-}
-
-//  Copy assignment operator
-Particle1D& Particle1D::operator=(const double & d){
-    // *par_posX = d;
-    // *par_momX = d;
-    // *par_momY = d;
-    // *par_momZ = d;
-    // *par_ishere = 0;
-    return *this;
-}
-Particle1D& Particle1D::operator=(const valarray<double >& other){
-
-    // *par_posX   = other;
-    // *par_momX   = other;
-    // *par_momY   = other;
-    // *par_momZ   = other;
-    // *par_ishere = 0;
-    return *this;
-}
-Particle1D& Particle1D::operator=(const Particle1D& other){
-
-    if (this != &other) {   //self-assignment
-        // *par_posX = other.par_posX_array();
-        // *par_momX = other.par_momX_array();
-        // *par_momY = other.par_momY_array();
-        // *par_momZ = other.par_momZ_array();
-        // *par_ishere = other.par_ishere_array();
-    }
-    return *this;
-}
-
-
-//--------------------------------------------------------------
-//  Copy assignment operator
-//--------------------------------------------------------------
-Particle1D& Particle1D::operator*=(const double & d){
-    // *par_posX *= d;
-    // *par_momX *= d;
-    // *par_momY *= d;
-    // *par_momZ *= d;
-    // *par_ishere *= d;
-    return *this;
-}
-Particle1D& Particle1D::operator*=(const valarray<double >& other){
-    // *par_posX   *= other;
-    // *par_momX   *= other;
-    // *par_momY   *= other;
-    // *par_momZ   *= other;
-    // *par_ishere *= other;
-    return *this;
-}
-Particle1D& Particle1D::operator*=(const Particle1D& other){
-
-    if (this != &other) {   //self-assignment
-        // *par_posX *= other.par_posX_array();
-        // *par_momX *= other.par_momX_array();
-        // *par_momY *= other.par_momY_array();
-        // *par_momZ *= other.par_momZ_array();
-        // *par_ishere *= other.par_ishere_array();
-    }
-    return *this;
-}
-
-//--------------------------------------------------------------
-//  Copy assignment operator
-//--------------------------------------------------------------
-Particle1D& Particle1D::operator+=(const double & d){
-    // *par_posX += d;
-    // *par_momX += d;
-    // *par_momY += d;
-    // *par_momZ += d;
-    // *par_ishere += d;
-    return *this;
-}
-Particle1D& Particle1D::operator+=(const valarray<double >& other){
-    // *par_posX   += other;
-    // *par_momX   += other;
-    // *par_momY   += other;
-    // *par_momZ   += other;
-    // *par_ishere += other;
-    return *this;
-}
-Particle1D& Particle1D::operator+=(const Particle1D& other){
-
-    if (this != &other) {   //self-assignment
-        // *par_posX += other.par_posX_array();
-        // *par_momX += other.par_momX_array();
-        // *par_momY += other.par_momY_array();
-        // *par_momZ += other.par_momZ_array();
-        // *par_ishere += other.par_ishere_array();
-    }
-    return *this;
-}
-
-//--------------------------------------------------------------
-//  Copy assignment operator
-//--------------------------------------------------------------
-Particle1D& Particle1D::operator-=(const double & d){
-    // *par_posX -= d;
-    // *par_momX -= d;
-    // *par_momY -= d;
-    // *par_momZ -= d;
-    // *par_ishere -= d;
-    return *this;
-}
-Particle1D& Particle1D::operator-=(const valarray<double >& other){
-    // *par_posX   -= other;
-    // *par_momX   -= other;
-    // *par_momY   -= other;
-    // *par_momZ   -= other;
-    // *par_ishere -= other;
-    return *this;
-}
-Particle1D& Particle1D::operator-=(const Particle1D& other){
-
-    if (this != &other) {   //self-assignment
-        // *par_posX -= other.par_posX_array();
-        // *par_momX -= other.par_momX_array();
-        // *par_momY -= other.par_momY_array();
-        // *par_momZ -= other.par_momZ_array();
-        // *par_ishere -= other.par_ishere_array();
-    }
-    return *this;
-}
-
 //**************************************************************
 //  State for 1D electrostatic code
 //--------------------------------------------------------------
@@ -2437,8 +2577,8 @@ State1D:: State1D( size_t nx, vector<size_t> l0, vector<size_t> m0,
                    // vector<size_t> np, vector<double> pmax, 
                     vector<valarray<double> > dp,
                    vector<double> q, vector<double> ma,
-                   double _hydromass, double _hydrocharge, //double filter_dp, double filter_pmax,
-                   size_t numparticles, double particlemass, double particlecharge)
+                   double _hydromass, double _hydrocharge) //, //double filter_dp, double filter_pmax,
+                   // size_t numparticles, double particlemass, double particlecharge)
         : ns(l0.size()) {
     // if (ns != np.size()) {   // Non uniform
     if (ns != dp.size()) {  
@@ -2454,7 +2594,7 @@ State1D:: State1D( size_t nx, vector<size_t> l0, vector<size_t> m0,
 
     hydro = new Hydro1D(nx,_hydromass,_hydrocharge);
 
-    prtcls = new Particle1D(numparticles,particlemass,particlecharge);
+    // prtcls = new Particle1D(numparticles,particlemass,particlecharge);
 }
 
 //  Copy constructor
@@ -2470,8 +2610,8 @@ State1D:: State1D(const State1D& other)
     hydro = new Hydro1D(other.FLD(0).numx(),other.HYDRO().mass(),other.HYDRO().charge());
     *hydro = other.HYDRO();
 
-    prtcls = new Particle1D(other.particles().numpar(), other.particles().mass(), other.particles().charge());
-    *prtcls = other.particles();
+    // prtcls = new Particle1D(other.particles().numpar(), other.particles().mass(), other.particles().charge());
+    // *prtcls = other.particles();
 }
 
 //  Destructor
@@ -2479,7 +2619,7 @@ State1D:: ~State1D(){
     delete sp;
     delete flds;
     delete hydro;
-    delete prtcls;
+    // delete prtcls;
 }
 //--------------------------------------------------------------
 //  Operators
@@ -2493,7 +2633,7 @@ State1D& State1D::operator=(const State1D& other){
         }
         *flds = other.EMF();
         *hydro = other.HYDRO();
-        *prtcls = other.particles();
+        // *prtcls = other.particles();
 
     }
     return *this;
@@ -2573,6 +2713,16 @@ State1D& State1D::operator-=(const complex<double> & d){
 }
 //   //  Debug
 void State1D::checknan(){
+
+    for(size_t s(0); s < ns; ++s){
+        (*sp)[s].checknan();
+    }
+//    std::cout << "Y OK! \n";
+    return;
+}
+
+//   //  Debug
+void State1D::checknan() const {
 
     for(size_t s(0); s < ns; ++s){
         (*sp)[s].checknan();

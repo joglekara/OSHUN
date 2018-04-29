@@ -8,16 +8,16 @@
  * 2) default values for input variables.
  */
 //  Standard libraries
+#include <omp.h>
 #include <iostream>
-#include <vector>
 #include <valarray>
+#include <vector>
 #include <complex>
 #include <algorithm>
 #include <cstdlib>
 #include <cfloat>
 #include <fstream>
 #include <cstring>
-#include <omp.h>
 #include <math.h>
 #include <map>
 
@@ -49,13 +49,13 @@ Input::Input_List::Input_List():
     filterdistribution(0),filter_dp(0.0001),filter_pmax(0.0002),
     if_tridiagonal(1),
     implicit_E(1),
-    dbydx_order(2),dbydy_order(2),
-    abs_tol(1e-16),rel_tol(1e-6),max_fails(20),
+    dbydx_order(2),dbydy_order(2),dbydv_order(2),
+    adaptive_dt(false),adaptive_tmin(1000.),abs_tol(1e-16),rel_tol(1e-6),max_fails(20),
     relativity(0),
     implicit_B(0),
     collisions(1),
     f00_implicitorexplicit(2),
-    flm_collisions(0),flm_acc(0),ee_bool(1),ei_bool(1),
+    flm_collisions(0),flm_acc(0),ee_bool(1),ei_bool(1), coll_op(0),
     BoundaryCells(4),
     
     bndX(0),
@@ -68,9 +68,10 @@ Input::Input_List::Input_List():
     n_restarts(100),
 
 //          Output
-    o_EHist(0),
+    o_Exhist(0), o_Eyhist(0), o_Ezhist(0), o_Bxhist(0), o_Byhist(0), o_Bzhist(0), 
     o_Ex(0), o_Ey(0), o_Ez(0), o_Bx(0), o_By(0), o_Bz(0), o_x1x2(0), o_pth(0), 
-    o_p1x1(0), o_p2x1(0), o_p3x1(0), o_p1p2x1(0), o_p1p3x1(0), o_p2p3x1(0), o_p1p2p3x1(0),
+    o_p1x1(0), o_p2x1(0), o_p3x1(0), o_p1p2x1(0), o_p1p3x1(0), o_p2p3x1(0), o_p1p2p3x1(0), 
+    o_allfs(0), o_allfs_f2(0), o_allfs_flogf(0),
     o_f0x1(0), o_f10x1(0), o_f11x1(0), o_f20x1(0), o_fl0x1(0),
 
     o_p1x2(0), o_p2x2(0), o_p3x2(0), o_p1p2x2(0), o_p1p3x2(0), o_p2p3x2(0), o_p1p2p3x2(0),
@@ -105,17 +106,17 @@ Input::Input_List::Input_List():
     hydromotion(0),
     hydromass(100), hydrocharge(79),
     polarization_direction(0),
-    init_f1(0), init_f2(0),
+    init_f1(0), init_f2(0), flm_noise_window(0.),
     MX_cooling(0),
     super_gaussian_m(2.0),
 
     pth_ref(0.025),
 
     // Particles
-    particlepusher(0),
-    numparticles(0),
-    particlecharge(-1.0),
-    particlemass(1.0),
+    // particlepusher(0),
+    // numparticles(0),
+    // particlecharge(-1.0),
+    // particlemass(1.0),
 
 
     hydro_dens_profile_str("cst{0.0}"),
@@ -454,87 +455,87 @@ Input::Input_List::Input_List():
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
 
 
-            if (deckstring == "track_particles") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> deckstringbool;
-                particlepusher = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
-            }
-            if (deckstring == "number_of_particles") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> numparticles;
-            }
-            if (deckstring == "particles_position") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_xpos.push_back(deckreal);
-                }
-            }
-            if (deckstring == "particles_px") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_px.push_back(deckreal);
-                }
-            }
-            if (deckstring == "particles_py") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_py.push_back(deckreal);
-                }
-            }
-            if (deckstring == "particles_pz") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                for (size_t ip(0);ip<numparticles;++ip)
-                {
-                    deckfile >> deckreal;
-                    par_pz.push_back(deckreal);
-                }
-            } 
-            if (deckstring == "particle_charge") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> particlecharge;
-            }
-            if (deckstring == "particle_mass") {
-                deckfile >> deckequalssign;
-                if(deckequalssign != "=") {
-                    std::cout << "Error reading " << deckstring << std::endl;
-                    exit(1);
-                }
-                deckfile >> particlemass;
-            }
+            // if (deckstring == "track_particles") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> deckstringbool;
+            //     particlepusher = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            // }
+            // if (deckstring == "number_of_particles") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> numparticles;
+            // }
+            // if (deckstring == "particles_position") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_xpos.push_back(deckreal);
+            //     }
+            // }
+            // if (deckstring == "particles_px") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_px.push_back(deckreal);
+            //     }
+            // }
+            // if (deckstring == "particles_py") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_py.push_back(deckreal);
+            //     }
+            // }
+            // if (deckstring == "particles_pz") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     for (size_t ip(0);ip<numparticles;++ip)
+            //     {
+            //         deckfile >> deckreal;
+            //         par_pz.push_back(deckreal);
+            //     }
+            // } 
+            // if (deckstring == "particle_charge") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> particlecharge;
+            // }
+            // if (deckstring == "particle_mass") {
+            //     deckfile >> deckequalssign;
+            //     if(deckequalssign != "=") {
+            //         std::cout << "Error reading " << deckstring << std::endl;
+            //         exit(1);
+            //     }
+            //     deckfile >> particlemass;
+            // }
 
 
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
@@ -633,6 +634,14 @@ Input::Input_List::Input_List():
                 deckfile >> deckstringbool;
                 implicit_E = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
+            if (deckstring == "dbydv_order") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> dbydv_order;
+            }
             if (deckstring == "dbydx_order") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
@@ -648,6 +657,24 @@ Input::Input_List::Input_List():
                     exit(1);
                 }
                 deckfile >> dbydy_order;
+            }
+            if (deckstring == "adaptive_time_step") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                adaptive_dt = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "adaptive_tmin") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> adaptive_tmin;
+                
             }
             if (deckstring == "adaptive_time_step_abs_tol") {
                 deckfile >> deckequalssign;
@@ -729,18 +756,31 @@ Input::Input_List::Input_List():
                 if (flm_collisions == 1)
                 {
                     if (deckstringbool == "ee") {ee_bool = 1; ei_bool = 0;}
-                    else if (deckstringbool == "ee-openmp") {flm_acc = 1; ee_bool = 1; ei_bool = 0;}
-                    else if (deckstringbool == "ee-openacc") {flm_acc = 2; ee_bool = 1; ei_bool = 0;}
-
+                    else if (deckstringbool == "ee-gpu") {flm_acc = 1; ee_bool = 1; ei_bool = 0;}
+                    
                     else if (deckstringbool == "ei") {ee_bool = 0; ei_bool = 1;}
-                    else if (deckstringbool == "ei-openmp") {flm_acc = 1; ee_bool = 0; ei_bool = 1;}
-                    else if (deckstringbool == "ei-openacc") {flm_acc = 2; ee_bool = 0; ei_bool = 1;}
+                    else if (deckstringbool == "ei-gpu") {flm_acc = 1; ee_bool = 0; ei_bool = 1;}
 
                     else if (deckstringbool == "on") {ee_bool = 1; ei_bool = 1;}
-                    else if (deckstringbool == "on-openmp") {flm_acc = 1; ee_bool = 1; ei_bool = 1;}
-                    else if (deckstringbool == "on-openacc") {flm_acc = 2; ee_bool = 1; ei_bool = 1;}
+                    else if (deckstringbool == "on-gpu") {flm_acc = 1; ee_bool = 1; ei_bool = 1;}
                 }
                 // flm_collisions = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "coll_operator") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+
+                if (deckstringbool == "LB1") coll_op = 2;
+                else if (deckstringbool == "LB2") coll_op = 3;
+                else if (deckstringbool == "FP1") coll_op = 0;
+                else if (deckstringbool == "FP2") coll_op = 1;
+                else coll_op = 1;
+
+
             }
             if (deckstring == "assume_tridiagonal_flm_collisions") {
                 deckfile >> deckequalssign;
@@ -778,6 +818,7 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> dt;
             }
+            
 
             if (deckstring == "t_stop") {
                 deckfile >> deckequalssign;
@@ -849,15 +890,61 @@ Input::Input_List::Input_List():
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
 
-            if (deckstring == "o_EHist") {
+            if (deckstring == "o_ExHist") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
                     std::cout << "Error reading " << deckstring << std::endl;
                     exit(1);
                 }
                 deckfile >> deckstringbool;
-                o_EHist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+                o_Exhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
+            if (deckstring == "o_EyHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Eyhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_EzHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Ezhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_BxHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Bxhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }if (deckstring == "o_ByHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Byhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_BzHist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_Bzhist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+
+
             if (deckstring == "o_Ex") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
@@ -1317,6 +1404,33 @@ Input::Input_List::Input_List():
                 deckfile >> deckstringbool;
                 o_p1p2p3x1 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
+            if (deckstring == "o_allfs") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_allfs = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_allfs_f2") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_allfs_f2 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "o_allfs_flogf") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_allfs_flogf = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
             if (deckstring == "o_Ux") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
@@ -1565,6 +1679,15 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> deckstringbool;
                 init_f2 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "flm_noise_window") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckreal;
+                flm_noise_window = deckreal;
             }
 
 
@@ -1986,8 +2109,17 @@ Input::Input_List::Input_List():
         oTags.push_back("f11");
         oTags.push_back("f20");
         oTags.push_back("fl0");
+        oTags.push_back("allfs");
+        oTags.push_back("allfs_f2");
+        oTags.push_back("allfs_flogf");
         oTags.push_back("pxpy");
 
+        oTags.push_back("Exhist");
+        oTags.push_back("Eyhist");
+        oTags.push_back("Ezhist");
+        oTags.push_back("Bxhist");
+        oTags.push_back("Byhist");
+        oTags.push_back("Bzhist");
 
         oTags.push_back("Ex");
         oTags.push_back("Ey");
@@ -2076,8 +2208,12 @@ Input::Input_List::Input_List():
         }
 
         // Determination of the local computational domain (i.e. the x-axis and the y-axis)
-        if (dbydx_order > 2 || dbydy_order > 2) BoundaryCells = 6;
-        else BoundaryCells = 4;
+        if (implicit_E)
+        {
+            if (dbydx_order > 2 || dbydy_order > 2) BoundaryCells = 6;
+            else BoundaryCells = 4;
+        }
+        else BoundaryCells = 2;
 
         /// Do X discretization
         for (size_t i(0); i < NxGlobal.size(); ++i){

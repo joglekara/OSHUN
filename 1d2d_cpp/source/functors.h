@@ -17,90 +17,89 @@ class VlasovFunctor1D_explicitE : public Algorithms::AbstFunctor<State1D> {
 public:
 //          Constructor
     VlasovFunctor1D_explicitE(vector<size_t> Nl, vector<size_t> Nm,
-                              // vector<double> pmax, vector<size_t> Np,
-                                vector<valarray<double> > dp,
-                              double xmin, double xmax, size_t Nx);
-    ~VlasovFunctor1D_explicitE(){ };
+                                    vector<valarray<double> > dp,
+                                    double xmin, double xmax, size_t Nx);
+    ~VlasovFunctor1D_explicitE(){};
 
 //          Collect all the operators and apply on Yin
     void operator()(const State1D& Yin, State1D& Yslope);
-    void operator()(const State1D& Yin, State1D& Yslope, double dt);
+    void operator()(const State1D& Yin, State1D& Yslope, double time, double dt);
+    // void advance(const State1D& Yin, State1D& Yslope, double time, double dt);
     void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
 
 private:
     vector<Spatial_Advection> SA;
     vector<Electric_Field>    EF;
     vector<Current>           JX;
-    
-    vector<Ampere>    		 AM;
     vector<Magnetic_Field>    BF;
+
+    vector<Ampere>    		 AM;
     vector<Faraday>    		 FA;
 
+    WaveDriver               WD;
 //            vector<Hydro_Advection>   HA;
-
 };
-//--------------------------------------------------------------
-//  Functor to be used in the Runge-Kutta methods
-class VlasovFunctor1D_spatialAdvection : public Algorithms::AbstFunctor<State1D> {
-//--------------------------------------------------------------
-public:
-//          Constructor
-    VlasovFunctor1D_spatialAdvection(vector<size_t> Nl, vector<size_t> Nm,
-                              // vector<double> pmax, vector<size_t> Np,
-                                vector<valarray<double> > dp,
-                              double xmin, double xmax, size_t Nx);
-    ~VlasovFunctor1D_spatialAdvection(){ };
+// //--------------------------------------------------------------
+// //  Functor to be used in the Runge-Kutta methods
+// class VlasovFunctor1D_spatialAdvection : public Algorithms::AbstFunctor<State1D> {
+// //--------------------------------------------------------------
+// public:
+// //          Constructor
+//     VlasovFunctor1D_spatialAdvection(vector<size_t> Nl, vector<size_t> Nm,
+//                               // vector<double> pmax, vector<size_t> Np,
+//                                 vector<valarray<double> > dp,
+//                               double xmin, double xmax, size_t Nx);
+//     ~VlasovFunctor1D_spatialAdvection(){ };
 
-//          Collect all the operators and apply on Yin
-    void operator()(const State1D& Yin, State1D& Yslope);
-    void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
+// //          Collect all the operators and apply on Yin
+//     void operator()(const State1D& Yin, State1D& Yslope);
+//     void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
 
-private:
-    vector<Spatial_Advection> SA;
-};
-//--------------------------------------------------------------
-//  Functor to be used in the Runge-Kutta methods
-class VlasovFunctor1D_fieldUpdate : public Algorithms::AbstFunctor<State1D> {
-//--------------------------------------------------------------
-public:
-//          Constructor
-    VlasovFunctor1D_fieldUpdate(vector<size_t> Nl, vector<size_t> Nm,
-                              // vector<double> pmax, vector<size_t> Np,
-                                vector<valarray<double> > dp,
-                              double xmin, double xmax, size_t Nx);
-    ~VlasovFunctor1D_fieldUpdate(){ };
+// private:
+//     vector<Spatial_Advection> SA;
+// };
+// //--------------------------------------------------------------
+// //  Functor to be used in the Runge-Kutta methods
+// class VlasovFunctor1D_fieldUpdate : public Algorithms::AbstFunctor<State1D> {
+// //--------------------------------------------------------------
+// public:
+// //          Constructor
+//     VlasovFunctor1D_fieldUpdate(vector<size_t> Nl, vector<size_t> Nm,
+//                               // vector<double> pmax, vector<size_t> Np,
+//                                 vector<valarray<double> > dp,
+//                               double xmin, double xmax, size_t Nx);
+//     ~VlasovFunctor1D_fieldUpdate(){ };
 
-//          Collect all the operators and apply on Yin
-    void operator()(const State1D& Yin, State1D& Yslope);
-    void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
+// //          Collect all the operators and apply on Yin
+//     void operator()(const State1D& Yin, State1D& Yslope);
+//     void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
 
-private:
+// private:
 
-    vector<Current>             JX;
-    vector<Ampere>              AM;
-    vector<Faraday>             FA;
+//     vector<Current>             JX;
+//     vector<Ampere>              AM;
+//     vector<Faraday>             FA;
 
-};
-//--------------------------------------------------------------
-//  Functor to be used in the Runge-Kutta methods
-class VlasovFunctor1D_momentumAdvection : public Algorithms::AbstFunctor<State1D> {
-//--------------------------------------------------------------
-public:
-//          Constructor
-    VlasovFunctor1D_momentumAdvection(vector<size_t> Nl, vector<size_t> Nm,
-                                vector<valarray<double> > dp,
-                              double xmin, double xmax, size_t Nx);
-    ~VlasovFunctor1D_momentumAdvection(){ };
+// };
+// //--------------------------------------------------------------
+// //  Functor to be used in the Runge-Kutta methods
+// class VlasovFunctor1D_momentumAdvection : public Algorithms::AbstFunctor<State1D> {
+// //--------------------------------------------------------------
+// public:
+// //          Constructor
+//     VlasovFunctor1D_momentumAdvection(vector<size_t> Nl, vector<size_t> Nm,
+//                                 vector<valarray<double> > dp,
+//                               double xmin, double xmax, size_t Nx);
+//     ~VlasovFunctor1D_momentumAdvection(){ };
 
-//          Collect all the operators and apply on Yin
-    void operator()(const State1D& Yin, State1D& Yslope);
-    void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
+// //          Collect all the operators and apply on Yin
+//     void operator()(const State1D& Yin, State1D& Yslope);
+//     void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
 
-private:
-    vector<Electric_Field>    EF;
-    vector<Magnetic_Field>    BF;
-};
-
+// private:
+//     vector<Electric_Field>    EF;
+//     vector<Magnetic_Field>    BF;
+// };
 
 //--------------------------------------------------------------
 //  Functor to be used in the Runge-Kutta methods
@@ -116,19 +115,18 @@ public:
 
 //          Collect all the operators and apply on Yin
     void operator()(const State2D& Yin, State2D& Yslope);
+    void operator()(const State2D& Yin, State2D& Yslope, double time, double dt);
     void operator()(const State2D& Yin, State2D& Yslope, size_t dir);
 
 private:
-    vector<Spatial_Advection> SA;
-    vector<Electric_Field>    EF;
-    vector<Current>           JX;
-    
-    vector<Ampere>           AM;
-    vector<Magnetic_Field>    BF;
-    vector<Faraday>          FA;
+    vector<Spatial_Advection>   SA;
+    vector<Electric_Field>      EF;
+    vector<Current>             JX;
 
-//            vector<Hydro_Advection>   HA;
-
+    vector<Ampere>              AM;
+    vector<Magnetic_Field>      BF;
+    vector<Faraday>             FA;
+ // vector<Hydro_Advection>   HA;
 };
 //--------------------------------------------------------------
 //--------------------------------------------------------------
@@ -144,6 +142,7 @@ public:
 
 //          Collect all the operators and apply on Yin
     void operator()(const State1D& Yin, State1D& Yslope);
+    void operator()(const State1D& Yin, State1D& Yslope, double time, double dt);
     void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
 
 private:
@@ -165,6 +164,7 @@ public:
 
 //          Collect all the operators and apply on Yin
     void operator()(const State2D& Yin, State2D& Yslope);
+    void operator()(const State2D& Yin, State2D& Yslope, double time, double dt);
     void operator()(const State2D& Yin, State2D& Yslope, size_t dir);
 
 private:
@@ -186,6 +186,7 @@ public:
 
 //          Collect all the operators and apply on Yin
     void operator()(const State1D& Yin, State1D& Yslope);
+    void operator()(const State1D& Yin, State1D& Yslope, double time, double dt);
     void operator()(const State1D& Yin, State1D& Yslope, size_t dir);
 
 
@@ -208,6 +209,7 @@ public:
 
 //          Collect all the operators and apply on Yin
     void operator()(const State2D& Yin, State2D& Yslope);
+    void operator()(const State2D& Yin, State2D& Yslope, double time, double dt);
     void operator()(const State2D& Yin, State2D& Yslope, size_t dir);
 
 

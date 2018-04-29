@@ -34,6 +34,7 @@
             void Send_left_X(State1D& Y, int dest);
             void Recv_from_right_X(State1D& Y, int origin); 
 
+            
 //          Boundaries 
             void mirror_bound_Xleft(State1D& Y);
             void mirror_bound_Xright(State1D& Y);
@@ -41,15 +42,17 @@
 //          Boundaries for single-node configurations
             void sameNode_bound_X(State1D& Y);
 
+
         private:
 //          Domain information
             size_t Nbc, bndX;
 
 //          Information exchange
             int  msg_sizeX;
-            int  msg_parsizeX;
+            
 			
             complex<double> *msg_bufX;
+            
 
             // std::vector<complex<double> > msg_parX;
 
@@ -96,7 +99,10 @@
 
 //          Information exchange
             int  msg_sizeX;
+            int  par_sizeX;
+
             complex<double> *msg_bufX;
+            double *par_bufX;
 
 //          Boundaries for single-node configurations
             void sameNode_periodic_X(State1D& Y);
