@@ -68,6 +68,8 @@ void Export_Files::Folders(){
 
     if (Makefolder("output") != 0) cout << "Warning: Folder 'output' exists" << endl;
 
+    if (Makefolder("timings") != 0) cout << "Warning: Folder 'timings' exists" << endl;
+
     // if ( Input::List().o_EHist ) {
     //     if ( Makefolder("output/fields") != 0) cout << "Warning: Folder 'output/NUM' exists" << endl;
     // }
@@ -429,12 +431,6 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
     mom.push_back( "ni"      );
     mom.push_back( "Ti"      );
 
-// //  Moments
-    part.push_back("prtx");
-    part.push_back("prtpx");
-    part.push_back("prtpy");
-    part.push_back("prtpz");
-
 //  p-x
     for (size_t s(0); s < species; ++s) {
         pvsx.push_back( "px");
@@ -460,6 +456,8 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
         pvsx.push_back( "pypz");
         pvsx.push_back( "pxpz");
     }
+
+    code.push_back("Timings");
 
 }
 
@@ -673,7 +671,22 @@ Export_Files::Xport::Xport(const Algorithms::AxisBundle<double>& _axis,
         }
     } //<--
     
+    //  Tags for f-x -->
+    for (size_t i(0); i < dTags.code.size(); ++i) {
 
+        //     If this tag is an output tag
+        if ( find(oTags.begin(),oTags.end(), dTags.code[i]) != oTags.end() ) {
+
+            string folder = homedir + "timings/" + dTags.code[i] + "/";
+            Makefolder(folder);
+
+//          Generate a header file for this tag
+            // Hdr[dTags.fvsx[i]] = Header( pr[i/5], xyz[0], imre[0],
+            //  "f", 1.0, tlabel, tunits, tconv, folder);
+            Hdr[dTags.code[i]] = Header(axis_units, dTags.code[i], folder);
+
+        }
+    } //<--
 }
 //--------------------------------------------------------------
 
@@ -6674,6 +6687,26 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
     }
 
     if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
+   const Parallel_Environment_1D& PE, std::string tag) 
+{
+    size_t number_of_quantities(indices.size());
+    size_t number_of_time_steps(time_history.size());
+    
+    Array2D<double> fieldhistoryArr(number_of_time_steps,number_of_quantities);
+
+    for(size_t it(0); it < number_of_time_steps; ++it) 
+    {
+        for(size_t i(0); i < number_of_quantities; ++i) 
+        {
+            fieldhistoryArr(it,i) = fieldhistory[it][i];
+        }
+    }
+
+    if (PE.RANK() == 0) expo.Export_h5(tag, time_history, indices, fieldhistoryArr, tout, time, dt, 0);
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------

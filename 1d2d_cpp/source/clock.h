@@ -75,7 +75,11 @@ private:
 
     vector<valarray<complex<double> > > Ex_history, Ey_history, Ez_history;
     vector<valarray<complex<double> > > Bx_history, By_history, Bz_history;
+    vector<vector<double> > timing_history;
+
     vector<double>                      time_history;
+    vector<double>                      timings_at_current_timestep;
+    vector<double>                      timing_indices;
 
     double* acceptabilitylist;
 

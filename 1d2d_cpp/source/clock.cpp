@@ -83,6 +83,13 @@ Clock::Clock(double starttime, double __dt, double abs_tol, double rel_tol, size
 
         start_time = tout_start*dt_out;
 
+        timings_at_current_timestep.push_back(0.);      // Vlasov
+        timings_at_current_timestep.push_back(0.);      // Fokker-Planck
+        timings_at_current_timestep.push_back(0.);      // Big Output Routines
+
+        timing_indices.push_back(0.);
+        timing_indices.push_back(1.);
+        timing_indices.push_back(2.);
     }
 //--------------------------------------------------------------
 Clock:: ~Clock(){
@@ -98,15 +105,7 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
 {
     end_of_loop_time_updates();
 
-    if (Input::List().o_Exhist) Ex_history.push_back(Y_current.FLD(0).array());
-    if (Input::List().o_Eyhist) Ey_history.push_back(Y_current.FLD(1).array());
-    if (Input::List().o_Ezhist) Ez_history.push_back(Y_current.FLD(2).array());
-    if (Input::List().o_Bxhist) Bx_history.push_back(Y_current.FLD(3).array());
-    if (Input::List().o_Byhist) By_history.push_back(Y_current.FLD(4).array());
-    if (Input::List().o_Bzhist) Bz_history.push_back(Y_current.FLD(5).array());
-
-    time_history.push_back(current_time);
-
+    timings_at_current_timestep[2] -= MPI_Wtime(); 
     if (current_time >= next_dist_out)
     {    
         if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
@@ -127,6 +126,19 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
         Re.Write(PE.RANK(), t_out, Y_current, current_time);
         next_restart += dt_restart;
     }
+    timings_at_current_timestep[2] += MPI_Wtime(); 
+
+
+
+    if (Input::List().o_Exhist) Ex_history.push_back(Y_current.FLD(0).array());
+    if (Input::List().o_Eyhist) Ey_history.push_back(Y_current.FLD(1).array());
+    if (Input::List().o_Ezhist) Ez_history.push_back(Y_current.FLD(2).array());
+    if (Input::List().o_Bxhist) Bx_history.push_back(Y_current.FLD(3).array());
+    if (Input::List().o_Byhist) By_history.push_back(Y_current.FLD(4).array());
+    if (Input::List().o_Bzhist) Bz_history.push_back(Y_current.FLD(5).array());
+
+    timing_history.push_back(timings_at_current_timestep); std::fill(timings_at_current_timestep.begin(),timings_at_current_timestep.end(),0.);
+    time_history.push_back(current_time);
 
     if (current_time >= next_out)
     {
@@ -167,6 +179,8 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
             Bz_history.clear();
         }
         
+        output.histdump(timing_history, time_history, timing_indices,  t_out, current_time, _dt, PE, "Timings");
+        timing_history.clear();
 
         output(Y_current, grid, t_out, current_time, _dt, PE);
         Y_current.checknan();
@@ -231,14 +245,22 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
     }
     else 
     {   
+        
+                                    timings_at_current_timestep[0] -= MPI_Wtime(); 
         Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
+                                    timings_at_current_timestep[0] += MPI_Wtime(); 
+        
+                                    timings_at_current_timestep[1] -= MPI_Wtime(); 
         if (Input::List().collisions)   
         {
             cF.advance(Y_new,current_time,_dt);
             PE.Neighbor_Communications(Y_new);
         }
+                                    timings_at_current_timestep[1] += MPI_Wtime(); 
+
+                                    timings_at_current_timestep[0] -= MPI_Wtime(); 
         Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
-        
+                                    timings_at_current_timestep[0] += MPI_Wtime(); 
     }
 
 }

@@ -577,21 +577,21 @@ void RK4C::take_step(State1D& Ystar, State1D& Y, double time, double h, VlasovFu
         vF(Y1,Yh,time,h);                    // slope in the beginning
         PE.Neighbor_Communications(Yh);
         Yh *= (0.5*h);   Y1 += Yh;      // Y1 = Y1 + (h/2)*Yh  Yhc = (*CF)(Y1,time,0.5*h)
-        Yh *= (1.0/3.0); Y  += Yh;      // Y  = Y  + (h/6)*Yh
+        Yh *= (onethird); Y  += Yh;      // Y  = Y  + (h/6)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //      Step 2
         vF(Y1,Yh,time,h);     Y1  = Y0;      // slope in the middle
         PE.Neighbor_Communications(Yh);
         Yh *= (0.5*h);   Y1 += Yh;      // Y1 = Y0 + (h/2)*Yh
-        Yh *= (2.0/3.0); Y  += Yh;      // Y  = Y  + (h/3)*Yh
+        Yh *= (twothird); Y  += Yh;      // Y  = Y  + (h/3)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //      Step 3
         vF(Y1,Yh,time,h);                    // slope in the middle again
         PE.Neighbor_Communications(Yh);
         Yh *= h;          Y0 += Yh;     // Y0 = Y0 + h*Yh
-        Yh *= (1.0/3.0);  Y  += Yh;     // Y  = Y  + (h/3)*Yh
+        Yh *= (onethird);  Y  += Yh;     // Y  = Y  + (h/3)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //      Step 4

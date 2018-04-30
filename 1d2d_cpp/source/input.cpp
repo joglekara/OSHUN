@@ -2145,10 +2145,9 @@ Input::Input_List::Input_List():
         oTags.push_back("Z");
         oTags.push_back("ni");
         oTags.push_back("Ti");
-        oTags.push_back("prtx");
-        oTags.push_back("prtpx");
-        oTags.push_back("prtpy");
-        oTags.push_back("prtpz");
+        
+
+        oTags.push_back("Timings");
 
         for (size_t i(0); i<numps.size();++i)
         {

@@ -50,13 +50,14 @@ public:
     // vector<string> fld2d;
     vector<string> mom;
     // vector<string> mom2d;
-    vector<string> part;
     vector<string> pvsx;
     // vector<string> pvsx2d;
     vector<string> fvsx;
     // vector<string> fvsx2d;
     vector<string> pvspvsx;
     // vector<string> pvspvsx2d;
+
+    vector<string> code;
 
     DefaultTags(size_t species); 
     ~DefaultTags(){}
@@ -378,6 +379,9 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
             const Parallel_Environment_2D& PE);
 
         void histdump(vector<valarray<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE, std::string tag);
+
+        void histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
             const Parallel_Environment_1D& PE, std::string tag);
 
     private:
