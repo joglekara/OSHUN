@@ -68,10 +68,10 @@
     double startmessages(){
 
         Formulary formulas;
-        // double Tref = Input::List().pth_ref*Input::List().pth_ref;
+        // double Tref = Input::List().normalizing_momentum*Input::List().normalizing_momentum;
         double ND = 1.72e9*sqrt(pow(formulas.T0,3.0)/formulas.n);
         double nuei_wp = sqrt(2.0/Formulary::pi)/9.0/ND*
-        formulas.LOGei(1.0,pow(Input::List().pth_ref,2.0),formulas.Zeta)*formulas.Zeta;
+        formulas.LOGei(1.0,pow(Input::List().normalizing_momentum,2.0),formulas.Zeta)*formulas.Zeta;
 
         double nu_ei = nuei_wp * formulas.wp;
         double dt_out(Input::List().t_stop / Input::List().n_outsteps);
@@ -94,7 +94,7 @@
 
         std::cout << "\n\n";
         std::cout << "--------------- OSHUN Beta - 1/2D+3P --------------- \n";
-        std::cout << "------------ git commit hash #  ------------- \n";
+        std::cout << "------------ git commit hash # " << OSHUN_VERSION << " ------------- \n";
         std::cout << "    Particle-in-Cell and Kinetic Simulation Center   \n";
         std::cout << "------------------- UCLA - 2018 -------------------- \n";
         
@@ -104,19 +104,19 @@
         std::cout << "background ions - Z                   = " << formulas.Zeta << " \n";
         std::cout << "normalizing magnetic field            = " << formulas.B0 << " T \n";
         std::cout << "Reference Temperature                 = " << formulas.T0 << " eV \n";
-        std::cout << "Corresponding thermal velocity        = " << Input::List().pth_ref*Formulary::cL  << " m/s \n";
+        std::cout << "Corresponding thermal velocity        = " << Input::List().normalizing_momentum*Formulary::cL  << " m/s \n";
 
         std::cout << "\n";
-        std::cout << "Corresponding e-i log Lambda          = " << formulas.LOGei(1.0,pow(Input::List().pth_ref,2.0),formulas.Zeta) << " \n";
+        std::cout << "Corresponding e-i log Lambda          = " << formulas.LOGei(1.0,pow(Input::List().normalizing_momentum,2.0),formulas.Zeta) << " \n";
         std::cout << "Corresponding e-i collision frequency = " << nu_ei << " Hz \n";
         std::cout << "Corresponding tau_e-i / tau_p         = " << 1.0/nuei_wp << " \n";
-        std::cout << "Corresponding e-i mean free path      = " << Input::List().pth_ref*Formulary::cL/nu_ei *1e6<< " microns \n";
+        std::cout << "Corresponding e-i mean free path      = " << Input::List().normalizing_momentum*Formulary::cL/nu_ei *1e6<< " microns \n";
 
         std::cout << "\n";
-        std::cout << "Corresponding e-e log Lambda          = " << formulas.LOGee(1.0,pow(Input::List().pth_ref,2.0)) << " \n";
-        std::cout << "Corresponding e-e collision frequency = " << 1.0/formulas.Tau_e(1.0,pow(Input::List().pth_ref,2.0)) << " Hz \n";
-            // std::cout << "Corresponding thermal mean free path =" << Input::List().pth_ref/cL / nu_ei  << "\n";
-            // std::cout << "Corresponding thermal velocity  c =" << pow(Input::List().pth_ref*cL,2.0)*0.5*me << "\n";
+        std::cout << "Corresponding e-e log Lambda          = " << formulas.LOGee(1.0,pow(Input::List().normalizing_momentum,2.0)) << " \n";
+        std::cout << "Corresponding e-e collision frequency = " << 1.0/formulas.Tau_e(1.0,pow(Input::List().normalizing_momentum,2.0)) << " Hz \n";
+            // std::cout << "Corresponding thermal mean free path =" << Input::List().normalizing_momentum/cL / nu_ei  << "\n";
+            // std::cout << "Corresponding thermal velocity  c =" << pow(Input::List().normalizing_momentum*cL,2.0)*0.5*me << "\n";
         std::cout << "\n";
         std::cout << "\n";
         std::cout << "--------------  Simulation parameters -------------- \n";

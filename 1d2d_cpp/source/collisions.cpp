@@ -61,11 +61,11 @@ self_f00_implicit_step::self_f00_implicit_step(//const size_t &nump, const doubl
     /// Collisions
     //classical electron radius
     double re(2.8179402894e-13);   //< classical electron radius
-    double kp(sqrt(4.0*M_PI*(Input::List().density_np)*re)); //< sqrt(4*pi*n_{e0}*re).
+    double kp(sqrt(4.0*M_PI*(Input::List().normalizing_density)*re)); //< sqrt(4*pi*n_{e0}*re).
     c_kpre = re*kp; //< (4*pi*re)^1.5*sqrt(n_{e0})/3.
 
     double omega_0(3.0e10*2.0*M_PI/(1.0e-4*Input::List().lambda_0));
-    double omega_p(5.64 * 1.0e4*sqrt(Input::List().density_np));
+    double omega_p(5.64 * 1.0e4*sqrt(Input::List().normalizing_density));
     vw_coeff_cube = omega_p/omega_0 * c_kpre;
     
     // vr[0] = 0.5*dp[0];
@@ -631,7 +631,7 @@ self_f00_explicit_step::self_f00_explicit_step(const valarray<double>& dp)
 
     //classical electron radius
     double re(2.8179402894e-13);   //< classical electron radius
-    double kp(sqrt(4.0*M_PI*(Input::List().density_np)*re)); //< sqrt(4*pi*n_{e0}*re).
+    double kp(sqrt(4.0*M_PI*(Input::List().normalizing_density)*re)); //< sqrt(4*pi*n_{e0}*re).
     c_kpre = 4.0*M_PI/3.0*re*kp; //< (4*pi*re)^1.5*sqrt(n_{e0})/3.
     NB = Input::List().NB_algorithms;
 
@@ -1013,7 +1013,7 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
 
 
     double re(2.8179402894e-13);           //classical electron radius
-    double kp(sqrt(4.0*M_PI*(Input::List().density_np)*re));
+    double kp(sqrt(4.0*M_PI*(Input::List().normalizing_density)*re));
 
     kpre = re*kp;
 
@@ -1605,6 +1605,9 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+    // int N_GPU_loops(ceil(n_systems/))
+
+    // for 
     // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
     // FPGPU.SolveTridiagonal(&ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
 

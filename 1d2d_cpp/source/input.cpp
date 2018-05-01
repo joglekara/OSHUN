@@ -33,6 +33,7 @@ void Parser::parseprofile(const std::valarray<double>& grid, std::string& str_pr
 //**************************************************************
 //--------------------------------------------------------------
 Input::Input_List::Input_List():
+    version("default"),
     isthisarestart(0),
     dim(1),
     ompthreads(1),
@@ -92,7 +93,7 @@ Input::Input_List::Input_List():
     // numpx(96),
 
 //          Electron-ion collisions
-    lnLambda_ei(-1), lnLambda_ee(-1), density_np(1.0e21), 
+    lnLambda_ei(-1), lnLambda_ee(-1), normalizing_density(1.0e21), 
 
 //          Electron-electron collisions
     RB_D_itmax(100),
@@ -110,7 +111,7 @@ Input::Input_List::Input_List():
     MX_cooling(0),
     super_gaussian_m(2.0),
 
-    pth_ref(0.025),
+    normalizing_momentum(0.025),
 
     // Particles
     // particlepusher(0),
@@ -1621,13 +1622,13 @@ Input::Input_List::Input_List():
                     // std::cout<< "mass = " << deckreal << "\n";
                 }
             }
-            if (deckstring == "pth_ref") {
+            if (deckstring == "normalizing_momentum") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
                     std::cout << "Error reading " << deckstring << std::endl;
                     exit(1);
                 }
-                deckfile >> pth_ref;
+                deckfile >> normalizing_momentum;
             }
             if (deckstring == "hydroatomicmass") {
                 deckfile >> deckequalssign;
@@ -1646,13 +1647,13 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> hydrocharge;
             }
-            if (deckstring == "density_np") {
+            if (deckstring == "normalizing_density") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
                     std::cout << "Error reading " << deckstring << std::endl;
                     exit(1);
                 }
-                deckfile >> density_np;
+                deckfile >> normalizing_density;
             }
             if (deckstring == "super_gaussian_distribution") {
                 deckfile >> deckequalssign;
@@ -2230,6 +2231,8 @@ Input::Input_List::Input_List():
         std::cout << "Unable to open inputdeck" << std::endl;
         exit(1);
     }
+
+    version = OSHUN_VERSION;
 
 }
 //--------------------------------------------------------------

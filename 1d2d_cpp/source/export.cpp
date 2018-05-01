@@ -617,39 +617,16 @@ Export_Files::Xport::Xport(const Algorithms::AxisBundle<double>& _axis,
         }
     } // <--
 
-//  Tags for Particles -->
-    // for (size_t i(0); i < dTags.part.size(); ++i) {
-
-    //     //     If this tag is an output tag
-    //     if ( find(oTags.begin(),oTags.end(), dTags.part[i]) != oTags.end() ) {
-
-    //         string nounits = dTags.part[i].substr(0, dTags.part[i].find("_"));
-    //         string folder = homedir + "output/particles/" + nounits + "/";
-    //         //         Generate a header file for this tag
-    //         Hdr[nounits] = Header(axis_units, dTags.part[i], folder);
-    //     }
-    // } // <--
-
 
 //  Tags for p-x -->
     for (size_t i(0); i < dTags.pvsx.size(); ++i) {
-
-        // for (size_t k(0); k < oTags.size(); ++k)
-        //         std::cout << " \n \n k = " << oTags[k];
-
         //     If this tag is an output tag
         if ( find(oTags.begin(),oTags.end(), dTags.pvsx[i]) != oTags.end() ) {
 
             string folder = homedir + "output/distributions/" + dTags.pvsx[i] + "/";
             Makefolder(folder);
 
-
 //          Generate a header file for this tag
-//          For each 9 you have a different species 
-            // Hdr[dTags.pvsx[i]] = Header( pr[i/3], xyz[0],
-            //  "f"+stringify(i/3), 1.0, tlabel, tunits, tconv, folder);
-            // std::cout << " \n k = " << dTags.pvsx[i] << "\n";
-            // std::cout << " \n \n 11 ";
             Hdr[dTags.pvsx[i]] = Header(axis_units, dTags.pvsx[i], folder);
         }
     } //<--
@@ -6740,7 +6717,8 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     // lets write our vector of double to the HDF5 dataset
     dataset.write(data);
 
-    add_attributes(dataset,tag,time,dt);
+    add_time_attributes(dataset,tag,time,dt);
+    add_fundamental_attributes(dataset,tag);
 
     HighFive::Group Axes = file.createGroup("Axes");
 
@@ -6806,7 +6784,8 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     // lets write our vector of double to the HDF5 dataset
     dataset.write(data);
 
-    add_attributes(dataset,tag,time,dt);
+    add_time_attributes(dataset,tag,time,dt);
+    add_fundamental_attributes(dataset,tag);
 
     HighFive::Group Axes = file.createGroup("Axes");
 
@@ -6877,7 +6856,8 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     /// Attributes
     /// Only a few defined for now
     /// dt, time
-    add_attributes(dataset,tag,time,dt);
+    add_time_attributes(dataset,tag,time,dt);
+    add_fundamental_attributes(dataset,tag);
 
     HighFive::Group Axes = file.createGroup("Axes");
 
@@ -6957,7 +6937,8 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     /// Attributes
     /// Only a few defined for now
     /// dt, time
-    add_attributes(dataset,tag,time,dt);
+    add_time_attributes(dataset,tag,time,dt);
+    add_fundamental_attributes(dataset,tag);
 
     HighFive::Group Axes = file.createGroup("Axes");
 
@@ -6980,7 +6961,7 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-    void Export_Files::Xport::add_attributes(HighFive::DataSet &dataset, const std::string tag, 
+    void Export_Files::Xport::add_time_attributes(HighFive::DataSet &dataset, const std::string tag, 
         const double  time, const double  dt) {
 //--------------------------------------------------------------
 //    Add initial attributes:
@@ -6999,13 +6980,31 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
         HighFive::Attribute at_ps = dataset.createAttribute<double>("Time (ps)", HighFive::DataSpace::From(timeps));
         at_ps.write(timeps);
 
+    }
+/**
+ * 
+ * { item_description }
+ */
+//--------------------------------------------------------------
+    void Export_Files::Xport::add_fundamental_attributes(HighFive::DataSet &dataset, const std::string tag) {
+//--------------------------------------------------------------
+//    Add fundamental attributes:
+//    normalizing temperature, normalizing density, and version number
+//--------------------------------------------------------------
+        // double dubtype(0.);
+        // Now let's add a attribute on this dataset
+        HighFive::Attribute pth = dataset.createAttribute<double>("p_th", HighFive::DataSpace::From(Input::List().normalizing_momentum));
+        pth.write(Input::List().normalizing_momentum);
 
-        // HighFive::Attribute aname = dataset.createAttribute<std::string>("Name", HighFive::DataSpace::From(tag));
-        // aname.write(tag);
+        HighFive::Attribute n0 = dataset.createAttribute<double>("n0", HighFive::DataSpace::From(Input::List().normalizing_density));
+        n0.write(Input::List().normalizing_density);
 
-        // std::string timeunits = "1/\\omega_0";
-        // HighFive::Attribute atu = dataset.createAttribute<std::string>("Time Units", HighFive::DataSpace::From(timeunits));
-        // atu.write(timeunits);
+        HighFive::Attribute Z0 = dataset.createAttribute<double>("Z0", HighFive::DataSpace::From(Input::List().hydrocharge));
+        Z0.write(Input::List().hydrocharge);
+
+        std::string default_string(OSHUN_VERSION);
+        HighFive::Attribute vers = dataset.createAttribute<string>("version", HighFive::DataSpace::From(default_string));
+        vers.write(default_string);
+
     }
 //--------------------------------------------------------------
-

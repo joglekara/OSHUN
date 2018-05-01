@@ -40,13 +40,13 @@
 //-------------------------------------------------------------------
 //  List all the units as in "label, conversion_factor" 
 //-------------------------------------------------------------------
-Formulary::Formulary() : n(Input::List().density_np),
+Formulary::Formulary() : n(Input::List().normalizing_density),
                         wp(5.64*1.0e+4*sqrt(n)),
                         skindepth(cL/wp),
                         B0(-1.0*wp*me/qe),
-                        T0(pow(Input::List().pth_ref,2.0)*keVnorm*1e3),
+                        T0(pow(Input::List().normalizing_momentum,2.0)*keVnorm*1e3),
                         Zeta(Input::List().hydrocharge)
-                        // ref_nuei(sqrt(2.0/pi)*LOGei(1.0,Input::List().pth_ref,Zeta)/exp(LOGei(1.0,Input::List().pth_ref,Zeta)) * wp)
+                        // ref_nuei(sqrt(2.0/pi)*LOGei(1.0,Input::List().normalizing_momentum,Zeta)/exp(LOGei(1.0,Input::List().normalizing_momentum,Zeta)) * wp)
                         {
     // Physically: label * d = const in any system
 

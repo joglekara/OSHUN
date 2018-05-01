@@ -185,8 +185,10 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
                 const size_t  step, const double time, const double dt,
                 const int spec = -1);
             
-            void add_attributes(HighFive::DataSet &dataset, const std::string tag, 
+            void add_time_attributes(HighFive::DataSet &dataset, const std::string tag, 
                 const double time, const double dt);
+
+            void add_fundamental_attributes(HighFive::DataSet &dataset, const std::string tag);
 
         private:
             map< string, Header > Hdr; // Dictionary of headers

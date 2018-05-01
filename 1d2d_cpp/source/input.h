@@ -33,6 +33,8 @@ namespace Input{
 //--------------------------------------------------------------
 //  declaration of input list variables (input deck)
 //--------------------------------------------------------------
+        std::string version; 
+
         bool isthisarestart;
         size_t dim;
         size_t ompthreads;
@@ -102,7 +104,7 @@ namespace Input{
         
 
 //          Electron-ion collisions
-        double lnLambda_ei, lnLambda_ee, density_np;
+        double lnLambda_ei, lnLambda_ee, normalizing_density;
 
 //          Electron-electron collisions
         size_t RB_D_itmax;
@@ -121,7 +123,7 @@ namespace Input{
 
         double super_gaussian_m;        
 
-        double pth_ref;
+        double normalizing_momentum;
 
         // Particles
         bool particlepusher;
