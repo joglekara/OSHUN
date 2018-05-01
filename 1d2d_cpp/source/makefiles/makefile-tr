@@ -5,13 +5,11 @@
 
 COMPILER = mpiicpc
 
-
 OPTFLAGS3 = -O3 -use-intel-optimized-headers -mavx
 OPTFLAGS1 = -O1 -use-intel-optimized-headers -mavx
 DBGFLAGS = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
 # -O3 -ffast-math -ftree-loop-distribution -fno-signed-zeros -ftree-loop-ivcanon -ftree-vect-loop-version
 #-fopt-info-vec-optimized  
-
 
 # HDF5 libraries
 H5LIB = -lhdf5_hl -lhdf5
