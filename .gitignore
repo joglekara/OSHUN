@@ -17,9 +17,10 @@
 *.obj
 
 /oshun-development/
-/1d_cpp/bin/*
-/1d_cpp/tmp/*
+/1d2d_cpp/bin/*
+/1d2d_cpp/tmp/*
 *.m~
 *.dat
 
-1d_cpp/version.txt
+1d2d_cpp/version.txt
+1d2d_cpp/source/makefile

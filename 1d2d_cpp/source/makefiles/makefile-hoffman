@@ -5,7 +5,6 @@
 
 COMPILER = mpiicpc
 # Makefile for OSHUN
-
 # Intel compilers#
 OPTFLAGS3 = -O3 -no-prec-div -no-prec-sqrt -axsse4.2 -ipo -use-intel-optimized-headers
 OPTFLAGS2 = -O2 -no-vec -qopt-report=1

@@ -19,9 +19,9 @@ DBGFLAGS = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
 # HDF5 libraries
 H5LIB = -lhdf5_hl -lhdf5
 MPILIB = -lmpi
-LDFLAGS = -L/usr/local/Cellar/hdf5/1.10.1_2/lib -L/usr/local/Cellar/gcc/7.2.0/lib/gcc/7
-CPPFLAGS = -fopenmp
-INCLUDE_DIRS = -L/usr/local/Cellar/hdf5/1.10.1_2/include -I/usr/local/opt/gcc/lib/gcc/7
+LDFLAGS = 
+CPPFLAGS = -fopenmp -DOSHUN_VERSION=\"$(GIT_VERSION)\"
+INCLUDE_DIRS = 
 
 EXEC_DIR = ../bin
 TMP_DIR = ../bin/tmp
@@ -29,6 +29,8 @@ TMP_DIR = ../bin/tmp
 OBJECTS = input.o clock.o state.o stepper.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o implicitE.o parallel.o export.o main.o
 
 EXEC = oshun.e
+
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
 
 BUILDOBJECTS = ${addprefix ${TMP_DIR}/,${OBJECTS}}
 
