@@ -1604,12 +1604,33 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
-    // int N_GPU_loops(ceil(n_systems/))
+    
+    
 
-    // for 
+    // int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
     // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
     // FPGPU.SolveTridiagonal(&ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], device);
+    
+
+
+
+    int n_GPU(3);
+    int systems_per_GPU(ceil(n_systems/n_GPU));
+    int offset_per_GPU(systems_per_GPU*DF(0,0).nump());
+
+    #pragma omp parallel num_threads(3)
+    {
+        if (omp_get_thread_num() == 0){
+            // GPU_interface_routines::TDsolve(DF(0,0).nump(), systems_per_GPU, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], 0);
+        }
+        else if (omp_get_thread_num() == 1){
+            // GPU_interface_routines::TDsolve(DF(0,0).nump(), systems_per_GPU, &ld_GPU[offset_per_GPU], &dd_GPU[offset_per_GPU], &ud_GPU[offset_per_GPU], &fin_GPU[offset_per_GPU], 1);
+        }
+        else {
+            // GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems-2*systems_per_GPU, &ld_GPU[2*offset_per_GPU], &dd_GPU[2*offset_per_GPU], &ud_GPU[2*offset_per_GPU], &fin_GPU[2*offset_per_GPU], 2);
+        }
+    }
+
 
     #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
     for (size_t ix = 0; ix < szx; ++ix)
