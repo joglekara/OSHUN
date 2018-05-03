@@ -92,6 +92,54 @@ Clock::Clock(double starttime, double __dt, double abs_tol, double rel_tol, size
         timing_indices.push_back(2.);
     }
 //--------------------------------------------------------------
+Clock::Clock(double starttime, double __dt, double abs_tol, double rel_tol, size_t _maxfails,
+                    State2D& Y): 
+    current_time(starttime), dt_next(__dt), _dt(__dt),
+    atol(abs_tol), rtol(rel_tol), 
+    acceptability(0.), err_val(0.), 
+    failed_steps(0), max_failures(_maxfails), _success(0),
+    Nbc(Input::List().BoundaryCells), world_rank(0), world_size(1),
+    Solver(Y)
+    {
+        MPI_Comm_rank(MPI_COMM_WORLD, &world_rank); 
+        MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+
+        acceptabilitylist = new double[world_size];
+
+        /// /// /// /// /// /// /// /// /// //
+        // int tout_start;
+        if (Input::List().isthisarestart) 
+        {
+            tout_start = Input::List().restart_time;
+        }
+        else
+        {
+            tout_start = 0;
+        }
+        t_out = tout_start+1;
+        
+        dt_out = Input::List().t_stop / (Input::List().n_outsteps);
+        dt_dist_out = Input::List().t_stop / (Input::List().n_distoutsteps);
+        dt_big_dist_out = Input::List().t_stop / (Input::List().n_bigdistoutsteps);
+        dt_restart = Input::List().t_stop / (Input::List().n_restarts);
+        
+        next_out = t_out*dt_out;
+        next_dist_out = (tout_start*dt_out)+dt_dist_out;
+        next_big_dist_out = (tout_start*dt_out)+dt_big_dist_out;
+
+        next_restart = (tout_start*dt_out)+dt_restart;
+
+        start_time = tout_start*dt_out;
+
+        timings_at_current_timestep.push_back(0.);      // Vlasov
+        timings_at_current_timestep.push_back(0.);      // Fokker-Planck
+        timings_at_current_timestep.push_back(0.);      // Big Output Routines
+
+        timing_indices.push_back(0.);
+        timing_indices.push_back(1.);
+        timing_indices.push_back(2.);
+    }    
+//--------------------------------------------------------------
 Clock:: ~Clock(){
 //--------------------------------------------------------------
 //  Destructor
@@ -130,12 +178,12 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
 
 
 
-    if (Input::List().o_Exhist) Ex_history.push_back(Y_current.FLD(0).array());
-    if (Input::List().o_Eyhist) Ey_history.push_back(Y_current.FLD(1).array());
-    if (Input::List().o_Ezhist) Ez_history.push_back(Y_current.FLD(2).array());
-    if (Input::List().o_Bxhist) Bx_history.push_back(Y_current.FLD(3).array());
-    if (Input::List().o_Byhist) By_history.push_back(Y_current.FLD(4).array());
-    if (Input::List().o_Bzhist) Bz_history.push_back(Y_current.FLD(5).array());
+    if (Input::List().o_Exhist) Ex_history1D.push_back(Y_current.FLD(0).array());
+    if (Input::List().o_Eyhist) Ey_history1D.push_back(Y_current.FLD(1).array());
+    if (Input::List().o_Ezhist) Ez_history1D.push_back(Y_current.FLD(2).array());
+    if (Input::List().o_Bxhist) Bx_history1D.push_back(Y_current.FLD(3).array());
+    if (Input::List().o_Byhist) By_history1D.push_back(Y_current.FLD(4).array());
+    if (Input::List().o_Bzhist) Bz_history1D.push_back(Y_current.FLD(5).array());
 
     timing_history.push_back(timings_at_current_timestep); std::fill(timings_at_current_timestep.begin(),timings_at_current_timestep.end(),0.);
     time_history.push_back(current_time);
@@ -150,33 +198,33 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
         
         if (Input::List().o_Exhist) 
         {
-            output.histdump(Ex_history, time_history, grid,  t_out, current_time, _dt, PE, "Exhist");
-            Ex_history.clear();
+            output.histdump(Ex_history1D, time_history, grid,  t_out, current_time, _dt, PE, "Exhist");
+            Ex_history1D.clear();
         }
         if (Input::List().o_Eyhist) 
         {
-            output.histdump(Ey_history, time_history, grid,  t_out, current_time, _dt, PE, "Eyhist");
-            Ey_history.clear();
+            output.histdump(Ey_history1D, time_history, grid,  t_out, current_time, _dt, PE, "Eyhist");
+            Ey_history1D.clear();
         }
         if (Input::List().o_Ezhist) 
         {
-            output.histdump(Ez_history, time_history, grid,  t_out, current_time, _dt, PE, "Ezhist");
-            Ez_history.clear();
+            output.histdump(Ez_history1D, time_history, grid,  t_out, current_time, _dt, PE, "Ezhist");
+            Ez_history1D.clear();
         }
         if (Input::List().o_Bxhist) 
         {
-            output.histdump(Bx_history, time_history, grid,  t_out, current_time, _dt, PE, "Bxhist");
-            Bx_history.clear();
+            output.histdump(Bx_history1D, time_history, grid,  t_out, current_time, _dt, PE, "Bxhist");
+            Bx_history1D.clear();
         }
         if (Input::List().o_Byhist) 
         {
-            output.histdump(By_history, time_history, grid,  t_out, current_time, _dt, PE, "Byhist");
-            By_history.clear();
+            output.histdump(By_history1D, time_history, grid,  t_out, current_time, _dt, PE, "Byhist");
+            By_history1D.clear();
         }
         if (Input::List().o_Bzhist) 
         {
-            output.histdump(Bz_history, time_history, grid,  t_out, current_time, _dt, PE, "Bzhist");
-            Bz_history.clear();
+            output.histdump(Bz_history1D, time_history, grid,  t_out, current_time, _dt, PE, "Bzhist");
+            Bz_history1D.clear();
         }
         
         output.histdump(timing_history, time_history, timing_indices,  t_out, current_time, _dt, PE, "Timings");
@@ -195,6 +243,104 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
     return *this;
 }
 //--------------------------------------------------------------
+//--------------------------------------------------------------
+Clock& Clock::advance(State2D& Y_current, Grid_Info& grid, 
+    Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
+    Parallel_Environment_2D& PE) 
+{
+    end_of_loop_time_updates();
+
+    timings_at_current_timestep[2] -= MPI_Wtime(); 
+    if (current_time >= next_dist_out)
+    {    
+        if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
+        output.distdump(Y_current, grid, t_out, current_time, _dt, PE);
+        next_dist_out += dt_dist_out;
+    }
+    
+    if (current_time >= next_big_dist_out)
+    {
+        if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
+        output.bigdistdump(Y_current, grid, t_out, current_time, _dt, PE);
+        next_big_dist_out += dt_big_dist_out;
+    }
+    
+    if (current_time >= next_restart)
+    {
+        if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";        
+        Re.Write(PE.RANK(), t_out, Y_current, current_time);
+        next_restart += dt_restart;
+    }
+    timings_at_current_timestep[2] += MPI_Wtime(); 
+
+
+
+    if (Input::List().o_Exhist) Ex_history2D.push_back(Y_current.FLD(0).array());
+    if (Input::List().o_Eyhist) Ey_history2D.push_back(Y_current.FLD(1).array());
+    if (Input::List().o_Ezhist) Ez_history2D.push_back(Y_current.FLD(2).array());
+    if (Input::List().o_Bxhist) Bx_history2D.push_back(Y_current.FLD(3).array());
+    if (Input::List().o_Byhist) By_history2D.push_back(Y_current.FLD(4).array());
+    if (Input::List().o_Bzhist) Bz_history2D.push_back(Y_current.FLD(5).array());
+
+    timing_history.push_back(timings_at_current_timestep); std::fill(timings_at_current_timestep.begin(),timings_at_current_timestep.end(),0.);
+    time_history.push_back(current_time);
+
+    if (current_time >= next_out)
+    {
+        if (!(PE.RANK()))
+        {
+            cout << "\n dt = " << _dt;
+            cout << " , Output #" << t_out;                        
+        }
+        
+        if (Input::List().o_Exhist) 
+        {
+            output.histdump(Ex_history2D, time_history, grid,  t_out, current_time, _dt, PE, "Exhist");
+            Ex_history2D.clear();
+        }
+        if (Input::List().o_Eyhist) 
+        {
+            output.histdump(Ey_history2D, time_history, grid,  t_out, current_time, _dt, PE, "Eyhist");
+            Ey_history2D.clear();
+        }
+        if (Input::List().o_Ezhist) 
+        {
+            output.histdump(Ez_history2D, time_history, grid,  t_out, current_time, _dt, PE, "Ezhist");
+            Ez_history2D.clear();
+        }
+        if (Input::List().o_Bxhist) 
+        {
+            output.histdump(Bx_history2D, time_history, grid,  t_out, current_time, _dt, PE, "Bxhist");
+            Bx_history2D.clear();
+        }
+        if (Input::List().o_Byhist) 
+        {
+            output.histdump(By_history2D, time_history, grid,  t_out, current_time, _dt, PE, "Byhist");
+            By_history2D.clear();
+        }
+        if (Input::List().o_Bzhist) 
+        {
+            output.histdump(Bz_history2D, time_history, grid,  t_out, current_time, _dt, PE, "Bzhist");
+            Bz_history2D.clear();
+        }
+        
+        output.histdump(timing_history, time_history, timing_indices,  t_out, current_time, _dt, PE, "Timings");
+        timing_history.clear();
+
+        output(Y_current, grid, t_out, current_time, _dt, PE);
+        Y_current.checknan();
+
+        next_out += dt_out;
+        ++t_out;
+
+        time_history.clear();
+
+    }
+    
+    return *this;
+}
+//--------------------------------------------------------------
+
 Clock& Clock::operator++() 
 {
     // std::cout << "\n time = "  << current_time;
@@ -220,7 +366,6 @@ void Clock::end_of_loop_time_updates()
     _success = 0;
 }
 //--------------------------------------------------------------
-//  Collect all of the terms
 void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
                         VlasovFunctor1D_explicitE& vF, collisions_1D& cF, Parallel_Environment_1D& PE)
 {
@@ -264,8 +409,53 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
     }
 
 }
-//--------------------------------------------------------------
-//  Collect all of the terms
+//-------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------
+void Clock::do_step(State2D& Ystar, State2D& Y_new, State2D& Y_old,
+                        VlasovFunctor2D_explicitE& vF, collisions_2D& cF, Parallel_Environment_2D& PE)
+{
+    if (Input::List().adaptive_dt)
+    {    
+        while (_success == 0)
+        {
+            Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
+            if (current_time > Input::List().adaptive_tmin) 
+                update_dt(Y_old, Ystar, Y_new);
+            else 
+            {
+                Y_old = Y_new;
+                _success = 1;
+            }                
+        }
+        if (Input::List().collisions)  
+        {
+            cF.advance(Y_new,current_time,_dt);
+            PE.Neighbor_Communications(Y_new);
+        }
+    }
+    else 
+    {   
+        
+                                    timings_at_current_timestep[0] -= MPI_Wtime(); 
+        Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
+                                    timings_at_current_timestep[0] += MPI_Wtime(); 
+        
+                                    timings_at_current_timestep[1] -= MPI_Wtime(); 
+        if (Input::List().collisions)   
+        {
+            cF.advance(Y_new,current_time,_dt);
+            PE.Neighbor_Communications(Y_new);
+        }
+                                    timings_at_current_timestep[1] += MPI_Wtime(); 
+
+                                    timings_at_current_timestep[0] -= MPI_Wtime(); 
+        Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
+                                    timings_at_current_timestep[0] += MPI_Wtime(); 
+    }
+
+}
+//-------------------------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------------
 void Clock::update_dt(State1D& Y_old, const State1D& Ystar, State1D& Y_new){
 //--------------------------------------------------------------
 

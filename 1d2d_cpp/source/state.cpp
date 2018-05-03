@@ -2573,6 +2573,7 @@ Hydro2D& Hydro2D::operator-=(const Hydro2D& other){
 //  Constructor and Destructor
 //--------------------------------------------------------------
 //  Constructor
+ State1D:: State1D(){}
 State1D:: State1D( size_t nx, vector<size_t> l0, vector<size_t> m0,
                    // vector<size_t> np, vector<double> pmax, 
                     vector<valarray<double> > dp,
@@ -2741,6 +2742,7 @@ void State1D::checknan() const {
 //  Constructor and Destructor
 //--------------------------------------------------------------
 //  Constructor
+ State2D:: State2D(){}
     State2D:: State2D(size_t nx, size_t ny, 
         vector<size_t> l0, vector<size_t> m0, 
         vector<valarray<double> > dp, 

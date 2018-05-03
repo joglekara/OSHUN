@@ -1111,7 +1111,7 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
     double integrant_high(0.0);
 
     double InPx;
-    valarray<double> LP1D(0.,Nl+1);
+    
     double LP0(0.);
     double LP1(0.);
     double LPC(0.);
@@ -1647,47 +1647,6 @@ void Output_Data::Output_Preprocessor::operator()(const State1D& Y, const Grid_I
 void Output_Data::Output_Preprocessor::distdump(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
    const Parallel_Environment_1D& PE) 
 {
-    if (Input::List().o_f0x1){
-        f0( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f10x1){
-        f10( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f11x1){
-        f11( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f20x1)
-    {
-        f20( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_fl0x1){
-        fl0( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_allfs_f2)
-    {
-        allfs_f2( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_allfs_flogf)
-    {
-        allfs_flogf( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p1x1 || Input::List().o_p2x1 || Input::List().o_p3x1)
-    {
-        // make_fp1p2p3(Y, grid);
-        if (Input::List().o_p1x1){
-            px( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_p2x1){
-            py( Y, grid, tout, time, dt, PE );
-        }
-    }
-
-}
-// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-   const Parallel_Environment_1D& PE) 
-{
 
     if (Input::List().o_allfs)
     {
@@ -1695,8 +1654,47 @@ void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_
     }
     else
     {
-        // make_fp1p2p3(Y, grid);
+        if (Input::List().o_f0x1){
+            f0( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_f10x1){
+            f10( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_f11x1){
+            f11( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_f20x1)
+        {
+            f20( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_fl0x1){
+            fl0( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_allfs_f2)
+        {
+            allfs_f2( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_allfs_flogf)
+        {
+            allfs_flogf( Y, grid, tout, time, dt, PE );
+        }
+    }
+}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+   const Parallel_Environment_1D& PE) 
+{
 
+    
+
+        // make_fp1p2p3(Y, grid);
+        if (Input::List().o_p1x1){
+            px( Y, grid, tout, time, dt, PE );
+        }
+        if (Input::List().o_p2x1){
+            py( Y, grid, tout, time, dt, PE );
+        }
         if (Input::List().o_p1p2x1)
         {
             pxpy( Y, grid, tout, time, dt, PE );
@@ -1824,12 +1822,7 @@ void Output_Data::Output_Preprocessor::operator()(const State2D& Y, const Grid_I
 void Output_Data::Output_Preprocessor::distdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
    const Parallel_Environment_2D& PE) 
 {
-    if (Input::List().o_p1x1){
-        px( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p2x1){
-        py( Y, grid, tout, time, dt, PE );
-    }
+    
     if (Input::List().o_f0x1){
         f0( Y, grid, tout, time, dt, PE );
     }
@@ -1851,6 +1844,19 @@ void Output_Data::Output_Preprocessor::distdump(const State2D& Y, const Grid_Inf
 void Output_Data::Output_Preprocessor::bigdistdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
    const Parallel_Environment_2D& PE) 
 {
+
+    if (Input::List().o_p1x1){
+        px( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_p2x1){
+        py( Y, grid, tout, time, dt, PE );
+    }
+    
+    // if (Input::List().o_allfs)
+    // {
+    //     allfs( Y, grid, tout, time, dt, PE );
+    // }
+
     if (Input::List().o_p1p2x1)
     {
         pxpy( Y, grid, tout, time, dt, PE );
@@ -6667,6 +6673,64 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::histdump(vector<Array2D<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+   const Parallel_Environment_2D& PE, std::string tag) 
+{
+
+    size_t Nbc = Input::List().BoundaryCells;
+    MPI_Status status;
+    
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+    size_t outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+
+    size_t outNxGlobal(grid.axis.Nxg(0));
+    size_t outNyGlobal(grid.axis.Nxg(1));
+
+    size_t number_of_time_steps(time_history.size());
+    int msg_sz(number_of_time_steps*outNxLocal*outNyLocal);
+    
+    valarray<double> ExtBuf(msg_sz);
+    valarray<double> ExtGlobalBuf(number_of_time_steps*outNxGlobal*outNyGlobal);
+    
+    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+
+    Array3D<double> ExtGlobal(number_of_time_steps,outNxGlobal,outNyGlobal);
+
+    for(size_t it(0); it < number_of_time_steps; ++it) 
+    {
+        for(size_t iy(0); iy < outNyLocal; ++iy) 
+        {
+            for(size_t ix(0); ix < outNxLocal; ++ix) 
+            {
+                ExtBuf[it*outNxLocal*outNyLocal+iy*outNxLocal+ix] = fieldhistory[it](ix,iy).real();
+            }
+        }
+    }
+
+    MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    // size_t offset(0);
+    // for (int rr(0); rr < PE.MPI_Processes(); ++rr)
+    // {            
+    //     offset = rr*msg_sz;
+
+    //     for(size_t it(0); it < number_of_time_steps; ++it) 
+    //     {
+    //         for(size_t iy(0); iy < outNyLocal; ++iy) 
+    //         {
+    //             for(size_t ix(0); ix < outNxLocal; ++ix) 
+    //             {
+    //                 ExtGlobal(it,ix+rr*outNxLocal,iy) = ExtGlobalBuf[offset+ix];
+    //             }
+    //             offset += outNxLocal;
+    //     }
+    // }
+
+    // if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
    const Parallel_Environment_1D& PE, std::string tag) 
 {
@@ -6686,6 +6750,24 @@ void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhi
     if (PE.RANK() == 0) expo.Export_h5(tag, time_history, indices, fieldhistoryArr, tout, time, dt, 0);
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
+   const Parallel_Environment_2D& PE, std::string tag) 
+{
+    size_t number_of_quantities(indices.size());
+    size_t number_of_time_steps(time_history.size());
+    
+    Array2D<double> fieldhistoryArr(number_of_time_steps,number_of_quantities);
+
+    for(size_t it(0); it < number_of_time_steps; ++it) 
+    {
+        for(size_t i(0); i < number_of_quantities; ++i) 
+        {
+            fieldhistoryArr(it,i) = fieldhistory[it][i];
+        }
+    }
+
+    if (PE.RANK() == 0) expo.Export_h5(tag, time_history, indices, fieldhistoryArr, tout, time, dt, 0);
+}
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 void Export_Files::Xport:: Export_h5(const std::string tag,

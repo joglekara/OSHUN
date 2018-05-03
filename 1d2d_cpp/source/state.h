@@ -744,6 +744,7 @@ public:
         vector<double> q, vector<double> ma, 
         double hydromass, double hydrocharge);//,// double filter_dp, double filter_pmax,
         // size_t numparticles, double particlemass, double particlecharge);
+    State1D();
     State1D(const State1D& other);
     ~State1D();
 
@@ -808,6 +809,7 @@ public:
             vector<size_t> l0, vector<size_t> m0, 
             vector<valarray<double> > dp, 
             vector<double> q, vector<double> ma, double _hydromass, double _hydrocharge);
+        State2D();
         State2D(const State2D& other);
         ~State2D();
 

@@ -124,13 +124,19 @@ class RK4C {
 public:
 //      Constructor
     RK4C(State1D& Yin);
+    RK4C(State2D& Yin);
     ~RK4C();
 
     void take_step(State1D& Y5, State1D& Y4, double time, double h, 
         VlasovFunctor1D_explicitE& vF, collisions_1D& cF, Parallel_Environment_1D& PE);
+
+    void take_step(State2D& Y5, State2D& Y4, double time, double h, 
+        VlasovFunctor2D_explicitE& vF, collisions_2D& cF, Parallel_Environment_2D& PE);
 private:
 
     State1D  Y0, Y1, Y2, Yh;
+
+    State2D  Y0_2D, Y1_2D, Y2_2D, Yh_2D;
 
     double onethird, twothird;
 };

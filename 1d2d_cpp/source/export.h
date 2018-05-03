@@ -383,8 +383,16 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         void histdump(vector<valarray<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
             const Parallel_Environment_1D& PE, std::string tag);
 
+        void histdump(vector<Array2D<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_2D& PE, std::string tag);
+
+
+
         void histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
             const Parallel_Environment_1D& PE, std::string tag);
+
+        void histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_2D& PE, std::string tag);
 
     private:
         size_t                          Nbc;
