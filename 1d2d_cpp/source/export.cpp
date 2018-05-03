@@ -1686,31 +1686,28 @@ void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_
    const Parallel_Environment_1D& PE) 
 {
 
-    
-
-        // make_fp1p2p3(Y, grid);
-        if (Input::List().o_p1x1){
-            px( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_p2x1){
-            py( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_p1p2x1)
-        {
-            pxpy( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_p1p3x1)
-        {
-            pxpz( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_p2p3x1)
-        {
-            pypz( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_p1p2p3x1)
-        {
-            // pxpypz( Y, grid, tout, time, dt, PE );
-        }
+    // make_fp1p2p3(Y, grid);
+    if (Input::List().o_p1x1){
+        px( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_p2x1){
+        py( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_p1p2x1)
+    {
+        pxpy( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_p1p3x1)
+    {
+        pxpz( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_p2p3x1)
+    {
+        pypz( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_p1p2p3x1)
+    {
+        // pxpypz( Y, grid, tout, time, dt, PE );
     }
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
