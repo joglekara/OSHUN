@@ -6,7 +6,7 @@
  */
 
 //  Standard libraries
-#include <mpi.h>
+
 #include <iostream>
 #include <vector>
 #include <valarray>
@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include <map>
+#include <mpi.h>
 
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -317,19 +318,6 @@ void Export_Files::Folders(){
             if (Makefolder("output/moments/Ti") != 0)
                 cout<<"Warning: Folder 'output/moments/Ti' exists" << endl;
         }
-
-        // if (Input::List().particlepusher) {
-        //     if (Makefolder("output/particles") != 0)
-        //         cout<<"Warning: Folder 'output/particles' exists" << endl;
-        //     if (Makefolder("output/particles/prtx") != 0)
-        //         cout<<"Warning: Folder 'output/particles/prtx' exists" << endl;
-        //     if (Makefolder("output/particles/prtpx") != 0)
-        //         cout<<"Warning: Folder 'output/particles/prtpx' exists" << endl;
-        //     if (Makefolder("output/particles/prtpy") != 0)
-        //         cout<<"Warning: Folder 'output/particles/prtpy' exists" << endl;
-        //     if (Makefolder("output/particles/prtpz") != 0)
-        //         cout<<"Warning: Folder 'output/particles/prtpz' exists" << endl;
-        // }
     }
 
     if (  Input::List().o_p1x1 || Input::List().o_p2x1 || Input::List().o_p3x1 ||
@@ -1632,14 +1620,6 @@ void Output_Data::Output_Preprocessor::operator()(const State1D& Y, const Grid_I
     if (Input::List().o_Ux) {
         Ti( Y, grid, tout, time, dt, PE );
     }
-
-    // if (Input::List().particlepusher) {
-    //     particles_x( Y, grid, tout, time, dt, PE );
-    //     particles_px( Y, grid, tout, time, dt, PE );
-    //     particles_py( Y, grid, tout, time, dt, PE );
-    //     particles_pz( Y, grid, tout, time, dt, PE );
-    // }
-
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
@@ -1654,22 +1634,6 @@ void Output_Data::Output_Preprocessor::distdump(const State1D& Y, const Grid_Inf
     }
     else
     {
-        if (Input::List().o_f0x1){
-            f0( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_f10x1){
-            f10( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_f11x1){
-            f11( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_f20x1)
-        {
-            f20( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_fl0x1){
-            fl0( Y, grid, tout, time, dt, PE );
-        }
         if (Input::List().o_allfs_f2)
         {
             allfs_f2( Y, grid, tout, time, dt, PE );
@@ -1678,6 +1642,22 @@ void Output_Data::Output_Preprocessor::distdump(const State1D& Y, const Grid_Inf
         {
             allfs_flogf( Y, grid, tout, time, dt, PE );
         }
+    }
+    if (Input::List().o_f0x1){
+        f0( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_f10x1){
+        f10( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_f11x1){
+        f11( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_f20x1)
+    {
+        f20( Y, grid, tout, time, dt, PE );
+    }
+    if (Input::List().o_fl0x1){
+        fl0( Y, grid, tout, time, dt, PE );
     }
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1803,13 +1783,6 @@ void Output_Data::Output_Preprocessor::operator()(const State2D& Y, const Grid_I
 
     // if (Input::List().o_Ux) {
     //     Ti( Y, grid, tout, time, dt, PE );
-    // }
-
-    // if (Input::List().particlepusher) {
-    //     particles_x( Y, grid, tout, time, dt, PE );
-    //     particles_px( Y, grid, tout, time, dt, PE );
-    //     particles_py( Y, grid, tout, time, dt, PE );
-    //     particles_pz( Y, grid, tout, time, dt, PE );
     // }
 
 }
@@ -3780,65 +3753,49 @@ void Output_Data::Output_Preprocessor::pxpypz(const State1D& Y, const Grid_Info&
 }
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_1D& PE) {
-
+ const Parallel_Environment_1D& PE) 
+{
     size_t Nbc = Input::List().BoundaryCells;
     MPI_Status status;
     
     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
     size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t Nl(grid.l0[0]);
-    size_t Np(grid.axis.Np(0));
 
-    int msg_sz((Nl+1)*outNxLocal*grid.axis.Np(0)); 
-
-    valarray<double> allfsbuf(0.,msg_sz);
-    
-    valarray<double> allfs_Globalbuf(0.,outNxGlobal*(Nl+1)*Np);
-    
-    Array3D<double> allfs_Global(outNxGlobal,Nl+1,Np);
-    vector<double> ell_axis;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> paxis(valtovec(grid.axis.p(0)));
-    
-    for( int i = 0; i < Nl+1; i++ )  ell_axis.push_back( i );
-
-    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
-    for(size_t ix = 0; ix < outNxLocal; ++ix) 
+    for(int s(0); s < Y.Species(); ++s) 
     {
-        for(size_t il = 0; il < Nl+1; ++il)    
-        {   
-            // allfsbuf[ix*(Nl+1)+il*Np+ip] = 0.;
+        size_t Nl(grid.l0[s]);
+        size_t Np(grid.axis.Np(s));
 
-            for(size_t ip(0); ip < Np; ++ip)       
-            {
-                allfsbuf[ix*(Nl+1)+il*Np+ip] = Y.DF(0)(il)(ip,ix).real();
-                // allfsbuf[ix*(Nl+1)+il] += pow(Y.DF(0)(il)(ip,ix).real(), fpow);
-            }
-        }
-    }
+        vector<double> ell_axis;
+        vector<double> xaxis(valtovec(grid.axis.xg(0)));
+        vector<double> paxis(valtovec(grid.axis.p(s)));
+        
+        for( int i = 0; i < Nl+1; i++ )  ell_axis.push_back( i );
 
-    MPI_Gather( &allfsbuf[0], msg_sz, MPI_DOUBLE, &allfs_Globalbuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+        vector<double> allfs_localarray(outNxLocal*(Nl+1)*Np,0.);
 
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for(size_t iproc = 0; iproc < PE.MPI_Processes(); ++iproc)
-    {
-        size_t gx(0);
+        vector<vector< vector<double> > > allfs_xvec(outNxLocal);
+        vector< vector<double> > allfs_lvec(Nl+1);
+
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t ix = 0; ix < outNxLocal; ++ix) 
         {
-            gx = iproc*outNxLocal + ix;
             for(size_t il = 0; il < Nl+1; ++il)    
-            {
-                for(size_t ip = 0; ip < Np; ++ip)       
-                {   
-                    allfs_Global(gx,il,ip) = allfs_Globalbuf[iproc*outNxLocal*(Nl+1)*Np + ix*(Nl+1) + il*Np+ip];
+            {   
+                vector<double> allfs_pvec(Np);
+                for(size_t ip(0); ip < Np; ++ip)
+                {
+                    // allfs_localarray[ix*(Nl+1)+il*Np+ip] = Y.DF(s)(il)(ip,ix).real();
+
+                    allfs_pvec[ip] = Y.DF(s)(il)(ip,ix).real();
                 }
+                allfs_lvec[il] = allfs_pvec;   
             }
+            allfs_xvec[ix] = allfs_lvec;
         }
+
+        expo.Export_h5("allfs", xaxis, ell_axis, paxis, allfs_xvec, tout, time, dt, PE.RANK(), outNxLocal, s);
     }
-
-    if (PE.RANK() == 0) expo.Export_h5("allfs", xaxis, ell_axis, paxis, allfs_Global, tout, time, dt);
-
 }
 //--------------------------------------------------------------     
 //--------------------------------------------------------------
@@ -6953,7 +6910,9 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     dataset_axis3.write(axis3);
 
 }
-//--------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
 void Export_Files::Xport:: Export_h5(const std::string tag,
  std::vector<double> &axis1, std::vector<double> &axis2, std::vector<double> &axis3, std::vector<double> &axis4,
  Array4D<double> &dataA,
@@ -7040,6 +6999,68 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
+//--------------------------------------------------------------
+void Export_Files::Xport:: Export_h5(const std::string tag,
+ std::vector<double> &axis1, std::vector<double> &axis2, std::vector<double> &axis3, vector<vector<vector<double> > >  &container_of_data_for_all_local_x,
+ const size_t  step, const double  time, const double  dt,
+ const int rank, const int NxLocal, const int spec)
+{
+//--------------------------------------------------------------
+//  Export data to H5 file
+//--------------------------------------------------------------
+
+    string      filename(Hdr[tag].Directory());
+
+    //  Open File
+    filename.append(tag).append(oH5Fextension(step,spec));
+    // we create a new hdf5 file
+    HighFive::File file(filename, HighFive::File::ReadWrite | HighFive::File::Create | HighFive::File::Truncate,
+            HighFive::MPIOFileDriver(MPI_COMM_WORLD, MPI_INFO_NULL));
+
+    // lets create a dataset of native double with the size of the vector
+    // 'data'
+    std::vector<size_t> dims(3);
+    
+    // dims[0] = n_ranks;
+    // dims[1] = container_of_data_for_all_local_x[0].size();
+
+    dims[0] = axis1.size();
+    dims[1] = axis2.size();
+    dims[2] = axis3.size();
+    
+    
+    HighFive::DataSet dataset =
+        file.createDataSet<double>(tag, HighFive::DataSpace(dims));
+
+    // Each node want to write its own rank two time in
+    // its associated row
+
+    // write it to the associated mpi_rank
+    // lets write our vector of double to the HDF5 dataset
+    dataset.select({std::size_t(rank*NxLocal), 0, 0}, {NxLocal, dims[1], dims[2]}).write(container_of_data_for_all_local_x);
+    /// Attributes
+    /// Only a few defined for now
+    /// dt, time
+    add_time_attributes(dataset,tag,time,dt);
+    add_fundamental_attributes(dataset,tag);
+
+    HighFive::Group Axes = file.createGroup("Axes");
+
+    HighFive::DataSet dataset_axis1 =
+        Axes.createDataSet<double>("Axis1", HighFive::DataSpace::From(axis1));
+    dataset_axis1.write(axis1);
+
+    HighFive::DataSet dataset_axis2 =
+        Axes.createDataSet<double>("Axis2", HighFive::DataSpace::From(axis2));
+    dataset_axis2.write(axis2);
+
+    HighFive::DataSet dataset_axis3 =
+        Axes.createDataSet<double>("Axis3", HighFive::DataSpace::From(axis3));
+    dataset_axis3.write(axis3);
+    
+}
+//--------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
     void Export_Files::Xport::add_time_attributes(HighFive::DataSet &dataset, const std::string tag, 
         const double  time, const double  dt) {
 //--------------------------------------------------------------

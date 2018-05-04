@@ -1618,7 +1618,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     int systems_per_GPU(ceil(n_systems/n_GPU));
     int offset_per_GPU(systems_per_GPU*DF(0,0).nump());
 
-    #pragma omp parallel num_threads(3)
+    #pragma omp parallel num_threads(n_GPU)
     {
         if (omp_get_thread_num() == 0){
             // GPU_interface_routines::TDsolve(DF(0,0).nump(), systems_per_GPU, &ld_GPU[0], &dd_GPU[0], &ud_GPU[0], &fin_GPU[0], 0);
