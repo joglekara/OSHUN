@@ -3789,7 +3789,7 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
         vector<double> allfs_localarray(outNxLocal*(Nl+1)*Np,0.);
 
         vector<vector< vector<double> > > allfs_xvec(outNxLocal);
-        
+
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t ix = 0; ix < outNxLocal; ++ix) 
         {
@@ -7042,16 +7042,23 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     dims[1] = axis2.size();
     dims[2] = axis3.size();
     
+    vector<size_t> offset;
+    offset.push_back(size_t(rank*NxLocal));
+    offset.push_back(0);
+    offset.push_back(0);
+
     
     HighFive::DataSet dataset =
         file.createDataSet<double>(tag, HighFive::DataSpace(dims));
 
     // Each node want to write its own rank two time in
     // its associated row
-
-    // write it to the associated mpi_rank
-    // lets write our vector of double to the HDF5 dataset
-    dataset.select({std::size_t(rank*NxLocal), 0, 0}, {NxLocal, dims[1], dims[2]}).write(container_of_data_for_all_local_x);
+    vector<size_t> writedomain;
+    offset.push_back(NxLocal);
+    offset.push_back(dims[1]);
+    offset.push_back(dims[2]);
+    
+    dataset.select(offset, writedomain).write(container_of_data_for_all_local_x);
     /// Attributes
     /// Only a few defined for now
     /// dt, time
