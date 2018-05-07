@@ -10,7 +10,7 @@ Dimensionality = 1D		/// Make sure to run 2D with #Y-cells > 2
 
 numsp = 1
 
-l0 = 512				// If using implicit E field solver
+l0 = 48				// If using implicit E field solver
 m0 = 0					// set lmax = mmax = 1
 nump = 512
 dp(x) = fnc{0.04*8./512*(1+0.0*(exp(0.025*(x-1024+240))+exp(-0.025*(x-240))))}
@@ -21,7 +21,7 @@ charge = -1.0
 // Spatial Grid    
 //-----------------------------------------------------------------------
 
-Nx = 48					/// Keep these even
+Nx = 32					/// Keep these even
 Ny = 8												
 
 xmin = 0.0
@@ -35,10 +35,10 @@ ymax = 50000.0
 					OpenMP parallelizes harmonic space
 //-----------------------------------------------------------------------
 
-MPI_Processes_X = 2		// Make sure N_x/MPI_x >= 4
+MPI_Processes_X = 1		// Make sure N_x/MPI_x >= 4
 MPI_Processes_Y = 1			// Make sure N_y/MPI_y >= 4
 
-OpenMP_Threads = 2			// Make sure N_harmonics / OpenMPThreads > 5
+OpenMP_Threads = 4			// Make sure N_harmonics / OpenMPThreads > 5
 
 //-----------------------------------------------------------------------
 // Time and Output Discretization 
@@ -46,11 +46,11 @@ OpenMP_Threads = 2			// Make sure N_harmonics / OpenMPThreads > 5
 adaptive_time_step = false
 adaptive_tmin = 150.
 
-max_timestep = 0.02
-n_outsteps = 5			// Number of outputs
-n_distoutsteps = 5				// Number of Dist output
+max_timestep = 0.01
+n_outsteps = 500			// Number of outputs
+n_distoutsteps = 500				// Number of Dist output
 n_bigdistoutsteps = 1			// Number of Big dist output 
-t_stop = 1.0
+t_stop = 1000.0
 
 //-----------------------------------------------------------------------
 // Restart information
@@ -67,9 +67,9 @@ n_restarts = 10				// Write restart files every n_restart field outputs
 // Set normalization
 //-----------------------------------------------------------------------
 
-density_np                  = 1e18	// Reference density
+normalizing_density                  = 1e18	// Reference density
 super_gaussian_distribution = 2.0	// Initialize Maxwellian or ...
-pth_ref                     = 0.04      // Reference thermal velocity
+normalizing_momentum				 = 0.04      // Reference thermal velocity
 hydrocharge = 1.0			// Reference Z
 
 //-----------------------------------------------------------------------
@@ -177,8 +177,8 @@ o_vNz   = false
 
 /   ---   /   ---   /   ---   /   ---   /   ---   /   ---   /   ---   /
 /   ---   /   ---   /   ---   /   ---   /   ---   /   ---   /   ---   /
-nump1_out = 1024
-dp1_out(x) = fnc{2.*0.04*8/1024.0}
+nump1_out = 200
+dp1_out(x) = fnc{2.*0.04*8/200.0}
 
 nump2_out = 1024
 dp2_out(x) = fnc{2.*0.32/1024.0}
@@ -187,7 +187,7 @@ nump3_out = 1024
 dp3_out(x) = fnc{2.*0.32/1024.0}
 
 // Distribution Function
-o_p1x1 = true
+o_p1x1 = false
 o_p2x1 = false
 o_p3x1 = false
 
@@ -221,7 +221,7 @@ o_Ti = false
 
 traveling_wave = true
 num_waves = 1
-dEx(x,y,t) = fnc{2.02e-8*sin(2*pi/0.837758*x-1.159846*t)} cst{0.0} 
+dEx(x,y,t) = fnc{1e-3*sin(2*pi/0.837758*x)} cst{0.0} 
 dEy(x,y,t) = cst{0.0} cst{0.0} 
 dEz(x,y,t) = cst{0.0} cst{0.0} 
 dBx(x,y,t) = cst{0.0} cst{0.0} 
@@ -229,7 +229,7 @@ dBy(x,y,t) = cst{0.0} cst{0.0}
 dBz(x,y,t) =  cst{0.0} cst{6e-6}
 
 // Time envelope info
-rise_flat_fall_center = 20. 20. 20. 30.1 20.0 10.0 420.0
+rise_flat_fall_center = 0. 0.02 0. 0.06 20.0 10.0 420.0
 
 
 //-----------------------------------------------------------------------

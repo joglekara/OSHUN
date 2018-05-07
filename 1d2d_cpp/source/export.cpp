@@ -1103,59 +1103,38 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
     double LP0(0.);
     double LP1(0.);
     double LPC(0.);
+
     
     for (size_t ipx(0); ipx < Npx; ++ipx) // at each location in px
     {
+
+
         InPx = 0.;
         size_t ip(0);  
 
-        while (p_cylindrical_polar_radius_squared[s](ipx,ip) < 0) // at each location in pr
+        // std::cout << "ipx = " << ipx << " \n";
+
+        while (p_cylindrical_polar_radius_squared[s](ipx,ip) < 0 && ip < Np) // at each location in pr
         {
+            // std::cout << "ip = " << ip << " \n";
+
             ++ip; 
         }
 
-        p_ip1 = sqrt(p_cylindrical_polar_radius_squared[s](ipx,ip));
-        
-        LP0 = 1.; LP1 = px_over_p[s](ipx,ip);
 
-        for (size_t il(0); il < Nl+1; ++il) // calculate the integral for each harmonic separately
+        if (ip < Np)
         {
-            if (il > 1)
-            {
-                LPC  = (2.*il+1)*px_over_p[s](ipx,ip)*LP1 - il*LP0;
-                LPC /= il+1;
-
-                LP0 = LP1;
-                LP1 = LPC;
-            }
-            else
-            {
-                if (il == 0) LPC = LP0;
-                else LPC = LP1;
-            }
-
-            integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)).real())) * LPC;
-            InPx += p_ip1 * (0.5*p_ip1) * integrant_high; 
-        }
-  
-        ++ip;
-
-        while ( (ip <  Np) && (p_cylindrical_polar_radius_squared[s](ipx,ip) > 0 )  )   
-        {  // at each location in pr
-            p_im1 = p_ip1;
-            integrant_low = integrant_high;
-
             p_ip1 = sqrt(p_cylindrical_polar_radius_squared[s](ipx,ip));
-            
+                
             LP0 = 1.; LP1 = px_over_p[s](ipx,ip);
-            
+        
             for (size_t il(0); il < Nl+1; ++il) // calculate the integral for each harmonic separately
             {
                 if (il > 1)
                 {
                     LPC  = (2.*il+1)*px_over_p[s](ipx,ip)*LP1 - il*LP0;
                     LPC /= il+1;
-
+    
                     LP0 = LP1;
                     LP1 = LPC;
                 }
@@ -1164,16 +1143,48 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
                     if (il == 0) LPC = LP0;
                     else LPC = LP1;
                 }
-
+    
                 integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)).real())) * LPC;
-
-                InPx += p_im1 * (0.5*(p_ip1-p_im1)) * integrant_low; 
-                InPx += p_ip1 * (0.5*(p_ip1-p_im1)) * integrant_high; 
+                InPx += p_ip1 * (0.5*p_ip1) * integrant_high; 
             }
-
+      
             ++ip;
-        }        
-        pout1D_p1[ipx] += InPx;
+    
+            while ( (ip <  Np) && (p_cylindrical_polar_radius_squared[s](ipx,ip) > 0 )  )   
+            {  // at each location in pr
+                p_im1 = p_ip1;
+                integrant_low = integrant_high;
+    
+                p_ip1 = sqrt(p_cylindrical_polar_radius_squared[s](ipx,ip));
+                
+                LP0 = 1.; LP1 = px_over_p[s](ipx,ip);
+                
+                for (size_t il(0); il < Nl+1; ++il) // calculate the integral for each harmonic separately
+                {
+                    if (il > 1)
+                    {
+                        LPC  = (2.*il+1)*px_over_p[s](ipx,ip)*LP1 - il*LP0;
+                        LPC /= il+1;
+    
+                        LP0 = LP1;
+                        LP1 = LPC;
+                    }
+                    else
+                    {
+                        if (il == 0) LPC = LP0;
+                        else LPC = LP1;
+                    }
+    
+                    integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)).real())) * LPC;
+    
+                    InPx += p_im1 * (0.5*(p_ip1-p_im1)) * integrant_low; 
+                    InPx += p_ip1 * (0.5*(p_ip1-p_im1)) * integrant_high; 
+                }
+    
+                ++ip;
+            }        
+            pout1D_p1[ipx] += InPx;
+        }
     }
     
     pout1D_p1 *= 2.0 * M_PI;
@@ -2461,7 +2472,7 @@ void Output_Data::Output_Preprocessor::make_fp1p2p3(const State1D& Y, const Grid
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
  const Parallel_Environment_1D& PE) {
-    // std::cout << "0 \n";
+    
     size_t Nbc = Input::List().BoundaryCells;
     MPI_Status status;
      
@@ -2483,7 +2494,10 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i < outNxLocal; ++i) 
         {
+         
+
             valarray<double> data1D = p_x.p1( Y.DF(s), i, s);
+            
             
             for (size_t j(0); j < Npx; ++j) {
                 pxbuf[j+i*Npx]=data1D[j];
@@ -3775,11 +3789,11 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
         vector<double> allfs_localarray(outNxLocal*(Nl+1)*Np,0.);
 
         vector<vector< vector<double> > > allfs_xvec(outNxLocal);
-        vector< vector<double> > allfs_lvec(Nl+1);
-
+        
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t ix = 0; ix < outNxLocal; ++ix) 
         {
+            vector< vector<double> > allfs_lvec(Nl+1);
             for(size_t il = 0; il < Nl+1; ++il)    
             {   
                 vector<double> allfs_pvec(Np);
