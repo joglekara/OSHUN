@@ -12,7 +12,9 @@
 // internal utilities functions
 #include <cstddef> // __GLIBCXX__
 #include <exception>
+#include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #ifdef H5_USE_BOOST
@@ -20,28 +22,14 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #endif
 
+#include <H5public.h>
+
 #ifndef H5_USE_CXX11
 #if ___cplusplus >= 201103L
 #define H5_USE_CXX11 1
 #else
 #define H5_USE_CXX11 0
 #endif
-#endif
-
-// shared ptr portability
-// if boost is used, simply use boost
-#if (defined H5_USE_BOOST)
-#include <boost/shared_ptr.hpp>
-// if C++11 compliant compiler, use std::shared_ptr
-#elif H5_USE_CXX11
-#include <memory>
-// GNU C++ or Intel C++ using libstd++.
-// without C++11: use tr1
-#elif defined(__GNUC__) && __GNUC__ >= 4 && (defined(__GLIBCXX__))
-#include <tr1/memory>
-// last hope to find it in standard <memory> ( VC++, libc++ )
-#else
-#include <memory>
 #endif
 
 namespace HighFive {
@@ -134,17 +122,6 @@ struct type_of_array<T[N]> {
     typedef typename type_of_array<T>::type type;
 };
 
-// same type compile time check
-template <typename T, typename U>
-struct is_same {
-    static const bool value = false;
-};
-
-template <typename T>
-struct is_same<T, T> {
-    static const bool value = true;
-};
-
 // check if the type is a container ( only vector supported for now )
 template <typename>
 struct is_container {
@@ -173,39 +150,26 @@ struct is_c_array<T[N]> {
     static const bool value = true;
 };
 
-// enable if implem for not c++11 compiler
-template <bool Cond, typename T = void>
-struct enable_if {};
 
-template <typename T>
-struct enable_if<true, T> {
-    typedef T type;
-};
 
-// remove const
-template <typename Type>
-struct remove_const {
-    typedef Type type;
-};
+// convertor function for hsize_t -> size_t when hsize_t != size_t
+template<typename Size>
+inline std::vector<std::size_t> to_vector_size_t(std::vector<Size> vec){
+    static_assert(std::is_same<Size, std::size_t>::value == false, " hsize_t != size_t mandatory here");
+    std::vector<size_t> res(vec.size());
+    std::copy(vec.begin(), vec.end(), res.begin());
+    return res;
+}
 
-template <typename Type>
-struct remove_const<Type const> {
-    typedef Type type;
-};
+// convertor function for hsize_t -> size_t when size_t == hsize_t
+inline std::vector<std::size_t> to_vector_size_t(std::vector<std::size_t> vec){
+    return vec;
+}
 
 // shared ptr portability
+// was used pre-C++11, kept for compatibility
 namespace Mem {
-
-#if (defined H5_USE_BOOST)
-using namespace boost;
-#elif ___cplusplus >= 201103L
-using namespace std;
-#elif defined(__GNUC__) && __GNUC__ >= 4 && (defined(__GLIBCXX__))
-using namespace std::tr1;
-#else
-using namespace std;
-#endif
-
+    using namespace std;
 } // end Mem
 
 } // end details

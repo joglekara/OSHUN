@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "H5Object.hpp"
-#include "H5DataType.hpp"
 #include "bits/H5Annotate_traits.hpp"
 #include "bits/H5Slice_traits.hpp"
 
@@ -49,6 +48,13 @@ class DataSet : public Object,
     /// class
     ///
     DataSpace getMemSpace() const;
+
+    ///
+    /// \brief getOffset
+    /// \return returns DataSet address in file
+    /// class
+    ///
+    size_t getOffset() const;
 
   private:
     DataSet();
