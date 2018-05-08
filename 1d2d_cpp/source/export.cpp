@@ -7054,9 +7054,9 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     // Each node want to write its own rank two time in
     // its associated row
     vector<size_t> writedomain;
-    offset.push_back(NxLocal);
-    offset.push_back(dims[1]);
-    offset.push_back(dims[2]);
+    writedomain.push_back(NxLocal);
+    writedomain.push_back(dims[1]);
+    writedomain.push_back(dims[2]);
     
     dataset.select(offset, writedomain).write(container_of_data_for_all_local_x);
     /// Attributes
