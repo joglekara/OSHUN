@@ -1189,13 +1189,15 @@ DistFunc1D:: ~DistFunc1D(){
 //--------------------------------------------------------------
 //  Copy assignment operator
 DistFunc1D& DistFunc1D::operator=(const complex<double> & d){
-    for(size_t i(0); i < dim() ; ++i){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i = 0; i < dim() ; ++i){
         (*df)[i] = d;
     }
     return *this;
 }
 DistFunc1D& DistFunc1D::operator=(const SHarmonic1D& h){
-    for(size_t i(0); i < dim() ; ++i){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i = 0; i < dim() ; ++i){
         if (&((*df)[i]) != &h) {   //self-assignment
             (*df)[i] = h;
         }
@@ -1204,7 +1206,8 @@ DistFunc1D& DistFunc1D::operator=(const SHarmonic1D& h){
 }
 DistFunc1D& DistFunc1D::operator=(const DistFunc1D& other){
     if (this != &other) {   //self-assignment
-        for(size_t i(0); i < dim() ; ++i) {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < dim() ; ++i) {
             (*df)[i] = other(i);
         }
     }
@@ -1220,7 +1223,8 @@ DistFunc1D& DistFunc1D::operator*=(const complex<double> & d){
 }
 DistFunc1D& DistFunc1D::operator*=(const DistFunc1D& other){
     if (this != &other) {   //self-assignment
-        for(size_t i(0); i < dim() ; ++i) {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < dim() ; ++i) {
             (*df)[i] *= other(i);
         }
     }
@@ -1228,14 +1232,16 @@ DistFunc1D& DistFunc1D::operator*=(const DistFunc1D& other){
 }
 //  +=
 DistFunc1D& DistFunc1D::operator+=(const complex<double> & d){
-    for(size_t i(0); i < dim() ; ++i) {
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i = 0; i < dim() ; ++i) {
         (*df)[i] += d;
     }
     return *this;
 }
 DistFunc1D& DistFunc1D::operator+=(const DistFunc1D& other){
     if (this != &other) {   //self-assignment
-        for(size_t i(0); i < dim() ; ++i) {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < dim() ; ++i) {
             (*df)[i] += other(i);
         }
     }
@@ -1243,14 +1249,16 @@ DistFunc1D& DistFunc1D::operator+=(const DistFunc1D& other){
 }
 //  -=
 DistFunc1D& DistFunc1D::operator-=(const complex<double> & d){
-    for(size_t i(0); i < dim() ; ++i) {
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i = 0; i < dim() ; ++i) {
         (*df)[i] -= d;
     }
     return *this;
 }
 DistFunc1D& DistFunc1D::operator-=(const DistFunc1D& other){
     if (this != &other) {   //self-assignment
-        for(size_t i(0); i < dim() ; ++i) {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < dim() ; ++i) {
             (*df)[i] -= other(i);
         }
     }

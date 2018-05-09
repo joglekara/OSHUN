@@ -337,11 +337,8 @@ Node_Communications_1D:: Node_Communications_1D() :
     }
 
     msg_sizeX *= Nbc;  //(IN().inp().y.dim()*Nbc);
-                       //
-    par_sizeX = 0;
     
     msg_bufX = new complex<double>[msg_sizeX];
-    par_bufX = new double[par_sizeX];
 
 }
 //--------------------------------------------------------------
@@ -352,7 +349,6 @@ Node_Communications_1D:: ~Node_Communications_1D(){
 //  Destructor
 //--------------------------------------------------------------
     delete[] msg_bufX;
-    delete[] par_bufX;
 }
 //--------------------------------------------------------------
 
@@ -373,12 +369,16 @@ void Node_Communications_1D::Send_right_X(State1D& Y, int dest) {
 
     // Harmonics:x0 "Right-Bound ---> "
     for(size_t s(0); s < Y.Species(); ++s) {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
             for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                 for(size_t e(0); e < Nbc; e++) {
-                    msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
+                    // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
+                    msg_bufX[offset + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
                 }
-                bufind += step_f;
+                // bufind += step_f;
+                offset += step_f;
             }
         }
     }
@@ -452,12 +452,16 @@ void Node_Communications_1D::Recv_from_left_X(State1D& Y, int origin) {
 
     // Harmonics:x0-"---> Left-Guard"
     for(size_t s(0); s < Y.Species(); ++s) {
-        for(size_t i(0); i < Y.DF(s).dim(); ++i){
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
             for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                 for(size_t e(0); e < Nbc; e++) {
-                    (Y.DF(s)(i))(p, e) = msg_bufX[bufind + e];
+                    // (Y.DF(s)(i))(p, e) = msg_bufX[bufind + e];
+                    (Y.DF(s)(i))(p, e) = msg_bufX[offset + e];
                 }
-                bufind += step_f;
+                // bufind += step_f;
+                offset += step_f;
             }
         }
     }
@@ -525,12 +529,17 @@ void Node_Communications_1D::Send_left_X(State1D& Y, int dest) {
 
     // Harmonics:x0 " <--- Left-Bound "
     for(size_t s(0); s < Y.Species(); ++s) {
-        for(size_t i(0); i < Y.DF(s).dim(); ++i){
+
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
             for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                 for(size_t e(0); e < Nbc; e++) {
-                    msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nbc+e);
+                    // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nbc+e);
+                    msg_bufX[offset + e] = (Y.DF(s)(i))(p, Nbc+e);
                 }
-                bufind += step_f;
+                // bufind += step_f;
+                offset += step_f;
             }
         }
     }
@@ -601,12 +610,16 @@ void Node_Communications_1D::Recv_from_right_X(State1D& Y, int origin) {
 
     // Harmonics:x0-"Right-Guard <--- "
     for(size_t s(0); s < Y.Species(); ++s) {
-        for(size_t i(0); i < Y.DF(s).dim(); ++i){
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
             for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                 for(size_t e(0); e < Nbc; e++) {
-                    (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[bufind + e];
+                    // (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[bufind + e];
+                    (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[offset + e];
                 }
-                bufind += step_f;
+                // bufind += step_f;
+                offset += step_f;
             }
         }
     }

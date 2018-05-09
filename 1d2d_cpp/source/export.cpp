@@ -7034,9 +7034,6 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     // lets create a dataset of native double with the size of the vector
     // 'data'
     std::vector<size_t> dims(3);
-    
-    // dims[0] = n_ranks;
-    // dims[1] = container_of_data_for_all_local_x[0].size();
 
     dims[0] = axis1.size();
     dims[1] = axis2.size();
@@ -7059,6 +7056,7 @@ void Export_Files::Xport:: Export_h5(const std::string tag,
     writedomain.push_back(dims[2]);
     
     dataset.select(offset, writedomain).write(container_of_data_for_all_local_x);
+    
     /// Attributes
     /// Only a few defined for now
     /// dt, time
