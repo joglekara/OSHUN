@@ -20,16 +20,11 @@
 
 namespace HighFive {
 
-inline DataSpace::DataSpace(const std::vector<size_t>& dims)
-    : DataSpace(dims.begin(), dims.end()) {
-}
+inline DataSpace::DataSpace(const std::vector<size_t>& dims) {
+    std::vector<hsize_t> real_dims(dims.size());
+    std::copy(dims.begin(), dims.end(), real_dims.begin());
 
-template <class IT>
-inline DataSpace::DataSpace(const IT begin, const IT end) {
-    std::vector<hsize_t> real_dims(std::distance(begin, end));
-    std::copy(begin, end, real_dims.begin());
-
-    if ((_hid = H5Screate_simple(int(real_dims.size()), &(real_dims.at(0)), NULL)) <
+    if ((_hid = H5Screate_simple(int(dims.size()), &(real_dims.at(0)), NULL)) <
         0) {
         throw DataSpaceException("Impossible to create dataspace");
     }
@@ -81,15 +76,15 @@ inline size_t DataSpace::getNumberDimensions() const {
 }
 
 inline std::vector<size_t> DataSpace::getDimensions() const {
-
     std::vector<hsize_t> dims(getNumberDimensions());
-    if( dims.size() > 0 ){
-        if (H5Sget_simple_extent_dims(_hid, dims.data(), NULL) < 0) {
-            HDF5ErrMapper::ToException<DataSetException>(
-                "Unable to get dataspace dimensions");
-        }
+    if (H5Sget_simple_extent_dims(_hid, &(dims[0]), NULL) < 0) {
+        HDF5ErrMapper::ToException<DataSetException>(
+            "Unable to get dataspace dimensions");
     }
-    return details::to_vector_size_t(std::move(dims));
+
+    std::vector<size_t> res(dims.size());
+    std::copy(dims.begin(), dims.end(), res.begin());
+    return res;
 }
 
 template <typename ScalarValue>
@@ -98,7 +93,6 @@ inline DataSpace DataSpace::From(const ScalarValue& scalar) {
 #if H5_USE_CXX11
     static_assert(
         (std::is_arithmetic<ScalarValue>::value ||
-         std::is_enum<ScalarValue>::value ||
          std::is_same<std::string, ScalarValue>::value),
         "Only the following types are supported by DataSpace::From: \n"
         "  signed_arithmetic_types = int |  long | float |  double \n"
