@@ -1,0 +1,109 @@
+#!/bin/sh
+#
+# Makefile for OSHUN
+# This should work with gcc-6, open-mpi compiled with gcc-6, and HDF5
+
+COMPILER = mpiicpc
+
+# Intel compilers#
+OPTFLAGS3 = -O3 -axMIC-AVX512 -ipo  -use-intel-optimized-headers
+OPTFLAGS2 = -O2 -no-vec -qopt-report -xCORE-AVX2
+OPTFLAGS1 = -O1 -axMIC-AVX512 -ipo  -use-intel-optimized-headers
+
+DBGFLAGS =  
+H5LIB = -lhdf5_hl -lhdf5
+IPPLIB = -lippi -lipps -lippvm -lippcore
+LDFLAGS = -L/opt/intel/compilers_and_libraries_2018.1.163/linux/ipp/lib/intel64_lin
+CPPFLAGS = -fopenmp  -DOSHUN_VERSION=\"$(GIT_VERSION)\" -std=c++11
+INCLUDE_DIRS =
+IPP_DIRS = -I/opt/intel/compilers_and_libraries_2018.1.163/linux/compiler/perf_headers/c++ -I/opt/intel/compilers_and_libraries_2018.1.163/linux/ipp/include
+
+# Cray compilers#
+
+# COMPILER = CC
+
+
+# # #OPTFLAGScoll = -O3-O3 
+# OPTFLAGS3 = -O3 -hfp3
+# OPTFLAGS2 = -O2 -no-vec -qopt-report
+# OPTFLAGS1 = -O1
+
+# H5LIB = -lhdf5_hl -lhdf5 -lz
+# IPPLIB = 
+# LDFLAGS = 
+# CPPFLAGS =
+# INCLUDE_DIRS = 
+
+EXEC_DIR = ../bin
+TMP_DIR = ../bin/tmp
+
+OBJECTS = input.o state.o clock.o stepper.o formulary.o setup.o parser.o vlasov.o nmethods.o functors.o collisions.o fluid.o implicitE.o parallel.o export.o main.o
+
+EXEC = oshun-i.e
+
+GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)
+
+BUILDOBJECTS = ${addprefix ${TMP_DIR}/,${OBJECTS}}
+
+BUILDEXEC = ${addprefix ${EXEC_DIR}/,${EXEC}}
+
+${BUILDEXEC} : ${BUILDOBJECTS}
+	-${COMPILER} ${CPPFLAGS} ${OPTFLAGS1} ${IPP_DIRS} ${INCLUDE_DIRS} ${LDFLAGS} $(H5LIB) $(IPPLIB) -o ${BUILDEXEC}  \
+	${BUILDOBJECTS} 
+
+clean ::
+	rm -f ${BUILDOBJECTS}
+	rm -f ${BUILDEXEC}
+	rm -f ${TMP_DIR}/${BUILDOBJECTS}
+
+debug :
+	${COMPILER} ${DBGFLAGS} -o ${BUILDEXEC} \
+	%.cpp
+
+${TMP_DIR}/parser.o: parser.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/input.o: input.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/clock.o: clock.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/stepper.o: stepper.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<	
+
+${TMP_DIR}/state.o: state.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<	
+
+${TMP_DIR}/formulary.o: formulary.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<	
+
+${TMP_DIR}/setup.o: setup.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<	
+
+${TMP_DIR}/vlasov.o: vlasov.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<	
+
+${TMP_DIR}/nmethods.o: nmethods.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/functors.o: functors.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/collisions.o: collisions.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/fluid.o: fluid.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/implicitE.o: implicitE.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/parallel.o: parallel.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/export.o: export.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<
+
+${TMP_DIR}/main.o: main.cpp
+	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) ${IPP_DIRS} $(INCLUDE_DIRS) -c -o $@ $<		
