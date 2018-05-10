@@ -829,7 +829,8 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
 
     // Harmonics:x0 "Right-Bound ---> Left-Guard"
     for(size_t s(0); s < Y.Species(); ++s) {
-        for(size_t i(0); i < Y.DF(s).dim(); ++i) {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                 for(size_t c(0); c < Nbc; c++) {
                     (Y.DF(s)(i))(p, c) = (Y.DF(s)(i))(p, Y.EMF().Ex().numx()-2*Nbc+c);
@@ -850,7 +851,8 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
 
     // Harmonics:x0 "Left-Bound ---> Right-Guard"
     for(size_t s(0); s < Y.Species(); ++s) {
-        for(size_t i(0); i < Y.DF(s).dim(); ++i) {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                 for(size_t c(0); c < Nbc; c++) {
                     // std::cout << "\n 3: DF(" << i << "," << p << "," << Y.EMF().Ex().numx()-Nbc+c << ") = " << (Y.DF(s)(i))(p, Y.EMF().Ex().numx()-Nbc+c) << "\n";

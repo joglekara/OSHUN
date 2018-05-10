@@ -1631,6 +1631,37 @@ void Output_Data::Output_Preprocessor::operator()(const State1D& Y, const Grid_I
     if (Input::List().o_Ux) {
         Ti( Y, grid, tout, time, dt, PE );
     }
+
+    if (Input::List().o_allfs_f2)
+    {
+        allfs_f2( Y, grid, tout, time, dt, PE );
+    }
+
+    if (Input::List().o_allfs_flogf)
+    {
+        allfs_flogf( Y, grid, tout, time, dt, PE );
+    }
+
+    if (Input::List().o_f0x1){
+        f0( Y, grid, tout, time, dt, PE );
+    }
+
+    if (Input::List().o_f10x1){
+        f10( Y, grid, tout, time, dt, PE );
+    }
+
+    if (Input::List().o_f11x1){
+        f11( Y, grid, tout, time, dt, PE );
+    }
+
+    if (Input::List().o_f20x1)
+    {
+        f20( Y, grid, tout, time, dt, PE );
+    }
+    
+    if (Input::List().o_fl0x1){
+        fl0( Y, grid, tout, time, dt, PE );
+    }
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
@@ -1643,33 +1674,7 @@ void Output_Data::Output_Preprocessor::distdump(const State1D& Y, const Grid_Inf
     {
         allfs( Y, grid, tout, time, dt, PE );
     }
-    else
-    {
-        if (Input::List().o_allfs_f2)
-        {
-            allfs_f2( Y, grid, tout, time, dt, PE );
-        }
-        if (Input::List().o_allfs_flogf)
-        {
-            allfs_flogf( Y, grid, tout, time, dt, PE );
-        }
-    }
-    if (Input::List().o_f0x1){
-        f0( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f10x1){
-        f10( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f11x1){
-        f11( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f20x1)
-    {
-        f20( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_fl0x1){
-        fl0( Y, grid, tout, time, dt, PE );
-    }
+    
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
