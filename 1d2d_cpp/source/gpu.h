@@ -3,10 +3,9 @@
 
 namespace GPU_interface_routines
 {	
-	// void setupTDsolve(int N, double* &d_ld, double* &d_d, double* &d_ud, double* &d_x, int device);
-	
-	// void destroyTDsolve(double* &d_ld, double* &d_d, double* &d_ud, double* &d_x);
-	
+	void GPU_interface_routines::AllocateMatrixSystemOnHost(int totalsize, 
+                double& ld, double &dd, double &ud, double &fin);
+
 	void TDsolve( int calculations_per_loop, int n_systems,
                             double *ld, double *dd, double *ud,      
                                   double *fin, int device);

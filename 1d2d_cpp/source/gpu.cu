@@ -121,6 +121,17 @@ extern "C" void cusparseSafeCall(cusparseStatus_t err) { __cusparseSafeCall(err,
 /********//********//********//********//********//********//********//********//********//********/
 /********//********//********//********//********//********//********//********//********//********/
 
+void GPU_interface_routines::AllocateMatrixSystemOnHost(int totalsize, 
+                double& ld, double &dd, double &ud, double &fin)
+{
+    double a;
+
+    cudaHostAlloc((void**)ld, totalsize*sizeof(a),cudaHostAllocDefault);
+    cudaHostAlloc((void**)dd, totalsize*sizeof(a),cudaHostAllocDefault);
+    cudaHostAlloc((void**)ud, totalsize*sizeof(a),cudaHostAllocDefault);
+    cudaHostAlloc((void**)fin, totalsize*sizeof(a),cudaHostAllocDefault);
+
+}
 void GPU_interface_routines::TDsolve( int calculations_per_loop, int n_systems,
                             double *ld, double *dd, double *ud, double *fin, 
                             int device)
