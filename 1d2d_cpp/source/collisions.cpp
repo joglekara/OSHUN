@@ -988,6 +988,7 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
     int n_systems(szx * numh * 2);
     int totalsize(n_systems * nump);
     ld_GPU.resize(totalsize); dd_GPU.resize(totalsize); ud_GPU.resize(totalsize); fin_GPU.resize(totalsize);
+    // GPU_interface_routines::AllocateMatrixSystemOnHost(totalsize, ld_GPU, dd_GPU, ud_GPU, fin_GPU);
     #endif
     // FPGPU.initialize(nump,n_systems,device);
 
@@ -1008,7 +1009,6 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
             im = 0;
         }
     }
-
 
     double re(2.8179402894e-13);           //classical electron radius
     double kp(sqrt(4.0*M_PI*(Input::List().normalizing_density)*re));
@@ -1031,8 +1031,14 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
 #pragma optimize("", on)
 // self_flm_implicit_step::~self_flm_implicit_step()
 // {
-//     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
-//     // FPGPU.destroy(device);
+//     #ifdef INCLUDE_GPU
+//     GPU_interface_routines::FreeMatrixSystemOnHost(ld_GPU,dd_GPU,ud_GPU,fin_GPU);
+//     #else
+//     free(ld);free(dd);free(ud);free(fin);
+//     #endif
+
+// //     int device(0);  MPI_Comm_rank(MPI_COMM_WORLD, &device); device = device%2;
+// //     // FPGPU.destroy(device);
 // }
 //--------------------------------------------------------------
 //------------------------------------------------------------------------------
@@ -1619,8 +1625,6 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
             GPU_interface_routines::TDsolve(DF(0,0).nump(), n_systems-2*systems_per_GPU, &ld_GPU[2*offset_per_GPU], &dd_GPU[2*offset_per_GPU], &ud_GPU[2*offset_per_GPU], &fin_GPU[2*offset_per_GPU], 2);
         }
     }
-    
-
 
     #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
     for (size_t ix = 0; ix < szx; ++ix)
@@ -1654,8 +1658,8 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
             {
                 DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc) = fin_singleharmonic[i];
                 // .real(fin[base_index + i]);
-                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag(fin[base_index + i + nump]);   
-            }         
+                // DFh(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag(fin[base_index + i + nump]);
+            }
         }
     }
     #else

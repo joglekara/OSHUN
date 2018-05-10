@@ -8,7 +8,6 @@ COMPILER = mpiicpc
 # -no-prec-div -no-prec-sqrt -axsse4.2 -ipo -use-intel-optimized-headers
 # Intel compilers#
 OPTFLAGS3 = -O3 -axsse4.2 -use-intel-optimized-headers -ipo
-#-ipo
 
 OPTFLAGS2 = -O2 -no-vec -qopt-report=1
 OPTFLAGS1 = -O1 -axsse4.2 -use-intel-optimized-headers -ipo
@@ -19,13 +18,13 @@ OPTFLAGS1 = -O1 -axsse4.2 -use-intel-optimized-headers -ipo
 H5LIB = -lhdf5_hl -lhdf5
 MPILIB = -lmpi 
 LDFLAGS = -L/u/local/cuda/8.0/lib64 -L/u/local/apps/hdf5/1.10.0-patch1/intel-17.0.1/intelmpi-5.1.3/lib -L/u/local/compilers/intel/17.0.1/compilers_and_libraries_2017.1.132/linux/ipp/lib/intel64
-CPPFLAGS = -DOSHUN_VERSION=\"$(GIT_VERSION)\" -fopenmp -std=c++11 -lippi -lipps -lippvm -lippcore -lcudart -lcusparse
+CPPFLAGS = -DOSHUN_VERSION=\"$(GIT_VERSION)\" -DINCLUDE_GPU=1 -fopenmp -std=c++11 -lippi -lipps -lippvm -lippcore -lcudart -lcusparse
 INCLUDE_DIRS = -I/u/local/cuda/8.0/include -I/u/local/apps/hdf5/1.10.0-patch1/intel-17.0.1/intelmpi-5.1.3/include -I/u/local/compilers/intel/17.0.1/compilers_and_libraries_2017.1.132/linux/ipp/include -I/u/local/compilers/intel/17.0.1/compilers_and_libraries_2017.1.132/linux/compiler/perf_headers/c++
 
 EXEC_DIR = ../bin
 TMP_DIR = ../bin/tmp
 
-OBJECTS = input.o clock.o state.o gpu.o stepper.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o particletracker.o implicitE.o parallel.o export.o main.o
+OBJECTS = input.o clock.o state.o gpu.o stepper.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o implicitE.o parallel.o export.o main.o
 
 EXEC = oshun.e
 
@@ -82,9 +81,6 @@ ${TMP_DIR}/collisions.o: collisions.cpp
 	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/fluid.o: fluid.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) $(INCLUDE_DIRS) -c -o $@ $<
-
-${TMP_DIR}/particletracker.o: particletracker.cpp
 	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS3) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/implicitE.o: implicitE.cpp

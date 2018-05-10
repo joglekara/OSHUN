@@ -3,8 +3,10 @@
 
 namespace GPU_interface_routines
 {	
-	void GPU_interface_routines::AllocateMatrixSystemOnHost(int totalsize, 
-                double& ld, double &dd, double &ud, double &fin);
+    void FreeMatrixSystemOnHost(double *ld, double *dd, double *ud, double *fin);
+
+	void AllocateMatrixSystemOnHost(int totalsize, 
+                double *ld, double *dd, double *ud, double *fin);
 
 	void TDsolve( int calculations_per_loop, int n_systems,
                             double *ld, double *dd, double *ud,      

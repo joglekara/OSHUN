@@ -122,15 +122,19 @@ extern "C" void cusparseSafeCall(cusparseStatus_t err) { __cusparseSafeCall(err,
 /********//********//********//********//********//********//********//********//********//********/
 
 void GPU_interface_routines::AllocateMatrixSystemOnHost(int totalsize, 
-                double& ld, double &dd, double &ud, double &fin)
+                double *ld, double *dd, double *ud, double *fin)
 {
-    double a;
-
-    cudaHostAlloc((void**)ld, totalsize*sizeof(a),cudaHostAllocDefault);
-    cudaHostAlloc((void**)dd, totalsize*sizeof(a),cudaHostAllocDefault);
-    cudaHostAlloc((void**)ud, totalsize*sizeof(a),cudaHostAllocDefault);
-    cudaHostAlloc((void**)fin, totalsize*sizeof(a),cudaHostAllocDefault);
-
+    cudaHostAlloc((void**)&ld, totalsize*sizeof(double),cudaHostAllocDefault);
+    cudaHostAlloc((void**)&dd, totalsize*sizeof(double),cudaHostAllocDefault);
+    cudaHostAlloc((void**)&ud, totalsize*sizeof(double),cudaHostAllocDefault);
+    cudaHostAlloc((void**)&fin, totalsize*sizeof(double),cudaHostAllocDefault);
+}
+void GPU_interface_routines::FreeMatrixSystemOnHost(double *ld, double *dd, double *ud, double *fin)
+{
+    cudaFreeHost((void**)&ld);
+    cudaFreeHost((void**)&dd);
+    cudaFreeHost((void**)&ud);
+    cudaFreeHost((void**)&fin);
 }
 void GPU_interface_routines::TDsolve( int calculations_per_loop, int n_systems,
                             double *ld, double *dd, double *ud, double *fin, 

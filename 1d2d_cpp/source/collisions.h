@@ -265,7 +265,7 @@ class self_f00_explicit_step {
             Formulary formulas;
 
             valarray<double> ld_GPU, dd_GPU, ud_GPU, fin_GPU;
-
+            // double *ld_GPU, *dd_GPU, *ud_GPU, *fin_GPU;
             // FokkerPlanckOnGPU FPGPU;
 
         public:
