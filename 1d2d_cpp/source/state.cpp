@@ -80,6 +80,11 @@ SHarmonic1D& SHarmonic1D::operator*=(const complex<double> & d){
     (*sh) *=d;
     return *this;
 }
+//  *= 
+SHarmonic1D& SHarmonic1D::multiply_guard(const complex<double> & d, const size_t Nbc){
+    (*sh).multiply_guard(d, Nbc, 1);
+    return *this;
+}
 SHarmonic1D& SHarmonic1D::operator*=(const SHarmonic1D& shmulti){
     (*sh) *= shmulti.array();
     return *this;
@@ -91,6 +96,10 @@ SHarmonic1D& SHarmonic1D::operator+=(const complex<double> & d){
 }
 SHarmonic1D& SHarmonic1D::operator+=(const SHarmonic1D& shadd){
     (*sh) += shadd.array();
+    return *this;
+}
+SHarmonic1D& SHarmonic1D::add_guard(const SHarmonic1D& shadd, const size_t Nbc){
+    (*sh).add_guard(shadd.array(), Nbc, 1);
     return *this;
 }
 //  -= 
@@ -1221,6 +1230,14 @@ DistFunc1D& DistFunc1D::operator*=(const complex<double> & d){
     }
     return *this;
 }
+//  *=
+DistFunc1D& DistFunc1D::multiply_guard(const complex<double> & d, const size_t Nbc){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t i = 0; i < dim() ; ++i) {
+        (*df)[i].multiply_guard(d, Nbc);
+    }
+    return *this;
+}
 DistFunc1D& DistFunc1D::operator*=(const DistFunc1D& other){
     if (this != &other) {   //self-assignment
         #pragma omp parallel for num_threads(Input::List().ompthreads)
@@ -1243,6 +1260,15 @@ DistFunc1D& DistFunc1D::operator+=(const DistFunc1D& other){
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < dim() ; ++i) {
             (*df)[i] += other(i);
+        }
+    }
+    return *this;
+}
+DistFunc1D& DistFunc1D::add_guard(const DistFunc1D& other, size_t Nbc){
+    if (this != &other) {   //self-assignment
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < dim() ; ++i) {
+            (*df)[i].add_guard(other(i), Nbc);
         }
     }
     return *this;
@@ -1611,7 +1637,8 @@ valarray<double> DistFunc1D::getpressure(){
 //  Debug
 void DistFunc1D::checknan(){
 
-    for (size_t indx(0); indx<dim();++indx){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for (size_t indx = 0; indx<dim();++indx){
         for (size_t i(0); i<(*df)[indx].numx();++i){
             for (size_t p(0); p<(*df)[indx].nump();++p){
                 if (  std::isnan((*df)[indx](p,i).real()) || std::isnan((*df)[indx](p,i).imag())   )
@@ -1637,7 +1664,8 @@ void DistFunc1D::checknan(){
 //--------------------------------------------------------------------------------------------------------------------------
 void DistFunc1D::checknan() const {
 
-    for (size_t indx(0); indx<dim();++indx){
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for (size_t indx = 0; indx<dim();++indx){
         for (size_t i(0); i<(*df)[indx].numx();++i){
             for (size_t p(0); p<(*df)[indx].nump();++p){
                 if (  std::isnan((*df)[indx](p,i).real()) || std::isnan((*df)[indx](p,i).imag())   )
@@ -2213,7 +2241,9 @@ Array3D<double> DistFunc2D::getrelativisticcurrent() const{
     //  Debug
 
     void DistFunc2D::checknan(){
-        for (int indx(0); indx<dim();++indx){    
+
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for (int indx = 0; indx<dim();++indx){    
             for (size_t iy(0); iy<(*df)[0].numy();++iy){
                 for (size_t ix(0); ix<(*df)[0].numx();++ix){
                     for (size_t p(0); p<(*df)[indx].nump();++p){
@@ -2685,10 +2715,31 @@ State1D& State1D::operator*=(const complex<double> & d){
     // *prtcls *= d.real();
     return *this;
 }
+//  *=
+State1D& State1D::multiply_guard(const complex<double> & d, const size_t Nbc){
+    for(size_t s(0); s < ns; ++s){
+        // (*sp)[s] *= d;
+        (*sp)[s].multiply_guard(d,Nbc);
+    }
+    (*flds) *= d;
+    *hydro *= d.real();
+    // *prtcls *= d.real();
+    return *this;
+}
 //  +=
 State1D& State1D::operator+=(const State1D& other){
     for(size_t s(0); s < ns; ++s){
         (*sp)[s] += other.DF(s);
+    }
+    *flds += other.EMF();
+    *hydro += other.HYDRO();
+    // *prtcls += other.particles();
+    return *this;
+}
+//  +=
+State1D& State1D::add_guard(const State1D& other, const size_t Nbc){
+    for(size_t s(0); s < ns; ++s){
+        (*sp)[s].add_guard(other.DF(s), Nbc);
     }
     *flds += other.EMF();
     *hydro += other.HYDRO();

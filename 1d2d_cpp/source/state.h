@@ -67,9 +67,11 @@ public:
     SHarmonic1D& operator=(const complex<double> & d);
     SHarmonic1D& operator=(const SHarmonic1D& other);
     SHarmonic1D& operator*=(const complex<double> & d);
+    SHarmonic1D& multiply_guard(const complex<double> & d, const size_t Nbc);
     SHarmonic1D& operator*=(const SHarmonic1D& shmulti);
     SHarmonic1D& operator+=(const complex<double> & d);
     SHarmonic1D& operator+=(const SHarmonic1D& shadd);
+    SHarmonic1D& add_guard(const SHarmonic1D& shadd, const size_t Nbc);
     // SHarmonic1D& operator+=(const thrust::host_vector<double>& thadd);
     SHarmonic1D& operator-=(const complex<double> & d);
     SHarmonic1D& operator-=(const SHarmonic1D& shmin);
@@ -413,9 +415,11 @@ public:
     DistFunc1D& operator=(const SHarmonic1D& h);
     DistFunc1D& operator=(const DistFunc1D& other);
     DistFunc1D& operator*=(const complex<double> & d);
+    DistFunc1D& multiply_guard(const complex<double> & d, const size_t Nbc);
     DistFunc1D& operator*=(const DistFunc1D& other);
     DistFunc1D& operator+=(const complex<double> & d);
     DistFunc1D& operator+=(const DistFunc1D& other);
+    DistFunc1D& add_guard(const DistFunc1D& other, const size_t Nbc);
     DistFunc1D& operator-=(const complex<double> & d);
     DistFunc1D& operator-=(const DistFunc1D& other);
 
@@ -702,7 +706,9 @@ public:
     State1D& operator=(const complex<double> & d);
     State1D& operator*=(const State1D& other);
     State1D& operator*=(const complex<double> & d);
+    State1D& multiply_guard(const complex<double> & d, const size_t Nbc);
     State1D& operator+=(const State1D& other);
+    State1D& add_guard(const State1D& other, const size_t Nbc);
     State1D& operator+=(const complex<double> & d);
     State1D& operator-=(const State1D& other);
     State1D& operator-=(const complex<double> & d);

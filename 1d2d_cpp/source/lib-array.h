@@ -311,9 +311,11 @@ public:
     Array2D& operator=(const T& d);
     Array2D& operator=(const Array2D& other);
     Array2D& operator*=(const T& d);
+    Array2D& multiply_guard(const T& d, const size_t Nbc, const size_t dim);
     Array2D& operator*=(const Array2D& vmulti);
     Array2D& operator+=(const T& d);
     Array2D& operator+=(const Array2D& vadd);
+    Array2D& add_guard(const Array2D& vadd, const size_t Nbc, const size_t dim);
     Array2D& operator-=(const T& d);
     Array2D& operator-=(const Array2D& vmin);
 
@@ -446,10 +448,22 @@ template<class T> Array2D<T>& Array2D<T>::operator=(const Array2D& other){
     }
     return *this;
 }
-
 //  *= 
 template<class T> Array2D<T>& Array2D<T>::operator*=(const T& d){
     (*v) *=d;
+    return *this;
+}
+//  *= 
+template<class T> Array2D<T>& Array2D<T>::multiply_guard(const T& d, const size_t Nbc, const size_t dim){
+    // (*v) *=d;
+    for (size_t j(Nbc); j< d2 - Nbc; ++j )
+    {
+        for (size_t i(0); i< d1; ++i )
+        {
+            (*this)(i,j) *= d;
+        }
+    }
+
     return *this;
 }
 template<class T> Array2D<T>& Array2D<T>::operator*=(const Array2D& vmulti){
@@ -466,7 +480,18 @@ template<class T> Array2D<T>& Array2D<T>::operator+=(const Array2D& vadd){
     (*v) += vadd.array();
     return *this;
 }
+template<class T> Array2D<T>& Array2D<T>::add_guard(const Array2D& vadd, const size_t Nbc, const size_t dim){
+    // (*v) *=d;
+    for (size_t j(Nbc); j< d2 - Nbc; ++j )
+    {
+        for (size_t i(0); i< d1; ++i )
+        {
+            (*this)(i,j) += vadd(i,j);
+        }
+    }
 
+    return *this;
+}
 //  -= 
 template<class T> Array2D<T>& Array2D<T>::operator-=(const T& d){
     (*v) -=d;

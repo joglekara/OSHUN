@@ -10,10 +10,10 @@ Dimensionality = 1D		/// Make sure to run 2D with #Y-cells > 2
 
 numsp = 1
 
-l0 = 48				// If using implicit E field solver
+l0 = 42				// If using implicit E field solver
 m0 = 0					// set lmax = mmax = 1
-nump = 512
-dp(x) = fnc{0.04*8./512*(1+0.0*(exp(0.025*(x-1024+240))+exp(-0.025*(x-240))))}
+nump = 256
+dp(x) = fnc{0.04*8./256*(1+0.0*(exp(0.025*(x-1024+240))+exp(-0.025*(x-240))))}
 mass = 1.0
 charge = -1.0
 
@@ -35,10 +35,10 @@ ymax = 50000.0
 					OpenMP parallelizes harmonic space
 //-----------------------------------------------------------------------
 
-MPI_Processes_X = 1		// Make sure N_x/MPI_x >= 4
+MPI_Processes_X = 2		// Make sure N_x/MPI_x >= 4
 MPI_Processes_Y = 1			// Make sure N_y/MPI_y >= 4
 
-OpenMP_Threads = 4			// Make sure N_harmonics / OpenMPThreads > 5
+OpenMP_Threads = 2			// Make sure N_harmonics / OpenMPThreads > 5
 
 //-----------------------------------------------------------------------
 // Time and Output Discretization 
@@ -47,8 +47,8 @@ adaptive_time_step = false
 adaptive_tmin = 150.
 
 max_timestep = 0.01
-n_outsteps = 500			// Number of outputs
-n_distoutsteps = 500				// Number of Dist output
+n_outsteps = 1000			// Number of outputs
+n_distoutsteps = 250				// Number of Dist output
 n_bigdistoutsteps = 1			// Number of Big dist output 
 t_stop = 1000.0
 
@@ -95,7 +95,7 @@ implicit_E                          = false	// For collisional time-scale proble
 /// Fokker-Planck
 collisions_switch = false		
 f00_collisions = implicit		// Can be implicit or explicit, implicit recommended
-flm_collisions = ee-gpu				// Can be ee, ei, or on
+flm_collisions = ee				// Can be ee, ei, or on
 
 lnLambda_ee = 5.
 lnLambda_ei = -1			// -1 : Calculate locally using NRL formula
@@ -191,6 +191,8 @@ o_p1x1 = false
 o_p2x1 = false
 o_p3x1 = false
 
+o_p1x1_th0 = true
+
 o_p1p2x1 = false
 o_p1p3x1 = false
 o_p2p3x1 = false
@@ -221,7 +223,7 @@ o_Ti = false
 
 traveling_wave = true
 num_waves = 1
-dEx(x,y,t) = fnc{1e-3*sin(2*pi/0.837758*x)} cst{0.0} 
+dEx(x,y,t) = fnc{1e-7*sin(2*pi/0.837758*x)} cst{0.0} 
 dEy(x,y,t) = cst{0.0} cst{0.0} 
 dEz(x,y,t) = cst{0.0} cst{0.0} 
 dBx(x,y,t) = cst{0.0} cst{0.0} 

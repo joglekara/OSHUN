@@ -437,6 +437,8 @@ ofstream& operator<<(ofstream& s, const Array4D<T>& array4D) {
         // P-Integrated distributions
         void px(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
             const Parallel_Environment_1D& PE);
+        void px_radial(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+            const Parallel_Environment_1D& PE);
         void py(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
             const Parallel_Environment_1D& PE);
         void pz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,

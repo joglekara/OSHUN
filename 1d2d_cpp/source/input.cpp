@@ -72,6 +72,7 @@ Input::Input_List::Input_List():
     o_Exhist(0), o_Eyhist(0), o_Ezhist(0), o_Bxhist(0), o_Byhist(0), o_Bzhist(0), 
     o_Ex(0), o_Ey(0), o_Ez(0), o_Bx(0), o_By(0), o_Bz(0), o_x1x2(0), o_pth(0), 
     o_p1x1(0), o_p2x1(0), o_p3x1(0), o_p1p2x1(0), o_p1p3x1(0), o_p2p3x1(0), o_p1p2p3x1(0), 
+    o_p1x1_th0(0),
     o_allfs(0), o_allfs_f2(0), o_allfs_flogf(0),
     o_f0x1(0), o_f10x1(0), o_f11x1(0), o_f20x1(0), o_fl0x1(0),
 
@@ -1315,6 +1316,15 @@ Input::Input_List::Input_List():
                 deckfile >> deckstringbool;
                 o_p1x1 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
+            if (deckstring == "o_p1x1_th0") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_p1x1_th0 = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
             if (deckstring == "o_p2x1") {
                 deckfile >> deckequalssign;
                 if(deckequalssign != "=") {
@@ -2101,10 +2111,11 @@ Input::Input_List::Input_List():
         oTags.push_back("f11");
         oTags.push_back("f20");
         oTags.push_back("fl0");
-        oTags.push_back("pxpy");
+        
 
         oTags.push_back("px");
         oTags.push_back("py");
+        oTags.push_back("px-th0");
         oTags.push_back("f0");
         oTags.push_back("f10");
         oTags.push_back("f11");

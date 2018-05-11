@@ -980,7 +980,7 @@ self_flm_implicit_step::self_flm_implicit_step(const size_t numxtotal, const siz
         id_low = 3;
     }
 
-    #ifdef INCLUDE_GPU
+    #ifdef n_GPU
     size_t Nbc = Input::List().BoundaryCells; Nbc = 1;
     size_t szx = totalnumberofspatiallocationstostore - 2*Nbc;
     size_t nump = dp.size();
@@ -1527,7 +1527,7 @@ void  self_flm_implicit_step::collide_f0withRBflm(valarray<complex<double> >& fi
 ///
 void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh) 
 {
-    #ifdef INCLUDE_GPU
+    #ifdef n_GPU
     //-------------------------------------------------------------------
     //  Collisions
     //-------------------------------------------------------------------
@@ -1609,7 +1609,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     /// SOLVE A * Fout  = Fin
     //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -    
-    int n_GPU(3);
+    // int n_GPU(3);
     int systems_per_GPU(ceil(n_systems/n_GPU));
     int offset_per_GPU(systems_per_GPU*DF(0,0).nump());
 

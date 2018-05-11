@@ -82,6 +82,7 @@ namespace Input{
         bool o_Ex, o_Ey, o_Ez, o_Bx, o_By, o_Bz, o_x1x2, o_pth;
         
         bool o_p1x1, o_p2x1, o_p3x1, o_p1p2x1, o_p1p3x1, o_p2p3x1, o_p1p2p3x1;
+        bool o_p1x1_th0;
         bool o_f0x1, o_f10x1, o_f11x1, o_f20x1, o_fl0x1;
 
         bool o_p1x2, o_p2x2, o_p3x2, o_p1p2x2, o_p1p3x2, o_p2p3x2, o_p1p2p3x2;

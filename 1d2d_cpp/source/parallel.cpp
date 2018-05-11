@@ -372,13 +372,14 @@ void Node_Communications_1D::Send_right_X(State1D& Y, int dest) {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
-            for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                for(size_t e(0); e < Nbc; e++) {
+            for(size_t e(0); e < Nbc; e++) {
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                     // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
                     msg_bufX[offset + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
+                    ++offset;
                 }
                 // bufind += step_f;
-                offset += step_f;
+                // offset += step_f;
             }
         }
     }
@@ -454,14 +455,15 @@ void Node_Communications_1D::Recv_from_left_X(State1D& Y, int origin) {
     for(size_t s(0); s < Y.Species(); ++s) {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
-            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
-            for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                for(size_t e(0); e < Nbc; e++) {
+            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;    
+            for(size_t e(0); e < Nbc; e++) {
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                     // (Y.DF(s)(i))(p, e) = msg_bufX[bufind + e];
-                    (Y.DF(s)(i))(p, e) = msg_bufX[offset + e];
+                    (Y.DF(s)(i))(p, e) = msg_bufX[offset];
+                    ++offset;
                 }
                 // bufind += step_f;
-                offset += step_f;
+                // offset += step_f;
             }
         }
     }
@@ -533,13 +535,14 @@ void Node_Communications_1D::Send_left_X(State1D& Y, int dest) {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
-            for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                for(size_t e(0); e < Nbc; e++) {
+            for(size_t e(0); e < Nbc; e++) {
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                     // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nbc+e);
-                    msg_bufX[offset + e] = (Y.DF(s)(i))(p, Nbc+e);
+                    msg_bufX[offset] = (Y.DF(s)(i))(p, Nbc+e);
+                    ++offset;
                 }
                 // bufind += step_f;
-                offset += step_f;
+                // offset += step_f;
             }
         }
     }
@@ -613,13 +616,15 @@ void Node_Communications_1D::Recv_from_right_X(State1D& Y, int origin) {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
-            for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                for(size_t e(0); e < Nbc; e++) {
+            for(size_t e(0); e < Nbc; e++) {
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                
                     // (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[bufind + e];
-                    (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[offset + e];
+                    (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[offset];
+                    ++offset;
                 }
                 // bufind += step_f;
-                offset += step_f;
+                // offset += step_f;
             }
         }
     }
@@ -831,8 +836,9 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
     for(size_t s(0); s < Y.Species(); ++s) {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
-            for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                for(size_t c(0); c < Nbc; c++) {
+            for(size_t c(0); c < Nbc; c++) {
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                
                     (Y.DF(s)(i))(p, c) = (Y.DF(s)(i))(p, Y.EMF().Ex().numx()-2*Nbc+c);
                     // std::cout << "\n 1: DF(" << i << "," << p << "," << c << ") = " << (Y.DF(s)(i))(p, Y.EMF().Ex().numx()-2*Nbc+c) << "\n";
                 }
@@ -853,8 +859,8 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
     for(size_t s(0); s < Y.Species(); ++s) {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
-            for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                for(size_t c(0); c < Nbc; c++) {
+            for(size_t c(0); c < Nbc; c++) {
+                    for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                     // std::cout << "\n 3: DF(" << i << "," << p << "," << Y.EMF().Ex().numx()-Nbc+c << ") = " << (Y.DF(s)(i))(p, Y.EMF().Ex().numx()-Nbc+c) << "\n";
 
                     (Y.DF(s)(i))(p, Y.EMF().Ex().numx()-Nbc+c) = (Y.DF(s)(i))(p, Nbc+c);

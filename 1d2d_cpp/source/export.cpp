@@ -141,8 +141,7 @@ void Export_Files::Folders(){
      Input::List().o_Vy || Input::List().o_VxVy || Input::List().o_VyVy ||
      Input::List().o_VxVz || Input::List().o_VyVz || Input::List().o_VzVz ||
      Input::List().o_Vsq || Input::List().o_Temperature || Input::List().o_Pressure ||
-     Input::List().o_Qx || Input::List().o_Qy || Input::List().o_Qz ||
-     Input::List().o_p1x1 )  {
+     Input::List().o_Qx || Input::List().o_Qy || Input::List().o_Qz)  {
 
         if (Makefolder("output/moments") != 0)
             cout<<"Warning: Folder 'output/moments' exists" << endl;
@@ -322,6 +321,7 @@ void Export_Files::Folders(){
 
     if (  Input::List().o_p1x1 || Input::List().o_p2x1 || Input::List().o_p3x1 ||
       Input::List().o_p1p3x1 || Input::List().o_p1p2x1 || Input::List().o_p2p3x1 ||
+      Input::List().o_p1x1_th0 ||
       Input::List().o_f0x1 ||  Input::List().o_f10x1 ||  Input::List().o_f11x1 
       ||  Input::List().o_f20x1 || Input::List().o_fl0x1 
       || Input::List().o_allfs || Input::List().o_allfs_f2 || Input::List().o_allfs_flogf) {
@@ -422,6 +422,7 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
 //  p-x
     for (size_t s(0); s < species; ++s) {
         pvsx.push_back( "px");
+        pvsx.push_back( "px-th0");
         pvsx.push_back( "py");
         pvsx.push_back( "pz");
     }
@@ -1662,6 +1663,10 @@ void Output_Data::Output_Preprocessor::operator()(const State1D& Y, const Grid_I
     if (Input::List().o_fl0x1){
         fl0( Y, grid, tout, time, dt, PE );
     }
+
+    if (Input::List().o_p1x1_th0){
+        px_radial( Y, grid, tout, time, dt, PE );
+    }
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
@@ -2499,11 +2504,7 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i < outNxLocal; ++i) 
         {
-         
-
             valarray<double> data1D = p_x.p1( Y.DF(s), i, s);
-            
-            
             for (size_t j(0); j < Npx; ++j) {
                 pxbuf[j+i*Npx]=data1D[j];
             }
@@ -2540,6 +2541,95 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
         }
 
         if (PE.RANK() == 0) expo.Export_h5("px", p1axis, xaxis, p1x1Global, tout, time, dt, s);
+
+    }
+
+}
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::px_radial(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+ const Parallel_Environment_1D& PE) {
+    
+    size_t Nbc = Input::List().BoundaryCells;
+    MPI_Status status;
+     
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+    size_t outNxGlobal(grid.axis.Nxg(0));
+
+    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+
+    for(int s(0); s < Y.Species(); ++s) 
+    {
+        size_t Npx(grid.axis.Npx(s));
+        int msg_sz(outNxLocal*Npx);
+        size_t Np(grid.axis.Np(s));
+        
+        Array2D<double> p1x1Global(Npx,outNxGlobal); 
+        vector<double> p1axis(valtovec(grid.axis.px(s)));
+
+        valarray<double> pxbuf(Npx*outNxLocal);
+        
+        pxbuf = 0.;
+
+        
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for (size_t ix = 0; ix < outNxLocal; ++ix) 
+        {
+            double LP;
+            size_t ip;
+            for (size_t il(0); il < grid.l0[s] + 1; ++il) 
+            {
+                double pow_il(il%2);
+                LP = pow(-1.,pow_il);
+                
+
+                for (size_t ipx(0); ipx < Npx; ++ipx) 
+                {
+                    if (ipx < Np)
+                    {
+                        ip = Np-1-ipx;
+                        pxbuf[ix*Npx+ipx] += LP*Y.DF(s)(il)(ip,ix).real(); 
+                    }
+                    else
+                    {
+                        ip = ipx-Np; 
+                        pxbuf[ix*Npx+ipx] += Y.DF(s)(il)(ip,ix).real(); 
+                    }
+                }
+            }
+        }
+
+        if (PE.MPI_Processes() > 1) {
+            if (PE.RANK()!=0) {
+                MPI_Send(&pxbuf[0], msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+            }
+            else {
+                // Fill data for rank = 0
+                for(size_t i(0); i < outNxLocal; i++) {
+                    for (size_t j(0); j < Npx; ++j) {
+                        p1x1Global(j,i) = pxbuf[j+i*Npx];
+                    }
+                }
+                // Fill data for rank > 0
+                for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+                    MPI_Recv(&pxbuf[0], msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+                    for(size_t i(0); i < outNxLocal; i++) {
+                        for (size_t j(0); j < Npx; ++j) {
+                            p1x1Global(j,i + outNxLocal*rr) = pxbuf[j+i*Npx];
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            for(size_t i(0); i < outNxGlobal; i++) {
+                for (size_t j(0); j < Npx; ++j) {
+                    p1x1Global(j,i) = pxbuf[j+i*Npx];
+                }
+            }
+        }
+
+        if (PE.RANK() == 0) expo.Export_h5("px-th0", p1axis, xaxis, p1x1Global, tout, time, dt, s);
 
     }
 
