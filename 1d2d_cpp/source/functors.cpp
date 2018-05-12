@@ -334,7 +334,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
             FA[0](Yin.EMF(),Yslope.EMF());
         }
         
-        if (Input::List().filterdistribution)  Yslope.DF(s) = Yslope.DF(s).Filterp();
+        if (Input::List().filterdistribution)  Yslope.DF(s).Filterp();
 
     }
 
