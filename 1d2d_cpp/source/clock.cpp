@@ -401,20 +401,20 @@ void Clock::do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
     {   
         
                                     timings_at_current_timestep[0] -= MPI_Wtime(); 
-        Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
+        Solver.take_step(Ystar, Y_new, current_time, _dt, vF, cF, PE);
                                     timings_at_current_timestep[0] += MPI_Wtime(); 
         
                                     timings_at_current_timestep[1] -= MPI_Wtime(); 
         if (Input::List().collisions)   
         {
             cF.advance(Y_new,current_time,_dt);
-            // PE.Neighbor_Communications(Y_new);
+            PE.Neighbor_Communications(Y_new);
         }
                                     timings_at_current_timestep[1] += MPI_Wtime(); 
 
-                                    timings_at_current_timestep[0] -= MPI_Wtime(); 
-        Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
-                                    timings_at_current_timestep[0] += MPI_Wtime(); 
+        //                             timings_at_current_timestep[0] -= MPI_Wtime(); 
+        // Solver.take_step(Ystar, Y_new, current_time, 0.5*_dt, vF, cF, PE);
+        //                             timings_at_current_timestep[0] += MPI_Wtime(); 
     }
 
 }
