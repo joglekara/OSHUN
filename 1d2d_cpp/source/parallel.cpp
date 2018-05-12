@@ -375,14 +375,16 @@ void Node_Communications_1D::Send_right_X(State1D& Y, int dest) {
             for(size_t e(0); e < Nbc; e++) {
                 for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                     // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
-                    msg_bufX[offset + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
+                    msg_bufX[offset] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
                     ++offset;
                 }
                 // bufind += step_f;
                 // offset += step_f;
             }
         }
+        bufind += Y.DF(s).dim() * Y.SH(s,0,0).nump() * Nbc;    
     }
+
     // Fields:   x0 "Right-Bound --> "
     for(size_t i = 0; i < Y.EMF().dim(); ++i){
         for(size_t e(0); e < Nbc; e++) {
@@ -462,12 +464,12 @@ void Node_Communications_1D::Recv_from_left_X(State1D& Y, int origin) {
                     (Y.DF(s)(i))(p, e) = msg_bufX[offset];
                     ++offset;
                 }
-                // bufind += step_f;
+                
                 // offset += step_f;
             }
         }
+        bufind += Y.DF(s).dim() * Y.SH(s,0,0).nump() * Nbc;    
     }
-
 
     // Fields:   x0-"---> Left-Guard"
     for(size_t i(0); i < Y.EMF().dim(); ++i){
@@ -545,7 +547,9 @@ void Node_Communications_1D::Send_left_X(State1D& Y, int dest) {
                 // offset += step_f;
             }
         }
+        bufind += Y.DF(s).dim() * Y.SH(s,0,0).nump() * Nbc;    
     }
+    
     // Fields:   x0 " <--- Left-Bound "
     for(size_t i(0); i < Y.EMF().dim(); ++i){
         for(size_t e(0); e < Nbc; e++) {
@@ -618,7 +622,6 @@ void Node_Communications_1D::Recv_from_right_X(State1D& Y, int origin) {
             size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
             for(size_t e(0); e < Nbc; e++) {
                 for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                
                     // (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[bufind + e];
                     (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[offset];
                     ++offset;
@@ -627,7 +630,9 @@ void Node_Communications_1D::Recv_from_right_X(State1D& Y, int origin) {
                 // offset += step_f;
             }
         }
+        bufind += Y.DF(s).dim() * Y.SH(s,0,0).nump() * Nbc;    
     }
+    
     // Fields:   x0-"Right-Guard <--- "
     for(size_t i(0); i < Y.EMF().dim(); ++i){
         for(size_t e(0); e < Nbc; e++) {
