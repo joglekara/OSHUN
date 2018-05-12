@@ -333,6 +333,9 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
             AM[0](Yin.EMF(),Yslope.EMF());
             FA[0](Yin.EMF(),Yslope.EMF());
         }
+        
+        if (Input::List().filterdistribution)  Yslope.DF(s).Filterp();
+
     }
 
     if (Input::List().trav_wave) WD.applytravelingwave(Yslope.EMF(),time);
