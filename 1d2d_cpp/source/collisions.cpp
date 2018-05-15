@@ -126,12 +126,13 @@ void self_f00_implicit_step::update_C_Rosenbluth(valarray<double> &C_RB, double 
     /// Therefore, C[0] is C_{1/2} aka C(v=0)
     /// and, C[1] is C_{3/2} aka C(v[1st point, 0th index C style])
 
-    C_RB = p4dp*fin;
-    I4_Lnee = C_RB.sum();
+    // C_RB = p4dp*fin;
+    I4_Lnee = p4dp[0]*fin[0];
     C_RB = 0.;
     
     for (size_t n(1); n < C_RB.size(); ++n) 
     {
+        I4_Lnee += p4dp[n] * fin[n];
         C_RB[n]  = C_RB[n - 1] + (vr[n - 1] * vr[n - 1] * dvr[n - 1] * fin[n - 1]);
     }
 
@@ -323,7 +324,7 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
                    - C_RB[ip] * (1.0 - delta_CC[ip]) - D_RB[ip] / dvr[ip]);
 
 
-    #pragma ivdep
+    // #pragma ivdep
     for (ip = 1; ip < fin.size() - 1; ++ip){
         LHS(ip, ip + 1) = - oneoverv2[ip] * collisional_coefficient
                   * (C_RB[ip + 1] * (1.0 - delta_CC[ip + 1])
@@ -357,8 +358,6 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
     //     }
     //     std::cout << "\n";
     // }
-
-    // fh = fin;
     Thomas_Tridiagonal(LHS,fin,fh);
 
 }
@@ -379,10 +378,10 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
 
     /// Normalizing quantities (Inspired by previous collision routines and OSHUN notes by M. Tzoufras)
     double collisional_coefficient;
-    collisional_coefficient  = formulas.LOGee(C_RB[C_RB.size()-1],I2_temperature);
-    collisional_coefficient *= 4.0*M_PI/3.0*c_kpre;
-    collisional_coefficient *= pow(I2_temperature,-1.0);
-    collisional_coefficient *= -step_size;           /// Step size incorporated here
+    collisional_coefficient  = -4.0*M_PI/3.0*c_kpre*formulas.LOGee(C_RB[C_RB.size()-1],I2_temperature)/I2_temperature*step_size;
+    // collisional_coefficient *= ;
+    // collisional_coefficient *= pow(I2_temperature,-1.0);
+    // collisional_coefficient *= -step_size;           /// Step size incorporated here
 
     double deltav = vr[2]-vr[1];
 
@@ -401,7 +400,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     LHS(ip    , ip) *= collisional_coefficient;
     LHS(ip    , ip) += 1.;
 
-    #pragma ivdep
+    // #pragma ivdep
     for (ip = 1; ip < fin.size() - 1; ++ip)
     {
         LHS(ip, ip + 1)  = vr[ip+1]/2/deltav + I2_temperature/deltav/deltav;
@@ -437,6 +436,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     // exit(1);
 
     Thomas_Tridiagonal(LHS,fin,fh);
+    fh = fin;
 
 }
 
