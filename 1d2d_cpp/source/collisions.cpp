@@ -436,7 +436,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     // exit(1);
 
     Thomas_Tridiagonal(LHS,fin,fh);
-    fh = fin;
+    // fh = fin;
 
 }
 

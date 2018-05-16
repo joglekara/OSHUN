@@ -74,7 +74,7 @@
         public:
 //          Constructors/Destructors
             Node_Communications_1D(); 
-            ~Node_Communications_1D();
+            // ~Node_Communications_1D();
          
 //          Boundary conditions
             int BNDX()   const;
@@ -99,10 +99,10 @@
 
 //          Information exchange
             int  msg_sizeX;
-            int  par_sizeX;
+            // int  par_sizeX;
 
-            complex<double> *msg_bufX;
-            double *par_bufX;
+            // complex<double> *msg_bufX;
+            valarray<complex<double> > msg_bufX;
 
 //          Boundaries for single-node configurations
             void sameNode_periodic_X(State1D& Y);
