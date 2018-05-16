@@ -369,11 +369,15 @@ void Node_Communications_1D::Send_right_X(State1D& Y, int dest) {
 
     // Harmonics:x0 "Right-Bound ---> "
     for(size_t s(0); s < Y.Species(); ++s) {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
-        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
-            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
-            for(size_t e(0); e < Nbc; e++) {
-                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i)
+        {
+            size_t offset(0);
+            for(size_t e(0); e < Nbc; e++) 
+            {   
+                offset = i * Y.SH(s,0,0).nump() * Nbc + e*Y.SH(s,0,0).nump();
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) 
+                {
                     // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
                     msg_bufX[offset] = (Y.DF(s)(i))(p, Y.FLD(0).numx()-2*Nbc+e);
                     ++offset;
@@ -454,12 +458,17 @@ void Node_Communications_1D::Recv_from_left_X(State1D& Y, int origin) {
     MPI_Recv(&msg_bufX[0], msg_sizeX, MPI_DOUBLE_COMPLEX, origin, 0, MPI_COMM_WORLD, &status);
 
     // Harmonics:x0-"---> Left-Guard"
-    for(size_t s(0); s < Y.Species(); ++s) {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
-        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
-            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;    
-            for(size_t e(0); e < Nbc; e++) {
-                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+    for(size_t s(0); s < Y.Species(); ++s) 
+    {
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i)
+        {
+            size_t offset(0);
+            for(size_t e(0); e < Nbc; e++) 
+            {
+                offset = i * Y.SH(s,0,0).nump() * Nbc + e*Y.SH(s,0,0).nump();
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) 
+                {
                     // (Y.DF(s)(i))(p, e) = msg_bufX[bufind + e];
                     (Y.DF(s)(i))(p, e) = msg_bufX[offset];
                     ++offset;
@@ -534,11 +543,15 @@ void Node_Communications_1D::Send_left_X(State1D& Y, int dest) {
     // Harmonics:x0 " <--- Left-Bound "
     for(size_t s(0); s < Y.Species(); ++s) {
 
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
-        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
-            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
-            for(size_t e(0); e < Nbc; e++) {
-                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i)
+        {
+            size_t offset(0);
+            for(size_t e(0); e < Nbc; e++) 
+            {
+                offset = i * Y.SH(s,0,0).nump() * Nbc + e*Y.SH(s,0,0).nump();
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) 
+                {
                     // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nbc+e);
                     msg_bufX[offset] = (Y.DF(s)(i))(p, Nbc+e);
                     ++offset;
@@ -616,12 +629,17 @@ void Node_Communications_1D::Recv_from_right_X(State1D& Y, int origin) {
     MPI_Recv(&msg_bufX[0], msg_sizeX, MPI_DOUBLE_COMPLEX, origin, 1, MPI_COMM_WORLD, &status);
 
     // Harmonics:x0-"Right-Guard <--- "
-    for(size_t s(0); s < Y.Species(); ++s) {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
-        for(size_t i = 0; i < Y.DF(s).dim(); ++i){
-            size_t offset = i * Y.SH(s,0,0).nump() * Nbc;
-            for(size_t e(0); e < Nbc; e++) {
-                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+    for(size_t s(0); s < Y.Species(); ++s) 
+    {
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t i = 0; i < Y.DF(s).dim(); ++i)
+        {
+            size_t offset(0);
+            for(size_t e(0); e < Nbc; e++) 
+            {
+                offset = i * Y.SH(s,0,0).nump() * Nbc + e*Y.SH(s,0,0).nump();
+                for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) 
+                {
                     // (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[bufind + e];
                     (Y.DF(s)(i))(p, Y.FLD(0).numx()-Nbc+e) = msg_bufX[offset];
                     ++offset;
@@ -839,7 +857,7 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
 
     // Harmonics:x0 "Right-Bound ---> Left-Guard"
     for(size_t s(0); s < Y.Species(); ++s) {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             for(size_t c(0); c < Nbc; c++) {
                 for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
@@ -862,7 +880,7 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
 
     // Harmonics:x0 "Left-Bound ---> Right-Guard"
     for(size_t s(0); s < Y.Species(); ++s) {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             for(size_t c(0); c < Nbc; c++) {
                     for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
