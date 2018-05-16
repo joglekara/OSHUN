@@ -2618,7 +2618,30 @@ Hydro2D& Hydro2D::operator-=(const Hydro2D& other){
 //  Constructor and Destructor
 //--------------------------------------------------------------
 //  Constructor
- State1D:: State1D(){}
+ State1D:: State1D()
+ {
+    sp = new vector<DistFunc1D>;
+    vector<size_t> l0, m0;
+    vector<valarray<double> > dp;
+    vector<double> q, ma;
+
+    valarray<double> dp1(4);
+    dp1 = 4.;
+
+    l0.push_back(1);m0.push_back(0);
+    dp.push_back(dp1);
+    q.push_back(1.);ma.push_back(1.);
+    
+
+    for(size_t s(0); s < 1; ++s){  
+
+        (*sp).push_back(DistFunc1D(l0[s],m0[s],dp[s],2,q[s],ma[s]));
+
+    }
+    
+    flds = new EMF1D(2);
+    hydro = new Hydro1D(2,1.,1.);
+ }
 State1D:: State1D( size_t nx, vector<size_t> l0, vector<size_t> m0,
                    // vector<size_t> np, vector<double> pmax, 
                     vector<valarray<double> > dp,
@@ -2808,7 +2831,30 @@ void State1D::checknan() const {
 //  Constructor and Destructor
 //--------------------------------------------------------------
 //  Constructor
- State2D:: State2D(){}
+ State2D:: State2D()
+ {
+        sp = new vector<DistFunc2D>;
+        vector<size_t> l0, m0;
+        vector<valarray<double> > dp;
+        vector<double> q, ma;
+
+        valarray<double> dp1(4);
+        dp1 = 4.;
+
+        l0.push_back(1);m0.push_back(1);
+        dp.push_back(dp1);
+        q.push_back(1.);ma.push_back(1.);
+        
+
+        for(size_t s(0); s < 1; ++s){  
+
+            (*sp).push_back(DistFunc2D(l0[s],m0[s],dp[s],2,2,q[s],ma[s]));
+
+        }
+        
+        flds = new EMF2D(2,2);
+        hydro = new Hydro2D(2,2,1.,1.);
+ }
     State2D:: State2D(size_t nx, size_t ny, 
         vector<size_t> l0, vector<size_t> m0, 
         vector<valarray<double> > dp, 

@@ -55,18 +55,19 @@ Node_ImplicitE_Communications_1D:: Node_ImplicitE_Communications_1D() :
     msg_sizeX = 3;
 
     msg_sizeX *= Nbc; //(IN().inp().y.dim()*Nbc);
-    msg_bufX = new complex<double>[msg_sizeX];
+    msg_bufX.resize(msg_sizeX);
+        // ) = new complex<double>[msg_sizeX];
 
 }
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
-Node_ImplicitE_Communications_1D:: ~Node_ImplicitE_Communications_1D(){
+// Node_ImplicitE_Communications_1D:: ~Node_ImplicitE_Communications_1D(){
 //--------------------------------------------------------------
 //  Destructor
 //--------------------------------------------------------------
-    delete[] msg_bufX;
-}
+    // delete[] msg_bufX;
+// }
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
@@ -97,7 +98,7 @@ void Node_ImplicitE_Communications_1D::Send_right_X(State1D& Y, int dest) {
         bufind += step_f;
     }
 
-    MPI_Send(msg_bufX, msg_sizeX, MPI_DOUBLE_COMPLEX, dest, 0, MPI_COMM_WORLD);
+    MPI_Send(&msg_bufX[0], msg_sizeX, MPI_DOUBLE_COMPLEX, dest, 0, MPI_COMM_WORLD);
 }
 //--------------------------------------------------------------
 
@@ -113,7 +114,7 @@ void Node_ImplicitE_Communications_1D::Recv_from_left_X(State1D& Y, int origin) 
     MPI_Status status;
 
     // Receive Data
-    MPI_Recv(msg_bufX, msg_sizeX, MPI_DOUBLE_COMPLEX, origin, 0, MPI_COMM_WORLD, &status);
+    MPI_Recv(&msg_bufX[0], msg_sizeX, MPI_DOUBLE_COMPLEX, origin, 0, MPI_COMM_WORLD, &status);
 
     // Fields:   x0-"---> Left-Guard"
     for(size_t i(3); i < Y.EMF().dim(); ++i){ // "3" as opposed to "0"
@@ -143,7 +144,7 @@ void Node_ImplicitE_Communications_1D::Send_left_X(State1D& Y, int dest) {
         bufind += step_f;
     }
 
-    MPI_Send(msg_bufX, msg_sizeX, MPI_DOUBLE_COMPLEX, dest, 1, MPI_COMM_WORLD);
+    MPI_Send(&msg_bufX[0], msg_sizeX, MPI_DOUBLE_COMPLEX, dest, 1, MPI_COMM_WORLD);
 }
 //--------------------------------------------------------------
 
@@ -159,7 +160,7 @@ void Node_ImplicitE_Communications_1D::Recv_from_right_X(State1D& Y, int origin)
     MPI_Status status;
 
     // Receive Data
-    MPI_Recv(msg_bufX, msg_sizeX, MPI_DOUBLE_COMPLEX, origin, 1, MPI_COMM_WORLD, &status);
+    MPI_Recv(&msg_bufX[0], msg_sizeX, MPI_DOUBLE_COMPLEX, origin, 1, MPI_COMM_WORLD, &status);
 
     // Fields:   x0-"Right-Guard <--- "
     for(size_t i(3); i < Y.EMF().dim(); ++i){ // "3" as opposed to "0"

@@ -6,9 +6,9 @@
 COMPILER = g++-7
 
 # GNU compilers#
-OPTFLAGS1 = -O3
+OPTFLAGS1 = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
 OPTFLAGSt = -O2 -no-vec
-OPTFLAGS2 = -O1
+OPTFLAGS2 = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
 DBGFLAGS = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
 # -O3 -ffast-math -ftree-loop-distribution -fno-signed-zeros -ftree-loop-ivcanon -ftree-vect-loop-version
 #-fopt-info-vec-optimized  

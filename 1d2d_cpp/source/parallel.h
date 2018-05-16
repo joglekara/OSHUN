@@ -23,7 +23,7 @@
         public:
 //          Constructors/Destructors
             Node_ImplicitE_Communications_1D(); 
-            ~Node_ImplicitE_Communications_1D();
+            // ~Node_ImplicitE_Communications_1D();
          
 //          Boundary conditions
             int BNDX()   const;
@@ -51,7 +51,8 @@
             int  msg_sizeX;
             
 			
-            complex<double> *msg_bufX;
+            // complex<double> *msg_bufX;
+            valarray< complex<double> > msg_bufX;
             
 
             // std::vector<complex<double> > msg_parX;

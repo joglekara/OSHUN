@@ -421,251 +421,251 @@ int main(int argc, char** argv) {
     /////////       CONTAINS AN IF STATEMENT FOR EXPLICIT OR IMPLICIT E SOLVER  ///////
     ///////////////////////////////////////////////////////////////////////////////////
     ///////////////////////////////////////////////////////////////////////////////////    
-    else
-    {
+    // else
+    // {
         // ///  Initiate the Parallel Environment and decompose the Computational Domain
-        std::cout << "\nInitializing parallel environment ...";
-        Parallel_Environment_2D PE;
-        std::cout << "     done \n\n";
+    //     std::cout << "\nInitializing parallel environment ...";
+    //     Parallel_Environment_2D PE;
+    //     std::cout << "     done \n\n";
         
-        if (PE.RANK() == 0) {
-            Export_Files::Folders();
-        }
+    //     if (PE.RANK() == 0) {
+    //         Export_Files::Folders();
+    //     }
     
-        // ///  Set up the grid
-        // ///    Moves all of the relevant data from the input deck into a single container
-        if (!PE.RANK()) std::cout << "\nInitializing grid ...";
-        Grid_Info grid(Input::List().ls, Input::List().ms,
-                        Input::List().xminLocal, Input::List().xmaxLocal, Input::List().NxLocal,
-                        Input::List().xminGlobal, Input::List().xmaxGlobal, Input::List().NxGlobal,
-                        Input::List().dp,
-                        Input::List().dpx,Input::List().dpy,Input::List().dpz);
+    //     // ///  Set up the grid
+    //     // ///    Moves all of the relevant data from the input deck into a single container
+    //     if (!PE.RANK()) std::cout << "\nInitializing grid ...";
+    //     Grid_Info grid(Input::List().ls, Input::List().ms,
+    //                     Input::List().xminLocal, Input::List().xmaxLocal, Input::List().NxLocal,
+    //                     Input::List().xminGlobal, Input::List().xmaxGlobal, Input::List().NxGlobal,
+    //                     Input::List().dp,
+    //                     Input::List().dpx,Input::List().dpy,Input::List().dpz);
                         
-        if (!PE.RANK()) std::cout << "     done \n";
+    //     if (!PE.RANK()) std::cout << "     done \n";
         
-        // --------------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------------------------------
-        ///  CLOCK
-        // --------------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------------------------------
-        int tout_start;
-        if (Input::List().isthisarestart) tout_start = Input::List().restart_time;
-        else  tout_start = 0;
-        size_t t_out(tout_start+1);
-        double start_time(0.);
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     ///  CLOCK
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     int tout_start;
+    //     if (Input::List().isthisarestart) tout_start = Input::List().restart_time;
+    //     else  tout_start = 0;
+    //     size_t t_out(tout_start+1);
+    //     double start_time(0.);
     
-        double dt_out(Input::List().t_stop / (Input::List().n_outsteps+1));
-        double dt_dist_out(Input::List().t_stop / (Input::List().n_distoutsteps+1));
-        double dt_big_dist_out(Input::List().t_stop / (Input::List().n_bigdistoutsteps+1));
-        double dt_restart(Input::List().t_stop / (Input::List().n_restarts+1));
+    //     double dt_out(Input::List().t_stop / (Input::List().n_outsteps+1));
+    //     double dt_dist_out(Input::List().t_stop / (Input::List().n_distoutsteps+1));
+    //     double dt_big_dist_out(Input::List().t_stop / (Input::List().n_bigdistoutsteps+1));
+    //     double dt_restart(Input::List().t_stop / (Input::List().n_restarts+1));
         
-        double next_out(dt_out);
-        double next_dist_out(dt_dist_out);
-        double next_big_dist_out(dt_big_dist_out);
+    //     double next_out(dt_out);
+    //     double next_dist_out(dt_dist_out);
+    //     double next_big_dist_out(dt_big_dist_out);
 
-        double next_restart(dt_restart);
+    //     double next_restart(dt_restart);
 
-        // --------------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------------------------------
-        ///  INITIALIZATION
-        // --------------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------------------------------
-        if (!PE.RANK()) std::cout << "Initializing restart environment ...";
-        Export_Files::Restart_Facility Re(PE.RANK());
-        if (!PE.RANK()) std::cout << "     done \n";
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     ///  INITIALIZATION
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     if (!PE.RANK()) std::cout << "Initializing restart environment ...";
+    //     Export_Files::Restart_Facility Re(PE.RANK());
+    //     if (!PE.RANK()) std::cout << "     done \n";
     
-        if (!PE.RANK()) std::cout << "Initializing state variable ...";
-        State2D Y( grid.axis.Nx(0), grid.axis.Nx(1), Input::List().ls, Input::List().ms, 
-            Input::List().dp, 
-            Input::List().qs, Input::List().mass, 
-            Input::List().hydromass, Input::List().hydrocharge);
-        if (!PE.RANK()) std::cout << "     done \n";
+    //     if (!PE.RANK()) std::cout << "Initializing state variable ...";
+    //     State2D Y( grid.axis.Nx(0), grid.axis.Nx(1), Input::List().ls, Input::List().ms, 
+    //         Input::List().dp, 
+    //         Input::List().qs, Input::List().mass, 
+    //         Input::List().hydromass, Input::List().hydrocharge);
+    //     if (!PE.RANK()) std::cout << "     done \n";
 
     
-        if (!PE.RANK()) std::cout << "Initializing plasma profile ...";
-        Setup_Y::initialize(Y, grid);
-        if (!PE.RANK()) std::cout << "     done \n";
+    //     if (!PE.RANK()) std::cout << "Initializing plasma profile ...";
+    //     Setup_Y::initialize(Y, grid);
+    //     if (!PE.RANK()) std::cout << "     done \n";
     
-        if (!PE.RANK()) std::cout << "Initializing collision module ...";
-        collisions_2D collide(Y);
-        if (!PE.RANK()) std::cout << "     done \n";    
+    //     if (!PE.RANK()) std::cout << "Initializing collision module ...";
+    //     collisions_2D collide(Y);
+    //     if (!PE.RANK()) std::cout << "     done \n";    
         
-        if (Input::List().isthisarestart){
-            if (!PE.RANK()) std::cout << "Reading restart files ...";
-            Re.Read(PE.RANK(),tout_start,Y,start_time);
-            if (!PE.RANK()) std::cout << "     done \n";
-        }
+    //     if (Input::List().isthisarestart){
+    //         if (!PE.RANK()) std::cout << "Reading restart files ...";
+    //         Re.Read(PE.RANK(),tout_start,Y,start_time);
+    //         if (!PE.RANK()) std::cout << "     done \n";
+    //     }
         
-        if (!PE.RANK()) std::cout << "Initializing output module ...";
-        Output_Data::Output_Preprocessor  output( grid, Input::List().oTags);
-        if (!PE.RANK()) std::cout << "     done \n";
+    //     if (!PE.RANK()) std::cout << "Initializing output module ...";
+    //     Output_Data::Output_Preprocessor  output( grid, Input::List().oTags);
+    //     if (!PE.RANK()) std::cout << "     done \n";
                      
-        if (!PE.RANK()) std::cout << "Output #0 ...";    
-        output( Y, grid, tout_start, start_time, Input::List().dt, PE );
-        if (!PE.RANK()) std::cout << "     done \n";
+    //     if (!PE.RANK()) std::cout << "Output #0 ...";    
+    //     output( Y, grid, tout_start, start_time, Input::List().dt, PE );
+    //     if (!PE.RANK()) std::cout << "     done \n";
     
-        if (!PE.RANK()) std::cout << "Distribution function output #0 ...";    
-        output.distdump(Y, grid, tout_start, start_time, Input::List().dt, PE );
-        output.bigdistdump(Y, grid, tout_start, start_time, Input::List().dt, PE );
-        if (!PE.RANK()) std::cout << "     done \n";
+    //     if (!PE.RANK()) std::cout << "Distribution function output #0 ...";    
+    //     output.distdump(Y, grid, tout_start, start_time, Input::List().dt, PE );
+    //     output.bigdistdump(Y, grid, tout_start, start_time, Input::List().dt, PE );
+    //     if (!PE.RANK()) std::cout << "     done \n";
     
-        double plasmaperiod;
-        if (!(PE.RANK())){
-            plasmaperiod = startmessages();
-        }
+    //     double plasmaperiod;
+    //     if (!(PE.RANK())){
+    //         plasmaperiod = startmessages();
+    //     }
     
-        // --------------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------------------------------
-        //  ITERATION LOOP
-        // --------------------------------------------------------------------------------------------------------------------------------
-        // --------------------------------------------------------------------------------------------------------------------------------
-        if (Input::List().implicit_E) 
-        {
-            if (!PE.RANK())
-            { 
-                std::cout << "Starting Semi-Implicit, 2D OSHUN\n";
-            }
-            Algorithms::RK2<State2D> RK(Y);
-            // --------------------------------------------------------------------------------------------------------------------------------
-            // --------------------------------------------------------------------------------------------------------------------------------
-            // --------------------------------------------------------------------------------------------------------------------------------
-            // IMPLICIT E-FIELD
-            // --------------------------------------------------------------------------------------------------------------------------------
-            VlasovFunctor2D_implicitE_p1 impE_p1_Functor(Input::List().ls, Input::List().ms, 
-                                                        // Input::List().pmax, Input::List().numps,
-                                                            Input::List().dp,
-                                                         grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0),
-                                                         grid.axis.xmin(1), grid.axis.xmax(1), grid.axis.Nx(1));
-            VlasovFunctor2D_implicitE_p2 impE_p2_Functor(Input::List().ls, Input::List().ms, 
-                                                            // Input::List().pmax, Input::List().numps,
-                                                            Input::List().dp,
-                                                         grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0),
-                                                         grid.axis.xmin(1), grid.axis.xmax(1), grid.axis.Nx(1));
-        //     // --------------------------------------------------------------------------------------------------------------------------------
-        //     using Electric_Field_Methods::Efield_Method;
-        //     Electric_Field_Methods::Implicit_E_Field eim(grid.axis);
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     //  ITERATION LOOP
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     if (Input::List().implicit_E) 
+    //     {
+    //         if (!PE.RANK())
+    //         { 
+    //             std::cout << "Starting Semi-Implicit, 2D OSHUN\n";
+    //         }
+    //         Algorithms::RK2<State2D> RK(Y);
+    //         // --------------------------------------------------------------------------------------------------------------------------------
+    //         // --------------------------------------------------------------------------------------------------------------------------------
+    //         // --------------------------------------------------------------------------------------------------------------------------------
+    //         // IMPLICIT E-FIELD
+    //         // --------------------------------------------------------------------------------------------------------------------------------
+    //         VlasovFunctor2D_implicitE_p1 impE_p1_Functor(Input::List().ls, Input::List().ms, 
+    //                                                     // Input::List().pmax, Input::List().numps,
+    //                                                         Input::List().dp,
+    //                                                      grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0),
+    //                                                      grid.axis.xmin(1), grid.axis.xmax(1), grid.axis.Nx(1));
+    //         VlasovFunctor2D_implicitE_p2 impE_p2_Functor(Input::List().ls, Input::List().ms, 
+    //                                                         // Input::List().pmax, Input::List().numps,
+    //                                                         Input::List().dp,
+    //                                                      grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0),
+    //                                                      grid.axis.xmin(1), grid.axis.xmax(1), grid.axis.Nx(1));
+    //     //     // --------------------------------------------------------------------------------------------------------------------------------
+    //     //     using Electric_Field_Methods::Efield_Method;
+    //     //     Electric_Field_Methods::Implicit_E_Field eim(grid.axis);
 
-        //     if (!Input::List().collisions) {
-        //         if (!PE.RANK())
-        //             std::cout << "\n Need collisions for implicit E field solver. \n Exiting. \n";
-        //         exit(0);
-        //     }
+    //     //     if (!Input::List().collisions) {
+    //     //         if (!PE.RANK())
+    //     //             std::cout << "\n Need collisions for implicit E field solver. \n Exiting. \n";
+    //     //         exit(0);
+    //     //     }
 
-        //     // Algorithms::RKCK54<State1D> RK54(Y);
-        //     // Algorithms::RK4<State1D> RK(Y);
-        //     // State1D Y_star(Y), Y_old(Y);
-        //     // bool success(false);
+    //     //     // Algorithms::RKCK54<State1D> RK54(Y);
+    //     //     // Algorithms::RK4<State1D> RK(Y);
+    //     //     // State1D Y_star(Y), Y_old(Y);
+    //     //     // bool success(false);
 
-            Clock theclock(start_time,Input::List().dt,Input::List().abs_tol,Input::List().rel_tol,Input::List().max_fails,Y);
+    //         Clock theclock(start_time,Input::List().dt,Input::List().abs_tol,Input::List().rel_tol,Input::List().max_fails,Y);
 
-            for(theclock; theclock.time() < Input::List().t_stop; ++theclock)
-            {
-        //         if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
+    //         for(theclock; theclock.time() < Input::List().t_stop; ++theclock)
+    //         {
+    //     //         if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
 
-        //         // Y_old = Y;
+    //     //         // Y_old = Y;
 
-        //         // while(!success)
-        //         // {
-        //         //     RK54(Y_star,Y,theclock.dt(),&impE_p1_Functor);
-        //         //     success = theclock.update_dt(Y_old,Y_star, Y);
-        //         // }
+    //     //         // while(!success)
+    //     //         // {
+    //     //         //     RK54(Y_star,Y,theclock.dt(),&impE_p1_Functor);
+    //     //         //     success = theclock.update_dt(Y_old,Y_star, Y);
+    //     //         // }
                 
-        //         Y = RK(Y, theclock.dt(), &impE_p1_Functor);                                                             /// Vlasov - Updates the distribution function: Spatial Advection and B Field "action".
-        //         PE.Neighbor_ImplicitE_Communications(Y);                                                            /// Boundaries
-        //         eim.advance(&RK, Y, collide,&impE_p2_Functor, theclock.dt());                                           /// Finds new electric field
-        //         Y = RK(Y, theclock.dt(), &impE_p2_Functor);         
+    //     //         Y = RK(Y, theclock.dt(), &impE_p1_Functor);                                                             /// Vlasov - Updates the distribution function: Spatial Advection and B Field "action".
+    //     //         PE.Neighbor_ImplicitE_Communications(Y);                                                            /// Boundaries
+    //     //         eim.advance(&RK, Y, collide,&impE_p2_Functor, theclock.dt());                                           /// Finds new electric field
+    //     //         Y = RK(Y, theclock.dt(), &impE_p2_Functor);         
 
-        //         if (Input::List().collisions)
-        //             collide.advance(Y,theclock.time(),theclock.dt());                                               ///  Fokker-Planck   //
+    //     //         if (Input::List().collisions)
+    //     //             collide.advance(Y,theclock.time(),theclock.dt());                                               ///  Fokker-Planck   //
 
-        //         // if (Input::List().hydromotion)
-        //             // Y = RK(Y, theclock.dt(), &HydroFunc);                                      /// Hydro Motion
+    //     //         // if (Input::List().hydromotion)
+    //     //             // Y = RK(Y, theclock.dt(), &HydroFunc);                                      /// Hydro Motion
 
-        //         if (Input::List().trav_wave) Setup_Y::applytravelingwave(grid, Y, theclock.time(), theclock.dt());
+    //     //         if (Input::List().trav_wave) Setup_Y::applytravelingwave(grid, Y, theclock.time(), theclock.dt());
 
-        //         PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
-        //         // --------------------------------------------------------------------------------------------------------------------------------
-        //         // --------------------------------------------------------------------------------------------------------------------------------
-        //         /// Output
-        //         // --------------------------------------------------------------------------------------------------------------------------------
-        //         if (theclock.time() > next_dist_out)
-        //         {
-        //             if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
-        //             output.distdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-        //             next_dist_out += dt_dist_out;
-        //         }
+    //     //         PE.Neighbor_Communications(Y);                                         ///  Boundaries      //
+    //     //         // --------------------------------------------------------------------------------------------------------------------------------
+    //     //         // --------------------------------------------------------------------------------------------------------------------------------
+    //     //         /// Output
+    //     //         // --------------------------------------------------------------------------------------------------------------------------------
+    //     //         if (theclock.time() > next_dist_out)
+    //     //         {
+    //     //             if (!(PE.RANK())) cout << " \n Dist Output #" << t_out << "\n";
+    //     //             output.distdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
+    //     //             next_dist_out += dt_dist_out;
+    //     //         }
                 
-        //         if (theclock.time() > next_big_dist_out)
-        //         {
-        //             if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
-        //             output.bigdistdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-        //             next_big_dist_out += dt_big_dist_out;
-        //         }
+    //     //         if (theclock.time() > next_big_dist_out)
+    //     //         {
+    //     //             if (!(PE.RANK())) cout << " \n Big Dist Output #" << t_out << "\n";
+    //     //             output.bigdistdump(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
+    //     //             next_big_dist_out += dt_big_dist_out;
+    //     //         }
 
-        //         if (theclock.time() > next_restart)
-        //         {
-        //             if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";
-        //             Re.Write(PE.RANK(), t_out, Y, theclock.time());
-        //             next_restart += dt_restart;
-        //         }
+    //     //         if (theclock.time() > next_restart)
+    //     //         {
+    //     //             if (!(PE.RANK())) cout << " \n Restart Output #" << t_out << "\n";
+    //     //             Re.Write(PE.RANK(), t_out, Y, theclock.time());
+    //     //             next_restart += dt_restart;
+    //     //         }
 
-        //         if (theclock.time() > next_out)
-        //         {
-        //             if (!(PE.RANK()))
-        //             {
-        //                 cout << "\n dt = " << theclock.dt();
-        //                 cout << " , Output #" << t_out;
+    //     //         if (theclock.time() > next_out)
+    //     //         {
+    //     //             if (!(PE.RANK()))
+    //     //             {
+    //     //                 cout << "\n dt = " << theclock.dt();
+    //     //                 cout << " , Output #" << t_out;
                         
-        //             }
+    //     //             }
 
-        //             output(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
-        //             Y.checknan();
+    //     //             output(Y, grid, t_out, theclock.time(), theclock.dt(), PE);
+    //     //             Y.checknan();
 
-        //             next_out += dt_out;
-        //             ++t_out;
-        //         }
+    //     //             next_out += dt_out;
+    //     //             ++t_out;
+    //     //         }
 
-                // success = false;                    
-            }
-        } 
-        else 
-        {
-            if (!PE.RANK())
-            { 
-                std::cout << "Starting Fully-Explicit, 2D OSHUN\n";
-            }
-            // --------------------------------------------------------------------------------------------------------------------------------
-            // --------------------------------------------------------------------------------------------------------------------------------
-            // --------------------------------------------------------------------------------------------------------------------------------
-            // EXPLICIT E-FIELD
-            // --------------------------------------------------------------------------------------------------------------------------------
+    //             // success = false;                    
+    //         }
+    //     } 
+    //     else 
+    //     {
+    //         if (!PE.RANK())
+    //         { 
+    //             std::cout << "Starting Fully-Explicit, 2D OSHUN\n";
+    //         }
+    //         // --------------------------------------------------------------------------------------------------------------------------------
+    //         // --------------------------------------------------------------------------------------------------------------------------------
+    //         // --------------------------------------------------------------------------------------------------------------------------------
+    //         // EXPLICIT E-FIELD
+    //         // --------------------------------------------------------------------------------------------------------------------------------
             
-            VlasovFunctor2D_explicitE rkF(Input::List().ls, Input::List().ms, 
-                                                            Input::List().dp,
-                                          grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0),
-                                          grid.axis.xmin(1), grid.axis.xmax(1), grid.axis.Nx(1));
+    //         VlasovFunctor2D_explicitE rkF(Input::List().ls, Input::List().ms, 
+    //                                                         Input::List().dp,
+    //                                       grid.axis.xmin(0), grid.axis.xmax(0), grid.axis.Nx(0),
+    //                                       grid.axis.xmin(1), grid.axis.xmax(1), grid.axis.Nx(1));
 
-            State2D Y_star, Y_old;
+    //         State2D Y_star, Y_old;
 
-            Clock theclock(start_time,Input::List().dt,Input::List().abs_tol,Input::List().rel_tol,Input::List().max_fails,Y);
+    //         Clock theclock(start_time,Input::List().dt,Input::List().abs_tol,Input::List().rel_tol,Input::List().max_fails,Y);
 
-            for(theclock; theclock.time() < Input::List().t_stop; theclock.advance(Y, grid, output, Re, PE))                
-            {
-                if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
+    //         for(theclock; theclock.time() < Input::List().t_stop; theclock.advance(Y, grid, output, Re, PE))                
+    //         {
+    //             if (Input::List().ext_fields) Setup_Y::applyexternalfields(grid, Y, theclock.time());
 
-                theclock.do_step(Y_star, Y, Y_old, rkF, collide, PE);
+    //             theclock.do_step(Y_star, Y, Y_old, rkF, collide, PE);
 
-                // if (Input::List().hydromotion)
-                //     Y = RK(Y, theclock.dt(), &HydroFunc);                                                   /// Hydro Motion
-                // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //                
-            } 
-        }   
-        tend = omp_get_wtime();
-        if (!(PE.RANK())){
-            cout << "Simulation took "<< difftime(tend, tstart) <<" second(s)."<< endl;
-        }
-    }
+    //             // if (Input::List().hydromotion)
+    //             //     Y = RK(Y, theclock.dt(), &HydroFunc);                                                   /// Hydro Motion
+    //             // PE.Neighbor_Communications(Y);                                         ///  Boundaries      //                
+    //         } 
+    //     }   
+    //     tend = omp_get_wtime();
+    //     if (!(PE.RANK())){
+    //         cout << "Simulation took "<< difftime(tend, tstart) <<" second(s)."<< endl;
+    //     }
+    // }
     
     MPI_Finalize();
 	return 0;
