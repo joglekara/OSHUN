@@ -369,7 +369,7 @@ void Node_Communications_1D::Send_right_X(State1D& Y, int dest) {
 
     // Harmonics:x0 "Right-Bound ---> "
     for(size_t s(0); s < Y.Species(); ++s) {
-        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i)
         {
             size_t offset(0);
@@ -460,7 +460,7 @@ void Node_Communications_1D::Recv_from_left_X(State1D& Y, int origin) {
     // Harmonics:x0-"---> Left-Guard"
     for(size_t s(0); s < Y.Species(); ++s) 
     {
-        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i)
         {
             size_t offset(0);
@@ -543,7 +543,7 @@ void Node_Communications_1D::Send_left_X(State1D& Y, int dest) {
     // Harmonics:x0 " <--- Left-Bound "
     for(size_t s(0); s < Y.Species(); ++s) {
 
-        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i)
         {
             size_t offset(0);
@@ -631,7 +631,7 @@ void Node_Communications_1D::Recv_from_right_X(State1D& Y, int origin) {
     // Harmonics:x0-"Right-Guard <--- "
     for(size_t s(0); s < Y.Species(); ++s) 
     {
-        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i)
         {
             size_t offset(0);
@@ -857,7 +857,7 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
 
     // Harmonics:x0 "Right-Bound ---> Left-Guard"
     for(size_t s(0); s < Y.Species(); ++s) {
-        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             for(size_t c(0); c < Nbc; c++) {
                 for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
@@ -880,7 +880,7 @@ void Node_Communications_1D::sameNode_periodic_X(State1D& Y) {
 
     // Harmonics:x0 "Left-Bound ---> Right-Guard"
     for(size_t s(0); s < Y.Species(); ++s) {
-        // #pragma omp parallel for num_threads(Input::List().ompthreads)
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t i = 0; i < Y.DF(s).dim(); ++i){
             for(size_t c(0); c < Nbc; c++) {
                     for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
