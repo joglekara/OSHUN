@@ -84,7 +84,7 @@ public:
     /// responsible for setting up the RK4 algorithm to advance
     /// the collision step.
     void loop(const SHarmonic1D& SHin, const valarray<double>& Zarray, SHarmonic1D& SHout, const double time, const double step_size);
-    void loop(const SHarmonic2D& SHin, const Array2D<double>& Zarray, SHarmonic2D& SHout, const double time, const double step_size);
+    // void loop(const SHarmonic2D& SHin, const Array2D<double>& Zarray, SHarmonic2D& SHout, const double time, const double step_size);
 
 private:
     //  Variables
@@ -194,7 +194,7 @@ class self_f00_explicit_step {
         /// responsible for setting up the RK4 algorithm to advance
         /// the collision step. 
             void loop(const SHarmonic1D& SHin, SHarmonic1D& SHout, const double step_size);
-            void loop(const SHarmonic2D& SHin, SHarmonic2D& SHout, const double step_size);
+            // void loop(const SHarmonic2D& SHin, SHarmonic2D& SHout, const double step_size);
 
         private:
         //  Variables
@@ -278,10 +278,10 @@ class self_f00_explicit_step {
             void reset_coeff_FP(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
             void reset_coeff_LB(valarray<double>& f00, const double Zvalue, const double Delta_t, const size_t position);
 
-            void collide_f0withRBflm(valarray<complex<double> >& fin_singleharmonic, const double LL, const size_t position);
+            void collide_f0withRBflm(valarray<double >& fin_singleharmonic, const double LL, const size_t position);
 
 //          Implicit Advance
-            void advance(valarray<complex<double> >& fin, const int el, size_t position);    
+            void advance(valarray<double >& fin, const int el, size_t position);    
 
             void flm_solve(const DistFunc1D& DF, DistFunc1D& Dh);
             // void flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& Dh);
@@ -311,8 +311,8 @@ class self_f00_explicit_step {
             void advancef1(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh, const double step_size);
             void advanceflm(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh);
 
-            void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
-            void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
+            // void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
+            // void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
 
         private:
 
@@ -352,9 +352,9 @@ class self_f00_explicit_step {
             void advancef1(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh, const double step_size);
             void advanceflm(const DistFunc1D& DF, const valarray<double>& Zarray, DistFunc1D& DFh);
 
-            void advancef00(const SHarmonic2D& f00, const Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size);
-            void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
-            void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
+            // void advancef00(const SHarmonic2D& f00, const Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size);
+            // void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
+            // void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
 
 
         private:
@@ -399,34 +399,34 @@ class self_f00_explicit_step {
 //            vector<interspecies_f00_explicit_collisions> unself_f00_coll;
         };
 
-        class collisions_2D : public Algorithms::AbstFunctor<State2D> {
-//--------------------------------------------------------------            
-        public:
-        /// Constructors/Destructors
-            collisions_2D(const State2D& Y);
+//         class collisions_2D : public Algorithms::AbstFunctor<State2D> {
+// //--------------------------------------------------------------            
+//         public:
+//         /// Constructors/Destructors
+//             collisions_2D(const State2D& Y);
             
 
-            void operator()(const State2D& Y, State2D& Yout, const double time, const double step_size);
-            void operator()(const State2D& Y, State2D& Yh);
-            void operator()(const State2D& Y, State2D& Yh, size_t dir);
+//             void operator()(const State2D& Y, State2D& Yout, const double time, const double step_size);
+//             void operator()(const State2D& Y, State2D& Yh);
+//             void operator()(const State2D& Y, State2D& Yh, size_t dir);
             
 
-            void advance(State2D& Y, const double time, const double step_size);
-            void advancef0(const State2D& Y, State2D& Yh, const double time, const double step_size);
-            void advancef1(const State2D& Y, State2D& Yh, const double step_size);
-            void advanceflm(const State2D& Y, State2D& Yh);
+//             void advance(State2D& Y, const double time, const double step_size);
+//             void advancef0(const State2D& Y, State2D& Yh, const double time, const double step_size);
+//             void advancef1(const State2D& Y, State2D& Yh, const double step_size);
+//             void advanceflm(const State2D& Y, State2D& Yh);
 
-            vector<self_collisions> self();
-            // void advancef1(State1D& Y);
-            // void advanceflm(State1D& Y);
+//             vector<self_collisions> self();
+//             // void advancef1(State1D& Y);
+//             // void advanceflm(State1D& Y);
 
-        private:
-        //  Variables
-            State2D Yh;
-            vector<self_collisions> self_coll;
-            // vector<interspecies_collisions> unself_coll;
-//            vector<interspecies_f00_explicit_collisions> unself_f00_coll;
-        };
+//         private:
+//         //  Variables
+//             State2D Yh;
+//             vector<self_collisions> self_coll;
+//             // vector<interspecies_collisions> unself_coll;
+// //            vector<interspecies_f00_explicit_collisions> unself_f00_coll;
+//         };
 
 
     #endif

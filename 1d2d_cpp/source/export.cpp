@@ -10,7 +10,6 @@
 #include <iostream>
 #include <vector>
 #include <valarray>
-#include <complex>
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
@@ -18,7 +17,7 @@
 #include <sstream>
 #include <string>
 #include <cstring>
-
+#include <complex>
 #include <math.h>
 #include <map>
 #include <mpi.h>
@@ -773,88 +772,88 @@ void Export_Files::Restart_Facility::Write(const int rank, const size_t re_step,
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 //  Read restart file
-void Export_Files::Restart_Facility::Read(const int rank, const size_t re_step, State2D& Y, double time_start) {
+// void Export_Files::Restart_Facility::Read(const int rank, const size_t re_step, State2D& Y, double time_start) {
 
-//      Generate filename 
-    string   filename(hdir+"restart/re_2D_");
-    filename.append(rFextension(rank,re_step));
+// //      Generate filename 
+//     string   filename(hdir+"restart/re_2D_");
+//     filename.append(rFextension(rank,re_step));
 
-//      Open file
-    ifstream  fin(filename.c_str(), ios::binary);
+// //      Open file
+//     ifstream  fin(filename.c_str(), ios::binary);
 
-    if (fin)
-    {
-        fin.read((char *) &time,sizeof(time_start));
-    //      Read distribution functions
-        for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t nh(0); nh < Y.DF(s).dim(); ++nh) {
-                for(size_t i(0); i < (Y.DF(s))(nh).dim(); ++i) {
-                    fin.read((char *)&(Y.DF(s))(nh)(i), sizeof((Y.DF(s))(nh)(i)));
-                }
-            }
-        }
-    }
-    else {
+//     if (fin)
+//     {
+//         fin.read((char *) &time,sizeof(time_start));
+//     //      Read distribution functions
+//         for(size_t s(0); s < Y.Species(); ++s) {
+//             for(size_t nh(0); nh < Y.DF(s).dim(); ++nh) {
+//                 for(size_t i(0); i < (Y.DF(s))(nh).dim(); ++i) {
+//                     fin.read((char *)&(Y.DF(s))(nh)(i), sizeof((Y.DF(s))(nh)(i)));
+//                 }
+//             }
+//         }
+//     }
+//     else {
         
-        if (!rank) std::cout << "\n\n ERROR :: No files to read! \n\n";
-        exit(1);
+//         if (!rank) std::cout << "\n\n ERROR :: No files to read! \n\n";
+//         exit(1);
 
-    }
+//     }
 
-//      Read fields
-    for(size_t ifields(0); ifields < Y.Fields(); ++ifields){
-        for(size_t ix(0); ix < Y.EMF().Ex().numx(); ++ix) 
-        {
-            for(size_t iy(0); iy < Y.EMF().Ex().numy(); ++iy) 
-            {
-                fin.read((char *)(&(Y.FLD(ifields))(ix,iy)), sizeof(Y.FLD(ifields)(ix,iy)));
-            }
-        }
-    }
+// //      Read fields
+//     for(size_t ifields(0); ifields < Y.Fields(); ++ifields){
+//         for(size_t ix(0); ix < Y.EMF().Ex().numx(); ++ix) 
+//         {
+//             for(size_t iy(0); iy < Y.EMF().Ex().numy(); ++iy) 
+//             {
+//                 fin.read((char *)(&(Y.FLD(ifields))(ix,iy)), sizeof(Y.FLD(ifields)(ix,iy)));
+//             }
+//         }
+//     }
 
-    fin.close();
-}
+//     fin.close();
+// }
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
 //  Write restart file
-void Export_Files::Restart_Facility::Write(const int rank, const size_t re_step, State2D& Y, double time_dump) {
+// void Export_Files::Restart_Facility::Write(const int rank, const size_t re_step, State2D& Y, double time_dump) {
 
-//      Generate filename 
-    string   filename(hdir+"restart/re_2D_");
-    filename.append(rFextension(rank,re_step));
+// //      Generate filename 
+//     string   filename(hdir+"restart/re_2D_");
+//     filename.append(rFextension(rank,re_step));
 
-//      Open file
-    ofstream  fout(filename.c_str(), ios::binary);
+// //      Open file
+//     ofstream  fout(filename.c_str(), ios::binary);
 
 
-    fout.write((char *) &time_dump,sizeof(time_dump));
-//      Write distribution functions
+//     fout.write((char *) &time_dump,sizeof(time_dump));
+// //      Write distribution functions
     
-    for (size_t s(0); s < Y.Species(); ++s) {
-        for (size_t nh(0); nh < Y.DF(s).dim(); ++nh) {
-            for (size_t i(0); i < (Y.DF(s))(nh).dim(); ++i) {
-                fout.write((char *) &(Y.DF(s))(nh)(i), sizeof((Y.DF(s))(nh)(i)));
-            }
-        }
-    }
+//     for (size_t s(0); s < Y.Species(); ++s) {
+//         for (size_t nh(0); nh < Y.DF(s).dim(); ++nh) {
+//             for (size_t i(0); i < (Y.DF(s))(nh).dim(); ++i) {
+//                 fout.write((char *) &(Y.DF(s))(nh)(i), sizeof((Y.DF(s))(nh)(i)));
+//             }
+//         }
+//     }
     
 
-//      Write fields
-    for(size_t ifields(0); ifields < Y.Fields(); ++ifields){
-        for(size_t ix(0); ix < Y.EMF().Ex().numx(); ++ix) 
-        {
-            for(size_t iy(0); iy < Y.EMF().Ex().numy(); ++iy) 
-            {
-                fout.write((char *)(&(Y.FLD(ifields))(ix,iy)), sizeof(Y.FLD(ifields)(ix,iy)));
-            }
-        }
-    }
+// //      Write fields
+//     for(size_t ifields(0); ifields < Y.Fields(); ++ifields){
+//         for(size_t ix(0); ix < Y.EMF().Ex().numx(); ++ix) 
+//         {
+//             for(size_t iy(0); iy < Y.EMF().Ex().numy(); ++iy) 
+//             {
+//                 fout.write((char *)(&(Y.FLD(ifields))(ix,iy)), sizeof(Y.FLD(ifields)(ix,iy)));
+//             }
+//         }
+//     }
 
 
-    fout.flush();
-    fout.close();
-}
+//     fout.flush();
+//     fout.close();
+// }
 //--------------------------------------------------------------
 
 //--------------------------------------------------------------
@@ -986,25 +985,25 @@ Array2D<double>  Output_Data::harmonicvsposition::operator()(DistFunc1D& df, siz
 
     for (size_t ip(0); ip < Np(s); ++ip) {
         //  At each location in |p|
-        fx1(ip,0) = static_cast<double>( (df(l,m))(ip,x0).real() );
-        fx1(ip,1) = static_cast<double>( (df(l,m))(ip,x0).imag() );
+        fx1(ip,0) = ( (df(l,m))(ip,x0) );
+        fx1(ip,1) = 0.;
     }
 
     return fx1;
 }
 
-Array2D<double>  Output_Data::harmonicvsposition::operator()(DistFunc2D& df, size_t l, size_t m, size_t x0, size_t y0, size_t s) {
+// Array2D<double>  Output_Data::harmonicvsposition::operator()(DistFunc2D& df, size_t l, size_t m, size_t x0, size_t y0, size_t s) {
     
-    Array2D<double> fx1(Np(s),2); 
+//     Array2D<double> fx1(Np(s),2); 
 
-    for (size_t ip(0); ip < Np(s); ++ip) {
-        //  At each location in |p|
-        fx1(ip,0) = static_cast<double>( (df(l,m))(ip,x0,y0).real() );
-        fx1(ip,1) = static_cast<double>( (df(l,m))(ip,x0,y0).imag() );
-    }
+//     for (size_t ip(0); ip < Np(s); ++ip) {
+//         //  At each location in |p|
+//         fx1(ip,0) = static_cast<double>( (df(l,m))(ip,x0,y0) );
+//         fx1(ip,1) = static_cast<double>( (df(l,m))(ip,x0,y0).imag() );
+//     }
 
-    return fx1;
-}
+//     return fx1;
+// /}
 //--------------------------------------------------------------
 //**************************************************************
 
@@ -1145,7 +1144,7 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
                     else LPC = LP1;
                 }
     
-                integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)).real())) * LPC;
+                integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)))) * LPC;
                 InPx += p_ip1 * (0.5*p_ip1) * integrant_high; 
             }
       
@@ -1176,7 +1175,7 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
                         else LPC = LP1;
                     }
     
-                    integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)).real())) * LPC;
+                    integrant_high = (static_cast<double>((df(il,0)(ip,x0+Nbc)))) * LPC;
     
                     InPx += p_im1 * (0.5*(p_ip1-p_im1)) * integrant_low; 
                     InPx += p_ip1 * (0.5*(p_ip1-p_im1)) * integrant_high; 
@@ -1193,23 +1192,23 @@ valarray<double>  Output_Data::fulldist::p1(DistFunc1D& df, size_t x0, size_t s)
     return pout1D_p1;
 }
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldist::p1(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+// valarray<double>  Output_Data::fulldist::p1(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
 
-    valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
+//     valarray<double> pout1D_p1(0.,grid.axis.Npx(s));     
 
-    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-    {
-        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-        {
-            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-            {
+//     for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+//     {
+//         for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+//         {
+//             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+//             {
                 
-                // pout1D_p1[ipx] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
-            }
-        }
-    }
-    return pout1D_p1;
-}
+//                 // pout1D_p1[ipx] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy]*grid.axis.dpz(s)[ipz];
+//             }
+//         }
+//     }
+//     return pout1D_p1;
+// }
 
 //-------------------------------------------------------------
 /**
@@ -1238,25 +1237,25 @@ valarray<double>  Output_Data::fulldist::p2(DistFunc1D& df, size_t x0, size_t s)
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldist::p2(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+// valarray<double>  Output_Data::fulldist::p2(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
 
-    valarray<double> pout1D_p2(0.,grid.axis.Npy(s));     
+//     valarray<double> pout1D_p2(0.,grid.axis.Npy(s));     
 
-    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-    {
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {    
-            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-            {
+//     for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+//     {
+//         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+//         {    
+//             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+//             {
                 
-                // pout1D_p2[ipy] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
-            }
-        }
-    }
-    return pout1D_p2;
+//                 // pout1D_p2[ipy] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpz(s)[ipz];
+//             }
+//         }
+//     }
+//     return pout1D_p2;
 
 
-}
+// }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p2 from a 3D grid
@@ -1284,23 +1283,23 @@ valarray<double>  Output_Data::fulldist::p3(DistFunc1D& df, size_t x0, size_t s)
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-valarray<double>  Output_Data::fulldist::p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+// valarray<double>  Output_Data::fulldist::p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
    
-    valarray<double> pout1D_p3(0.,grid.axis.Npz(s));     
+//     valarray<double> pout1D_p3(0.,grid.axis.Npz(s));     
 
-    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-    {
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {    
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
+//     for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+//     {
+//         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+//         {    
+//             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+//             {
                 
-                // pout1D_p3[ipz] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
-            }
-        }
-    }
-    return pout1D_p3;
-}
+//                 // pout1D_p3[ipz] += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx]*grid.axis.dpy(s)[ipy];
+//             }
+//         }
+//     }
+//     return pout1D_p3;
+// }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p2 from a 3D grid
@@ -1327,22 +1326,22 @@ Array2D<double>  Output_Data::fulldist::p1p2(DistFunc1D& df, size_t x0, size_t s
  * @brief      Creates p1p2 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldist::p1p2(DistFunc2D& df, size_t x0,  size_t y0, size_t s) {  
+// Array2D<double>  Output_Data::fulldist::p1p2(DistFunc2D& df, size_t x0,  size_t y0, size_t s) {  
 
-    Array2D<double> pout2D_p1p2(grid.axis.Npx(s),grid.axis.Npy(s));     
-    pout2D_p1p2 = 0.;
-    for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-    {    
-        for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-        {
-            for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-            {
-                // pout2D_p1p2(ipx,ipy) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
-            }
-        }
-    }
-    return pout2D_p1p2;
-}
+//     Array2D<double> pout2D_p1p2(grid.axis.Npx(s),grid.axis.Npy(s));     
+//     pout2D_p1p2 = 0.;
+//     for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+//     {    
+//         for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+//         {
+//             for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+//             {
+//                 // pout2D_p1p2(ipx,ipy) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpz(s)[ipz];
+//             }
+//         }
+//     }
+//     return pout2D_p1p2;
+// }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p2p3 from a 3D grid
@@ -1369,22 +1368,22 @@ Array2D<double>  Output_Data::fulldist::p2p3(DistFunc1D& df, size_t x0, size_t s
  * @brief      Creates p2p3 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldist::p2p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
+// Array2D<double>  Output_Data::fulldist::p2p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) {
 
-    Array2D<double> pout2D_p2p3(grid.axis.Npy(s),grid.axis.Npz(s));
-    pout2D_p2p3 = 0.;
-    for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-    {
-        for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-        {
-            for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-            {   
-                // pout2D_p2p3(ipy,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
-            }
-        }
-    }
-    return pout2D_p2p3;  
-}
+//     Array2D<double> pout2D_p2p3(grid.axis.Npy(s),grid.axis.Npz(s));
+//     pout2D_p2p3 = 0.;
+//     for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+//     {
+//         for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+//         {
+//             for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+//             {   
+//                 // pout2D_p2p3(ipy,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpx(s)[ipx];
+//             }
+//         }
+//     }
+//     return pout2D_p2p3;  
+// }
 //-------------------------------------------------------------
 /**
  * @brief      Creates p1p3 from a 3D grid
@@ -1411,22 +1410,22 @@ Array2D<double>  Output_Data::fulldist::p1p3(DistFunc1D& df, size_t x0, size_t s
  * @brief      Creates p1p3 from a 3D grid
  */
 //-------------------------------------------------------------
-Array2D<double>  Output_Data::fulldist::p1p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) 
-{
-    Array2D<double> pout2D_p1p3(grid.axis.Npx(s),grid.axis.Npz(s));
-    pout2D_p1p3 = 0.;
-    for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
-    {
-        for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
-        {    
-            for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
-            {
-                // pout2D_p1p3(ipx,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
-            }
-        }
-    }
-    return pout2D_p1p3;  
-}
+// Array2D<double>  Output_Data::fulldist::p1p3(DistFunc2D& df, size_t x0, size_t y0, size_t s) 
+// {
+//     Array2D<double> pout2D_p1p3(grid.axis.Npx(s),grid.axis.Npz(s));
+//     pout2D_p1p3 = 0.;
+//     for (size_t ipz(0); ipz < grid.axis.Npz(s); ++ipz) 
+//     {
+//         for (size_t ipx(0); ipx < grid.axis.Npx(s); ++ipx) 
+//         {    
+//             for (size_t ipy(0); ipy < grid.axis.Npy(s); ++ipy) 
+//             {
+//                 // pout2D_p1p3(ipx,ipz) += dist(s,x0,y0)(ipx,ipy,ipz)*grid.axis.dpy(s)[ipy];
+//             }
+//         }
+//     }
+//     return pout2D_p1p3;  
+// }
 //--------------------------------------------------------------
 void Output_Data::fulldist::p1p2p3(DistFunc1D& df, size_t x0, size_t s)
 {
@@ -1609,29 +1608,29 @@ void Output_Data::Output_Preprocessor::operator()(const State1D& Y, const Grid_I
         vNz( Y, grid, tout, time, dt, PE );
     }
 
-    if (Input::List().o_Ux) {
-        Ux( Y, grid, tout, time, dt, PE );
-    }
+    // if (Input::List().o_Ux) {
+    //     Ux( Y, grid, tout, time, dt, PE );
+    // }
 
-    if (Input::List().o_Uy) {
-        Uy( Y, grid, tout, time, dt, PE );
-    }
+    // if (Input::List().o_Uy) {
+    //     Uy( Y, grid, tout, time, dt, PE );
+    // }
 
-    if (Input::List().o_Uz) {
-        Uz( Y, grid, tout, time, dt, PE );
-    }
+    // if (Input::List().o_Uz) {
+    //     Uz( Y, grid, tout, time, dt, PE );
+    // }
 
-    if (Input::List().o_Z) {
-        Z( Y, grid, tout, time, dt, PE );
-    }
+    // if (Input::List().o_Z) {
+    //     Z( Y, grid, tout, time, dt, PE );
+    // }
 
-    if (Input::List().o_ni) {
-        ni( Y, grid, tout, time, dt, PE );
-    }
+    // if (Input::List().o_ni) {
+    //     ni( Y, grid, tout, time, dt, PE );
+    // }
 
-    if (Input::List().o_Ux) {
-        Ti( Y, grid, tout, time, dt, PE );
-    }
+    // if (Input::List().o_Ux) {
+    //     Ti( Y, grid, tout, time, dt, PE );
+    // }
 
     if (Input::List().o_allfs_f2)
     {
@@ -1714,157 +1713,157 @@ void Output_Data::Output_Preprocessor::bigdistdump(const State1D& Y, const Grid_
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-void Output_Data::Output_Preprocessor::operator()(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_2D& PE) {
+// void Output_Data::Output_Preprocessor::operator()(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_2D& PE) {
 
-    if (Input::List().o_Ex) {
-        Ex( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Ex) {
+//         Ex( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Ey) {
-        Ey( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Ey) {
+//         Ey( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Ez) {
-        Ez( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Ez) {
+//         Ez( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Bx) {
-        Bx( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Bx) {
+//         Bx( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_By) {
-        By( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_By) {
+//         By( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Bz) {
-        Bz( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Bz) {
+//         Bz( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_x1x2) {
-        n( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_x1x2) {
+//         n( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Temperature) {
-        T( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Temperature) {
+//         T( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Jx) {
-        Jx( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Jx) {
+//         Jx( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Jy) {
-        Jy( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Jy) {
+//         Jy( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Jz) {
-        Jz( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Jz) {
+//         Jz( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Qx) {
-        Qx( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Qx) {
+//         Qx( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Qy) {
-        Qy( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Qy) {
+//         Qy( Y, grid, tout, time, dt, PE );
+//     }
 
-    if (Input::List().o_Qz) {
-        Qz( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_vNx) {
-        vNx( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_vNy) {
-        vNy( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_vNz) {
-        vNz( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_Qz) {
+//         Qz( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_vNx) {
+//         vNx( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_vNy) {
+//         vNy( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_vNz) {
+//         vNz( Y, grid, tout, time, dt, PE );
+//     }
 
-    // if (Input::List().o_Ux) {
-    //     Ux( Y, grid, tout, time, dt, PE );
-    // }
+//     // if (Input::List().o_Ux) {
+//     //     Ux( Y, grid, tout, time, dt, PE );
+//     // }
 
-    // if (Input::List().o_Uy) {
-    //     Uy( Y, grid, tout, time, dt, PE );
-    // }
+//     // if (Input::List().o_Uy) {
+//     //     Uy( Y, grid, tout, time, dt, PE );
+//     // }
 
-    // if (Input::List().o_Uz) {
-    //     Uz( Y, grid, tout, time, dt, PE );
-    // }
+//     // if (Input::List().o_Uz) {
+//     //     Uz( Y, grid, tout, time, dt, PE );
+//     // }
 
-    // if (Input::List().o_Z) {
-    //     Z( Y, grid, tout, time, dt, PE );
-    // }
+//     // if (Input::List().o_Z) {
+//     //     Z( Y, grid, tout, time, dt, PE );
+//     // }
 
-    // if (Input::List().o_ni) {
-    //     ni( Y, grid, tout, time, dt, PE );
-    // }
+//     // if (Input::List().o_ni) {
+//     //     ni( Y, grid, tout, time, dt, PE );
+//     // }
 
-    // if (Input::List().o_Ux) {
-    //     Ti( Y, grid, tout, time, dt, PE );
-    // }
+//     // if (Input::List().o_Ux) {
+//     //     Ti( Y, grid, tout, time, dt, PE );
+//     // }
 
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
 
-void Output_Data::Output_Preprocessor::distdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-   const Parallel_Environment_2D& PE) 
-{
+// void Output_Data::Output_Preprocessor::distdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//    const Parallel_Environment_2D& PE) 
+// {
     
-    if (Input::List().o_f0x1){
-        f0( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f10x1){
-        f10( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f11x1){
-        f11( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_f20x1)
-    {
-        f20( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_fl0x1){
-        fl0( Y, grid, tout, time, dt, PE );
-    }
-}
+//     if (Input::List().o_f0x1){
+//         f0( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_f10x1){
+//         f10( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_f11x1){
+//         f11( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_f20x1)
+//     {
+//         f20( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_fl0x1){
+//         fl0( Y, grid, tout, time, dt, PE );
+//     }
+// }
 
-void Output_Data::Output_Preprocessor::bigdistdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-   const Parallel_Environment_2D& PE) 
-{
+// void Output_Data::Output_Preprocessor::bigdistdump(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//    const Parallel_Environment_2D& PE) 
+// {
 
-    if (Input::List().o_p1x1){
-        px( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p2x1){
-        py( Y, grid, tout, time, dt, PE );
-    }
+//     if (Input::List().o_p1x1){
+//         px( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_p2x1){
+//         py( Y, grid, tout, time, dt, PE );
+//     }
     
-    // if (Input::List().o_allfs)
-    // {
-    //     allfs( Y, grid, tout, time, dt, PE );
-    // }
+//     // if (Input::List().o_allfs)
+//     // {
+//     //     allfs( Y, grid, tout, time, dt, PE );
+//     // }
 
-    if (Input::List().o_p1p2x1)
-    {
-        pxpy( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p1p3x1)
-    {
-        pxpz( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p2p3x1)
-    {
-        pypz( Y, grid, tout, time, dt, PE );
-    }
-    if (Input::List().o_p1p2p3x1)
-    {
-        // pxpypz( Y, grid, tout, time, dt, PE );
-    }
-}
+//     if (Input::List().o_p1p2x1)
+//     {
+//         pxpy( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_p1p3x1)
+//     {
+//         pxpz( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_p2p3x1)
+//     {
+//         pypz( Y, grid, tout, time, dt, PE );
+//     }
+//     if (Input::List().o_p1p2p3x1)
+//     {
+//         // pxpypz( Y, grid, tout, time, dt, PE );
+//     }
+// }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 //  Parallel output for Ex
@@ -1885,7 +1884,7 @@ void Output_Data::Output_Preprocessor::Ex(const State1D& Y, const Grid_Info& gri
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
     for(size_t i(0); i < msg_sz; ++i) {
-        Exbuf[i] = static_cast<double>( Y.EMF().Ex()(Nbc+i).real() );
+        Exbuf[i] = static_cast<double>( Y.EMF().Ex()(Nbc+i) );
     }
 
     MPI_Gather( &Exbuf[0], msg_sz, MPI_DOUBLE, &ExGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -1913,7 +1912,7 @@ void Output_Data::Output_Preprocessor::Ey(const State1D& Y, const Grid_Info& gri
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
     for(size_t i(0); i < msg_sz; ++i) {
-        Eybuf[i] = static_cast<double>( Y.EMF().Ey()(Nbc+i).real() );
+        Eybuf[i] = static_cast<double>( Y.EMF().Ey()(Nbc+i) );
     }
 
     MPI_Gather( Eybuf, msg_sz, MPI_DOUBLE, &EyGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -1940,7 +1939,7 @@ void Output_Data::Output_Preprocessor::Ez(const State1D& Y, const Grid_Info& gri
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
     for(size_t i(0); i < msg_sz; ++i) {
-        Ezbuf[i] = static_cast<double>( Y.EMF().Ez()(Nbc+i).real() );
+        Ezbuf[i] = static_cast<double>( Y.EMF().Ez()(Nbc+i) );
     }
 
     MPI_Gather( Ezbuf, msg_sz, MPI_DOUBLE, &EzGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -1967,7 +1966,7 @@ void Output_Data::Output_Preprocessor::Bx(const State1D& Y, const Grid_Info& gri
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
     for(size_t i(0); i < msg_sz; ++i) {
-        Bxbuf[i] = static_cast<double>( Y.EMF().Bx()(Nbc+i).real() );
+        Bxbuf[i] = static_cast<double>( Y.EMF().Bx()(Nbc+i) );
     }
 
     MPI_Gather( Bxbuf, msg_sz, MPI_DOUBLE, &BxGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -1993,7 +1992,7 @@ void Output_Data::Output_Preprocessor::By(const State1D& Y, const Grid_Info& gri
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
     for(size_t i(0); i < msg_sz; ++i) {
-        Bybuf[i] = static_cast<double>( Y.EMF().By()(Nbc+i).real() );
+        Bybuf[i] = static_cast<double>( Y.EMF().By()(Nbc+i) );
     }
 
     MPI_Gather( Bybuf, msg_sz, MPI_DOUBLE, &ByGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -2020,7 +2019,7 @@ void Output_Data::Output_Preprocessor::Bz(const State1D& Y, const Grid_Info& gri
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
     for(size_t i(0); i < msg_sz; ++i) {
-        Bzbuf[i] = static_cast<double>( Y.EMF().Bz()(Nbc+i).real() );
+        Bzbuf[i] = static_cast<double>( Y.EMF().Bz()(Nbc+i) );
     }
 
     MPI_Gather( Bzbuf, msg_sz, MPI_DOUBLE, &BzGlobal[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
@@ -2033,433 +2032,433 @@ void Output_Data::Output_Preprocessor::Bz(const State1D& Y, const Grid_Info& gri
 //--------------------------------------------------------------
 //  Parallel output for Ex
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Ex(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
+// void Output_Data::Output_Preprocessor::Ex(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int msg_sz(outNxLocal*outNyLocal);
-    double Exbuf[msg_sz];
-    Array2D<double> ExGlobal(outNxGlobal,outNyGlobal);
-    size_t i(0);
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal*outNyLocal);
+//     double Exbuf[msg_sz];
+//     Array2D<double> ExGlobal(outNxGlobal,outNyGlobal);
+//     size_t i(0);
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(size_t ix(0); ix < outNxLocal; ++ix) {
-        for(size_t iy(0); iy < outNyLocal; ++iy) {
-            Exbuf[i] = static_cast<double>( ( Y.EMF().Ex()(Nbc+ix,Nbc+iy).real() ));
-            ++i;
-        }
-    }
+//     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//             Exbuf[i] = static_cast<double>( ( Y.EMF().Ex()(Nbc+ix,Nbc+iy) ));
+//             ++i;
+//         }
+//     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Exbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            i = 0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    // for(size_t i(0); i < outNxLocal; i++) {
-                    ExGlobal(ix,iy) = Exbuf[i]; ++i;
-                }
-            }
-
-
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                rankx = rr % PE.MPI_X();
-                ranky = rr / PE.MPI_X();
-                i = 0;
-
-                MPI_Recv(Exbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        ExGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Exbuf[i]; ++i;
-                    }
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) {
-            for(size_t iy(0); iy < outNyLocal; ++iy) {
-                ExGlobal(ix,iy) = Exbuf[i];++i;
-            }
-        }
-    }
-
-    if (PE.RANK() == 0) expo.Export_h5("Ex", xaxis, yaxis, ExGlobal, tout, time, dt);
-
-}
-//--------------------------------------------------------------     
-//--------------------------------------------------------------
-////--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Ey(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
-
-    int msg_sz(outNxLocal*outNyLocal); 
-    double Eybuf[msg_sz];
-    Array2D<double> EyGlobal(outNxGlobal,outNyGlobal);
-
-    size_t i(0);
-    int rankx,ranky; 
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-
-    for(size_t ix(0); ix < outNxLocal; ++ix) {
-        for(size_t iy(0); iy < outNyLocal; ++iy) {
-            Eybuf[i] = static_cast<double>( Y.EMF().Ey()(Nbc+ix,Nbc+iy).real() );
-            ++i;
-        }
-    }
-
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Eybuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            i = 0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    // for(size_t i(0); i < outNxLocal; i++) {
-                    EyGlobal(ix,iy) = Eybuf[i]; ++i;
-                }
-            }
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Exbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             i = 0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     // for(size_t i(0); i < outNxLocal; i++) {
+//                     ExGlobal(ix,iy) = Exbuf[i]; ++i;
+//                 }
+//             }
 
 
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                rankx = rr % PE.MPI_X();
-                ranky = rr / PE.MPI_X();
-                i = 0;
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 rankx = rr % PE.MPI_X();
+//                 ranky = rr / PE.MPI_X();
+//                 i = 0;
 
-                MPI_Recv(Eybuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 MPI_Recv(Exbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        EyGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Eybuf[i]; ++i;
-                    }
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) {
-            for(size_t iy(0); iy < outNyLocal; ++iy) {
-                EyGlobal(ix,iy) = Eybuf[i];++i;
-            }
-        }
-    }
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         ExGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Exbuf[i]; ++i;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                 ExGlobal(ix,iy) = Exbuf[i];++i;
+//             }
+//         }
+//     }
 
-    if (PE.RANK() == 0) expo.Export_h5("Ey", xaxis, yaxis, EyGlobal, tout, time, dt);
+//     if (PE.RANK() == 0) expo.Export_h5("Ex", xaxis, yaxis, ExGlobal, tout, time, dt);
 
+// }
+// //--------------------------------------------------------------     
+// //--------------------------------------------------------------
+// ////--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Ey(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
 
-}
-//--------------------------------------------------------------     
-//--------------------------------------------------------------
-////--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Ez(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     int msg_sz(outNxLocal*outNyLocal); 
+//     double Eybuf[msg_sz];
+//     Array2D<double> EyGlobal(outNxGlobal,outNyGlobal);
 
-    int msg_sz(outNxLocal*outNyLocal); //*szy);
-    double Ezbuf[msg_sz];
-    Array2D<double> EzGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-    size_t i(0);
-    int rankx,ranky; 
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     size_t i(0);
+//     int rankx,ranky; 
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(size_t ix(0); ix < outNxLocal; ++ix) {
-        for(size_t iy(0); iy < outNyLocal; ++iy) {
-            Ezbuf[i] = static_cast<double>( Y.EMF().Ez()(Nbc+ix,Nbc+iy).real() );
-            ++i;
-        }
-    }
+//     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//             Eybuf[i] = static_cast<double>( Y.EMF().Ey()(Nbc+ix,Nbc+iy).real() );
+//             ++i;
+//         }
+//     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Ezbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            i = 0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    // for(size_t i(0); i < outNxLocal; i++) {
-                    EzGlobal(ix,iy) = Ezbuf[i]; ++i;
-                }
-            }
-
-
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                rankx = rr % PE.MPI_X();
-                ranky = rr / PE.MPI_X();
-                i = 0;
-
-                MPI_Recv(Ezbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        EzGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Ezbuf[i]; ++i;
-                    }
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) {
-            for(size_t iy(0); iy < outNyLocal; ++iy) {
-                EzGlobal(ix,iy) = Ezbuf[i];++i;
-            }
-        }
-    }
-
-    if (PE.RANK() == 0) expo.Export_h5("Ez", xaxis, yaxis, EzGlobal, tout, time, dt);
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Eybuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             i = 0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     // for(size_t i(0); i < outNxLocal; i++) {
+//                     EyGlobal(ix,iy) = Eybuf[i]; ++i;
+//                 }
+//             }
 
 
-}
-//--------------------------------------------------------------     
-//--------------------------------------------------------------
-////--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Bx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 rankx = rr % PE.MPI_X();
+//                 ranky = rr / PE.MPI_X();
+//                 i = 0;
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//                 MPI_Recv(Eybuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         EyGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Eybuf[i]; ++i;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                 EyGlobal(ix,iy) = Eybuf[i];++i;
+//             }
+//         }
+//     }
 
-    int msg_sz(outNxLocal*outNyLocal); //*szy);
-    double Bxbuf[msg_sz];
-    Array2D<double> BxGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-    size_t i(0);
-    int rankx,ranky; 
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-
-    for(size_t ix(0); ix < outNxLocal; ++ix) {
-        for(size_t iy(0); iy < outNyLocal; ++iy) {
-            Bxbuf[i] = static_cast<double>( Y.EMF().Bx()(Nbc+ix,Nbc+iy).real() );
-            ++i;
-        }
-    }
-
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Bxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            i = 0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    // for(size_t i(0); i < outNxLocal; i++) {
-                    BxGlobal(ix,iy) = Bxbuf[i]; ++i;
-                }
-            }
+//     if (PE.RANK() == 0) expo.Export_h5("Ey", xaxis, yaxis, EyGlobal, tout, time, dt);
 
 
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                rankx = rr % PE.MPI_X();
-                ranky = rr / PE.MPI_X();
-                i = 0;
+// }
+// //--------------------------------------------------------------     
+// //--------------------------------------------------------------
+// ////--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Ez(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
 
-                MPI_Recv(Bxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        BxGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Bxbuf[i]; ++i;
-                    }
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) {
-            for(size_t iy(0); iy < outNyLocal; ++iy) {
-                BxGlobal(ix,iy) = Bxbuf[i];++i;
-            }
-        }
-    }
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    if (PE.RANK() == 0) expo.Export_h5("Bx", xaxis, yaxis, BxGlobal, tout, time, dt);
+//     int msg_sz(outNxLocal*outNyLocal); //*szy);
+//     double Ezbuf[msg_sz];
+//     Array2D<double> EzGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//     size_t i(0);
+//     int rankx,ranky; 
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-}
-//--------------------------------------------------------------     
-//--------------------------------------------------------------
-////--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::By(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
+//     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//             Ezbuf[i] = static_cast<double>( Y.EMF().Ez()(Nbc+ix,Nbc+iy).real() );
+//             ++i;
+//         }
+//     }
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Ezbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             i = 0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     // for(size_t i(0); i < outNxLocal; i++) {
+//                     EzGlobal(ix,iy) = Ezbuf[i]; ++i;
+//                 }
+//             }
+
+
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 rankx = rr % PE.MPI_X();
+//                 ranky = rr / PE.MPI_X();
+//                 i = 0;
+
+//                 MPI_Recv(Ezbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         EzGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Ezbuf[i]; ++i;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                 EzGlobal(ix,iy) = Ezbuf[i];++i;
+//             }
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("Ez", xaxis, yaxis, EzGlobal, tout, time, dt);
+
+
+// }
+// //--------------------------------------------------------------     
+// //--------------------------------------------------------------
+// ////--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Bx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+
+//     int msg_sz(outNxLocal*outNyLocal); //*szy);
+//     double Bxbuf[msg_sz];
+//     Array2D<double> BxGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//     size_t i(0);
+//     int rankx,ranky; 
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+
+//     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//             Bxbuf[i] = static_cast<double>( Y.EMF().Bx()(Nbc+ix,Nbc+iy).real() );
+//             ++i;
+//         }
+//     }
+
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Bxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             i = 0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     // for(size_t i(0); i < outNxLocal; i++) {
+//                     BxGlobal(ix,iy) = Bxbuf[i]; ++i;
+//                 }
+//             }
+
+
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 rankx = rr % PE.MPI_X();
+//                 ranky = rr / PE.MPI_X();
+//                 i = 0;
+
+//                 MPI_Recv(Bxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         BxGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Bxbuf[i]; ++i;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                 BxGlobal(ix,iy) = Bxbuf[i];++i;
+//             }
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("Bx", xaxis, yaxis, BxGlobal, tout, time, dt);
+
+// }
+// //--------------------------------------------------------------     
+// //--------------------------------------------------------------
+// ////--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::By(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
      
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int msg_sz(outNxLocal*outNyLocal); //*szy);
-    double Bybuf[msg_sz];
-    Array2D<double> ByGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-    size_t i(0);
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal*outNyLocal); //*szy);
+//     double Bybuf[msg_sz];
+//     Array2D<double> ByGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//     size_t i(0);
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(size_t ix(0); ix < outNxLocal; ++ix) {
-        for(size_t iy(0); iy < outNyLocal; ++iy) {
-            Bybuf[i] = static_cast<double>( Y.EMF().By()(Nbc+ix,Nbc+iy).real() );
-            ++i;
-        }
-    }
+//     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//             Bybuf[i] = static_cast<double>( Y.EMF().By()(Nbc+ix,Nbc+iy).real() );
+//             ++i;
+//         }
+//     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Bybuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            i = 0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    // for(size_t i(0); i < outNxLocal; i++) {
-                    ByGlobal(ix,iy) = Bybuf[i]; ++i;
-                }
-            }
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Bybuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             i = 0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     // for(size_t i(0); i < outNxLocal; i++) {
+//                     ByGlobal(ix,iy) = Bybuf[i]; ++i;
+//                 }
+//             }
 
 
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                rankx = rr % PE.MPI_X();
-                ranky = rr / PE.MPI_X();
-                i = 0;
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 rankx = rr % PE.MPI_X();
+//                 ranky = rr / PE.MPI_X();
+//                 i = 0;
 
-                MPI_Recv(Bybuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 MPI_Recv(Bybuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        ByGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Bybuf[i]; ++i;
-                    }
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) {
-            for(size_t iy(0); iy < outNyLocal; ++iy) {
-                ByGlobal(ix,iy) = Bybuf[i];++i;
-            }
-        }
-    }
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         ByGlobal(ix + outNxLocal*rankx,iy + outNyLocal*ranky) = Bybuf[i]; ++i;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                 ByGlobal(ix,iy) = Bybuf[i];++i;
+//             }
+//         }
+//     }
 
-    if (PE.RANK() == 0) expo.Export_h5("By", xaxis, yaxis, ByGlobal, tout, time, dt);
+//     if (PE.RANK() == 0) expo.Export_h5("By", xaxis, yaxis, ByGlobal, tout, time, dt);
 
-}
-//--------------------------------------------------------------     
-//--------------------------------------------------------------
-////--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Bz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
+// }
+// //--------------------------------------------------------------     
+// //--------------------------------------------------------------
+// ////--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Bz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int msg_sz(outNxLocal*outNyLocal);
-    double Bzbuf[msg_sz];
-    Array2D<double> BzGlobal(outNxGlobal,outNyGlobal);
-    size_t i(0);
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal*outNyLocal);
+//     double Bzbuf[msg_sz];
+//     Array2D<double> BzGlobal(outNxGlobal,outNyGlobal);
+//     size_t i(0);
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(size_t ix(0); ix < outNxLocal; ++ix) {
-        for(size_t iy(0); iy < outNyLocal; ++iy) {
-            Bzbuf[i] = static_cast<double>( Y.EMF().Bz()(Nbc + ix, Nbc + iy).real() );
-            ++i;
-        }
-    }
+//     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//             Bzbuf[i] = static_cast<double>( Y.EMF().Bz()(Nbc + ix, Nbc + iy).real() );
+//             ++i;
+//         }
+//     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Bzbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            i = 0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    BzGlobal(ix,iy) = Bzbuf[i]; ++i;
-                }
-            }
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Bzbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             i = 0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     BzGlobal(ix,iy) = Bzbuf[i]; ++i;
+//                 }
+//             }
 
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
 
-                rankx = rr % PE.MPI_X();
-                ranky = rr / PE.MPI_X();
+//                 rankx = rr % PE.MPI_X();
+//                 ranky = rr / PE.MPI_X();
 
-                i = 0;
+//                 i = 0;
 
-                MPI_Recv(Bzbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 MPI_Recv(Bzbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        BzGlobal(ix + outNxLocal * rankx , iy + outNyLocal * ranky) = Bzbuf[i];
-                        ++i;
-                    }
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) {
-            for(size_t iy(0); iy < outNyLocal; ++iy) {
-                BzGlobal(ix,iy) = Bzbuf[i];++i;
-            }
-        }
-    }
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         BzGlobal(ix + outNxLocal * rankx , iy + outNyLocal * ranky) = Bzbuf[i];
+//                         ++i;
+//                     }
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                 BzGlobal(ix,iy) = Bzbuf[i];++i;
+//             }
+//         }
+//     }
 
-    if (PE.RANK() == 0) expo.Export_h5("Bz", xaxis, yaxis, BzGlobal, tout, time, dt);
+//     if (PE.RANK() == 0) expo.Export_h5("Bz", xaxis, yaxis, BzGlobal, tout, time, dt);
 
-}
+// }
 //--------------------------------------------------------------   
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::make_fp1p2p3(const State1D& Y, const Grid_Info& grid)
@@ -2588,12 +2587,12 @@ void Output_Data::Output_Preprocessor::px_radial(const State1D& Y, const Grid_In
                     if (ipx < Np)
                     {
                         ip = Np-1-ipx;
-                        pxbuf[ix*Npx+ipx] += LP*Y.DF(s)(il)(ip,ix).real(); 
+                        pxbuf[ix*Npx+ipx] += LP*Y.DF(s)(il)(ip,ix); 
                     }
                     else
                     {
                         ip = ipx-Np; 
-                        pxbuf[ix*Npx+ipx] += Y.DF(s)(il)(ip,ix).real(); 
+                        pxbuf[ix*Npx+ipx] += Y.DF(s)(il)(ip,ix); 
                     }
                 }
             }
@@ -2770,308 +2769,308 @@ void Output_Data::Output_Preprocessor::pz(const State1D& Y, const Grid_Info& gri
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------
-void Output_Data::Output_Preprocessor::px(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_2D& PE) {
-    // std::cout << "0 \n";
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+// void Output_Data::Output_Preprocessor::px(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_2D& PE) {
+//     // std::cout << "0 \n";
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
     
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(int s(0); s < Y.Species(); ++s) 
-    {
-        size_t Npx(grid.axis.Npx(s));
-        int msg_sz(outNxLocal*outNyLocal*Npx);
-        Array3D<double> p1x1Global(Npx,outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-        double pxbuf[Npx*outNxLocal*outNyLocal];
+//     for(int s(0); s < Y.Species(); ++s) 
+//     {
+//         size_t Npx(grid.axis.Npx(s));
+//         int msg_sz(outNxLocal*outNyLocal*Npx);
+//         Array3D<double> p1x1Global(Npx,outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//         double pxbuf[Npx*outNxLocal*outNyLocal];
 
-        vector<double> p1axis(valtovec(grid.axis.px(s)));
+//         vector<double> p1axis(valtovec(grid.axis.px(s)));
 
-        size_t counter(0);
+//         size_t counter(0);
 
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
 
-                valarray<double> data1D = p_x.p1( Y.DF(s), ix, iy, s);
+//                 valarray<double> data1D = p_x.p1( Y.DF(s), ix, iy, s);
 
-                for (size_t j(0); j < Npx; ++j) {
-                    pxbuf[counter]=data1D[j];
-                    ++counter;
-                }
-            }
-        }
+//                 for (size_t j(0); j < Npx; ++j) {
+//                     pxbuf[counter]=data1D[j];
+//                     ++counter;
+//                 }
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK()!=0) {
-                MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else 
-            {
-                size_t counter(0);
-                // Fill data for rank = 0
-                for(size_t ix(0); ix < outNxLocal; ++ix) 
-                {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) 
-                    {
-                        for (size_t j(0); j < Npx; ++j) 
-                        {
-                            p1x1Global(j,ix,iy) = pxbuf[counter];
-                            ++counter;
-                        }
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr = 1; rr < PE.MPI_Processes(); ++rr)
-                {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else 
+//             {
+//                 size_t counter(0);
+//                 // Fill data for rank = 0
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                 {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                     {
+//                         for (size_t j(0); j < Npx; ++j) 
+//                         {
+//                             p1x1Global(j,ix,iy) = pxbuf[counter];
+//                             ++counter;
+//                         }
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr = 1; rr < PE.MPI_Processes(); ++rr)
+//                 {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                    counter = 0;    
-                    for(size_t ix(0); ix < outNxLocal; ++ix) 
-                    {
-                        for(size_t iy(0); iy < outNyLocal; ++iy) 
-                        {
-                            for (size_t j(0); j < Npx; ++j) 
-                            {
-                                p1x1Global(j,ix + outNxLocal*rankx, iy + outNyLocal*ranky) = pxbuf[counter];
-                                ++counter;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else 
-        {
-            size_t counter(0);            
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                for(size_t iy(0); iy < outNyLocal; ++iy) 
-                {
-                    for (size_t j(0); j < Npx; ++j) 
-                    {
-                        p1x1Global(j,ix,iy) = pxbuf[counter];
-                        ++counter;
-                    }
-                }
-            }
-        }
+//                     MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     counter = 0;    
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                     {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                         {
+//                             for (size_t j(0); j < Npx; ++j) 
+//                             {
+//                                 p1x1Global(j,ix + outNxLocal*rankx, iy + outNyLocal*ranky) = pxbuf[counter];
+//                                 ++counter;
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         else 
+//         {
+//             size_t counter(0);            
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                 {
+//                     for (size_t j(0); j < Npx; ++j) 
+//                     {
+//                         p1x1Global(j,ix,iy) = pxbuf[counter];
+//                         ++counter;
+//                     }
+//                 }
+//             }
+//         }
 
-        if (PE.RANK() == 0) expo.Export_h5("px", p1axis,xaxis, yaxis, p1x1Global, tout, time, dt, s);
+//         if (PE.RANK() == 0) expo.Export_h5("px", p1axis,xaxis, yaxis, p1x1Global, tout, time, dt, s);
 
-    }
+//     }
 
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//-----------------------------------------------------------------------------------
-void Output_Data::Output_Preprocessor::py(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_2D& PE) {
-    // std::cout << "0 \n";
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //-----------------------------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::py(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_2D& PE) {
+//     // std::cout << "0 \n";
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
     
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(int s(0); s < Y.Species(); ++s) {
-        size_t Npy(grid.axis.Npy(s));
-        int msg_sz(outNxLocal*outNyLocal*Npy);
-        Array3D<double> p1x1Global(Npy,outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-        double pxbuf[Npy*outNxLocal*outNyLocal];
-        vector<double> p2axis(valtovec(grid.axis.py(s)));
+//     for(int s(0); s < Y.Species(); ++s) {
+//         size_t Npy(grid.axis.Npy(s));
+//         int msg_sz(outNxLocal*outNyLocal*Npy);
+//         Array3D<double> p1x1Global(Npy,outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//         double pxbuf[Npy*outNxLocal*outNyLocal];
+//         vector<double> p2axis(valtovec(grid.axis.py(s)));
         
 
-        size_t counter(0);
+//         size_t counter(0);
 
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                valarray<double> data1D = p_x.p2( Y.DF(s), ix, iy, s);
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 valarray<double> data1D = p_x.p2( Y.DF(s), ix, iy, s);
 
-                for (size_t j(0); j < Npy; ++j) {
-                    pxbuf[counter]=data1D[j];
-                    ++counter;
-                }
-            }
-        }
+//                 for (size_t j(0); j < Npy; ++j) {
+//                     pxbuf[counter]=data1D[j];
+//                     ++counter;
+//                 }
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) 
-        {
-            if (PE.RANK()!=0) {
-                MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else 
-            {
-                size_t counter(0);
-                // Fill data for rank = 0
-                for(size_t ix(0); ix < outNxLocal; ++ix) 
-                {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) 
-                    {
-                        for (size_t j(0); j < Npy; ++j) 
-                        {
-                            p1x1Global(j,ix,iy) = pxbuf[counter];
-                            ++counter;
-                        }
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr = 1; rr < PE.MPI_Processes(); ++rr)
-                {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) 
+//         {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else 
+//             {
+//                 size_t counter(0);
+//                 // Fill data for rank = 0
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                 {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                     {
+//                         for (size_t j(0); j < Npy; ++j) 
+//                         {
+//                             p1x1Global(j,ix,iy) = pxbuf[counter];
+//                             ++counter;
+//                         }
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr = 1; rr < PE.MPI_Processes(); ++rr)
+//                 {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                    counter = 0;    
-                    for(size_t ix(0); ix < outNxLocal; ++ix) 
-                    {
-                        for(size_t iy(0); iy < outNyLocal; ++iy) 
-                        {
-                            for (size_t j(0); j < Npy; ++j) 
-                            {
-                                p1x1Global(j,ix + outNxLocal*rankx, iy + outNyLocal*ranky) = pxbuf[counter];
-                                ++counter;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else 
-        {
-            size_t counter(0);            
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                for(size_t iy(0); iy < outNyLocal; ++iy) 
-                {
-                    for (size_t j(0); j < Npy; ++j) 
-                    {
-                        p1x1Global(j,ix,iy) = pxbuf[counter];
-                        ++counter;
-                    }
-                }
-            }
-        }
+//                     MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     counter = 0;    
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                     {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                         {
+//                             for (size_t j(0); j < Npy; ++j) 
+//                             {
+//                                 p1x1Global(j,ix + outNxLocal*rankx, iy + outNyLocal*ranky) = pxbuf[counter];
+//                                 ++counter;
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         else 
+//         {
+//             size_t counter(0);            
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                 {
+//                     for (size_t j(0); j < Npy; ++j) 
+//                     {
+//                         p1x1Global(j,ix,iy) = pxbuf[counter];
+//                         ++counter;
+//                     }
+//                 }
+//             }
+//         }
 
-        if (PE.RANK() == 0) expo.Export_h5("py", p2axis, xaxis, yaxis, p1x1Global, tout, time, dt, s);
+//         if (PE.RANK() == 0) expo.Export_h5("py", p2axis, xaxis, yaxis, p1x1Global, tout, time, dt, s);
 
-    }
+//     }
 
-}
-//--------------------------------------------------------------
-//-----------------------------------------------------------------------------------
-void Output_Data::Output_Preprocessor::pz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_2D& PE) {
-    // std::cout << "0 \n";
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+// }
+// //--------------------------------------------------------------
+// //-----------------------------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::pz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_2D& PE) {
+//     // std::cout << "0 \n";
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
     
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(int s(0); s < Y.Species(); ++s) {
-        size_t Npz(grid.axis.Npz(s));
-        int msg_sz(outNxLocal*outNyLocal*Npz);
-        Array3D<double> p1x1Global(Npz,outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-        double pxbuf[Npz*outNxLocal*outNyLocal];
-        vector<double> p3axis(valtovec(grid.axis.pz(s)));
+//     for(int s(0); s < Y.Species(); ++s) {
+//         size_t Npz(grid.axis.Npz(s));
+//         int msg_sz(outNxLocal*outNyLocal*Npz);
+//         Array3D<double> p1x1Global(Npz,outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//         double pxbuf[Npz*outNxLocal*outNyLocal];
+//         vector<double> p3axis(valtovec(grid.axis.pz(s)));
 
-        size_t counter(0);
+//         size_t counter(0);
 
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
 
-                valarray<double> data1D = p_x.p3( Y.DF(s), ix, iy, s);
+//                 valarray<double> data1D = p_x.p3( Y.DF(s), ix, iy, s);
 
-                for (size_t j(0); j < Npz; ++j) {
-                    pxbuf[counter]=data1D[j];
-                    ++counter;
-                }
-            }
-        }
+//                 for (size_t j(0); j < Npz; ++j) {
+//                     pxbuf[counter]=data1D[j];
+//                     ++counter;
+//                 }
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK()!=0) {
-                MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else 
-            {
-                size_t counter(0);
-                // Fill data for rank = 0
-                for(size_t ix(0); ix < outNxLocal; ++ix) 
-                {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) 
-                    {
-                        for (size_t j(0); j < Npz; ++j) 
-                        {
-                            p1x1Global(j,ix,iy) = pxbuf[counter];
-                            ++counter;
-                        }
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr = 1; rr < PE.MPI_Processes(); ++rr)
-                {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(pxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else 
+//             {
+//                 size_t counter(0);
+//                 // Fill data for rank = 0
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                 {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                     {
+//                         for (size_t j(0); j < Npz; ++j) 
+//                         {
+//                             p1x1Global(j,ix,iy) = pxbuf[counter];
+//                             ++counter;
+//                         }
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr = 1; rr < PE.MPI_Processes(); ++rr)
+//                 {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                    counter = 0;    
-                    for(size_t ix(0); ix < outNxLocal; ++ix) 
-                    {
-                        for(size_t iy(0); iy < outNyLocal; ++iy) 
-                        {
-                            for (size_t j(0); j < Npz; ++j) 
-                            {
-                                p1x1Global(j,ix + outNxLocal*rankx, iy + outNyLocal*ranky) = pxbuf[counter];
-                                ++counter;
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else 
-        {
-            size_t counter(0);            
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                for(size_t iy(0); iy < outNyLocal; ++iy) 
-                {
-                    for (size_t j(0); j < Npz; ++j) 
-                    {
-                        p1x1Global(j,ix,iy) = pxbuf[counter];
-                        ++counter;
-                    }
-                }
-            }
-        }
+//                     MPI_Recv(pxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     counter = 0;    
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                     {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                         {
+//                             for (size_t j(0); j < Npz; ++j) 
+//                             {
+//                                 p1x1Global(j,ix + outNxLocal*rankx, iy + outNyLocal*ranky) = pxbuf[counter];
+//                                 ++counter;
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         else 
+//         {
+//             size_t counter(0);            
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                 {
+//                     for (size_t j(0); j < Npz; ++j) 
+//                     {
+//                         p1x1Global(j,ix,iy) = pxbuf[counter];
+//                         ++counter;
+//                     }
+//                 }
+//             }
+//         }
 
-        if (PE.RANK() == 0) expo.Export_h5("pz", p3axis, xaxis, yaxis, p1x1Global, tout, time, dt, s);
+//         if (PE.RANK() == 0) expo.Export_h5("pz", p3axis, xaxis, yaxis, p1x1Global, tout, time, dt, s);
 
-    }
+//     }
 
-}
+// }
 //--------------------------------------------------------------
 /**
  * @brief      { function_description }
@@ -3179,123 +3178,123 @@ void Output_Data::Output_Preprocessor::pxpy(const State1D& Y, const Grid_Info& g
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::pxpy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-  const Parallel_Environment_2D& PE) {
+// void Output_Data::Output_Preprocessor::pxpy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//   const Parallel_Environment_2D& PE) {
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    size_t counter;
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     size_t counter;
 
-    for(int s(0); s < Y.Species(); ++s) 
-    {
+//     for(int s(0); s < Y.Species(); ++s) 
+//     {
 
-        int msg_sz(outNxLocal*outNyLocal*grid.axis.Npx(s)*grid.axis.Npy(s));
-        Array4D<double> pxpyGlobal(grid.axis.Npx(s),grid.axis.Npy(s),outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-        double pbuf[grid.axis.Npx(s)*grid.axis.Npy(s)*outNxLocal*outNyLocal];
-        vector<double> p1axis(valtovec(grid.axis.px(s)));
-        vector<double> p2axis(valtovec(grid.axis.py(s)));
+//         int msg_sz(outNxLocal*outNyLocal*grid.axis.Npx(s)*grid.axis.Npy(s));
+//         Array4D<double> pxpyGlobal(grid.axis.Npx(s),grid.axis.Npy(s),outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//         double pbuf[grid.axis.Npx(s)*grid.axis.Npy(s)*outNxLocal*outNyLocal];
+//         vector<double> p1axis(valtovec(grid.axis.px(s)));
+//         vector<double> p2axis(valtovec(grid.axis.py(s)));
 
-        counter = 0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                Array2D<double> data2D = p_x.p1p2( Y.DF(s), ix, iy, s);
+//         counter = 0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 Array2D<double> data2D = p_x.p1p2( Y.DF(s), ix, iy, s);
 
-                for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                {
-                    for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                    {
-                        pbuf[counter]=data2D(j,k);
-                        ++counter;
-                    }
-                }
-            }
-        }
+//                 for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                 {
+//                     for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                     {
+//                         pbuf[counter]=data2D(j,k);
+//                         ++counter;
+//                     }
+//                 }
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) 
-        {
-            if (PE.RANK()!=0) {
-                MPI_Send(pbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else 
-            {
-                // Fill data for rank = 0
-                counter = 0;
-                for(size_t ix(0); ix < outNxLocal; ++ix) 
-                {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) 
-                    {
-                        for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                        {
-                            for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                            {
-                                pxpyGlobal(j,k,ix,iy) = pbuf[counter];
-                                ++counter;
-                            }
-                        }
-                   }
-               }
-               // Fill data for rank > 0
-               for (int rr(1); rr < PE.MPI_Processes(); ++rr)
-               {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) 
+//         {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(pbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else 
+//             {
+//                 // Fill data for rank = 0
+//                 counter = 0;
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                 {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                     {
+//                         for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                         {
+//                             for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                             {
+//                                 pxpyGlobal(j,k,ix,iy) = pbuf[counter];
+//                                 ++counter;
+//                             }
+//                         }
+//                    }
+//                }
+//                // Fill data for rank > 0
+//                for (int rr(1); rr < PE.MPI_Processes(); ++rr)
+//                {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    counter = 0;
+//                     counter = 0;
 
-                    MPI_Recv(pbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     MPI_Recv(pbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-                    for(size_t ix(0); ix < outNxLocal; ++ix) 
-                    {
-                        for(size_t iy(0); iy < outNyLocal; ++iy)
-                        {
-                            for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                            {
-                                for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                                {
-                                    pxpyGlobal(j,k,ix + outNxLocal*rankx,iy + outNyLocal*ranky) = pbuf[counter];
-                                    ++counter;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else 
-        {
-            counter = 0;
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                     {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy)
+//                         {
+//                             for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                             {
+//                                 for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                                 {
+//                                     pxpyGlobal(j,k,ix + outNxLocal*rankx,iy + outNyLocal*ranky) = pbuf[counter];
+//                                     ++counter;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         else 
+//         {
+//             counter = 0;
 
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                for(size_t iy(0); iy < outNyLocal; ++iy) 
-                {
-                    for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                    {
-                        for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                        {
-                            pxpyGlobal(j,k,ix,iy) = pbuf[counter];
-                            ++counter;
-                        }
-                    }
-                }
-            }
-        }
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                 {
+//                     for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                     {
+//                         for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                         {
+//                             pxpyGlobal(j,k,ix,iy) = pbuf[counter];
+//                             ++counter;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
        
 
-       if (PE.RANK() == 0) expo.Export_h5("pxpy", p1axis, p2axis, xaxis, yaxis, pxpyGlobal, tout, time, dt, s);
+//        if (PE.RANK() == 0) expo.Export_h5("pxpy", p1axis, p2axis, xaxis, yaxis, pxpyGlobal, tout, time, dt, s);
 
-   }
+//    }
 
-}
+// }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 //--------------------------------------------------------------
@@ -3402,123 +3401,123 @@ void Output_Data::Output_Preprocessor::pypz(const State1D& Y, const Grid_Info& g
 }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::pypz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-  const Parallel_Environment_2D& PE) {
+// void Output_Data::Output_Preprocessor::pypz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//   const Parallel_Environment_2D& PE) {
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    size_t counter;
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     size_t counter;
 
 
-    for(int s(0); s < Y.Species(); ++s) 
-    {
-        int msg_sz(outNxLocal*outNyLocal*grid.axis.Npx(s)*grid.axis.Npy(s));
-        Array4D<double> dataGlobal(grid.axis.Npx(s),grid.axis.Npy(s),outNxGlobal,outNyGlobal); 
-        double pbuf[grid.axis.Npx(s)*grid.axis.Npy(s)*outNxLocal*outNyLocal];
-        vector<double> p2axis(valtovec(grid.axis.py(s)));
-        vector<double> p3axis(valtovec(grid.axis.pz(s)));
+//     for(int s(0); s < Y.Species(); ++s) 
+//     {
+//         int msg_sz(outNxLocal*outNyLocal*grid.axis.Npx(s)*grid.axis.Npy(s));
+//         Array4D<double> dataGlobal(grid.axis.Npx(s),grid.axis.Npy(s),outNxGlobal,outNyGlobal); 
+//         double pbuf[grid.axis.Npx(s)*grid.axis.Npy(s)*outNxLocal*outNyLocal];
+//         vector<double> p2axis(valtovec(grid.axis.py(s)));
+//         vector<double> p3axis(valtovec(grid.axis.pz(s)));
 
-        counter = 0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                Array2D<double> data2D = p_x.p2p3( Y.DF(s), ix, iy, s);
+//         counter = 0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 Array2D<double> data2D = p_x.p2p3( Y.DF(s), ix, iy, s);
 
-                for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                {
-                    for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                    {
-                        pbuf[counter]=data2D(j,k);
-                        ++counter;
-                    }
-                }
-            }
-        }
+//                 for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                 {
+//                     for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                     {
+//                         pbuf[counter]=data2D(j,k);
+//                         ++counter;
+//                     }
+//                 }
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) 
-        {
-            if (PE.RANK()!=0) {
-                MPI_Send(pbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else 
-            {
-                // Fill data for rank = 0
-                counter = 0;
-                for(size_t ix(0); ix < outNxLocal; ++ix) 
-                {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) 
-                    {
-                        for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                        {
-                            for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                            {
-                                dataGlobal(j,k,ix,iy) = pbuf[counter];
-                                ++counter;
-                            }
-                        }
-                   }
-               }
-               // Fill data for rank > 0
-               for (int rr(1); rr < PE.MPI_Processes(); ++rr)
-               {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) 
+//         {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(pbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else 
+//             {
+//                 // Fill data for rank = 0
+//                 counter = 0;
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                 {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                     {
+//                         for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                         {
+//                             for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                             {
+//                                 dataGlobal(j,k,ix,iy) = pbuf[counter];
+//                                 ++counter;
+//                             }
+//                         }
+//                    }
+//                }
+//                // Fill data for rank > 0
+//                for (int rr(1); rr < PE.MPI_Processes(); ++rr)
+//                {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    counter = 0;
+//                     counter = 0;
 
-                    MPI_Recv(pbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     MPI_Recv(pbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
                     
-                    for(size_t ix(0); ix < outNxLocal; ++ix) 
-                    {
-                        for(size_t iy(0); iy < outNyLocal; ++iy)
-                        {
-                            for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                            {
-                                for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                                {
-                                    dataGlobal(j,k,ix + outNxLocal*rankx,iy + outNyLocal*ranky) = pbuf[counter];
-                                    ++counter;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else 
-        {
-            counter = 0;
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                     {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy)
+//                         {
+//                             for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                             {
+//                                 for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                                 {
+//                                     dataGlobal(j,k,ix + outNxLocal*rankx,iy + outNyLocal*ranky) = pbuf[counter];
+//                                     ++counter;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         else 
+//         {
+//             counter = 0;
 
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                for(size_t iy(0); iy < outNyLocal; ++iy) 
-                {
-                    for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                    {
-                        for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                        {
-                            dataGlobal(j,k,ix,iy) = pbuf[counter];
-                            ++counter;
-                        }
-                    }
-                }
-            }
-        }
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                 {
+//                     for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                     {
+//                         for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                         {
+//                             dataGlobal(j,k,ix,iy) = pbuf[counter];
+//                             ++counter;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
        
 
-       if (PE.RANK() == 0) expo.Export_h5("pypz", p2axis, p3axis, xaxis, yaxis, dataGlobal, tout, time, dt, s);
+//        if (PE.RANK() == 0) expo.Export_h5("pypz", p2axis, p3axis, xaxis, yaxis, dataGlobal, tout, time, dt, s);
 
-   }
+//    }
 
-}
+// }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 /**
@@ -3622,124 +3621,124 @@ void Output_Data::Output_Preprocessor::pxpz(const State1D& Y, const Grid_Info& g
 
 }
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::pxpz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-  const Parallel_Environment_2D& PE) {
+// void Output_Data::Output_Preprocessor::pxpz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//   const Parallel_Environment_2D& PE) {
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
 
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    size_t counter;
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     size_t counter;
 
 
-    for(int s(0); s < Y.Species(); ++s) 
-    {
+//     for(int s(0); s < Y.Species(); ++s) 
+//     {
 
-        int msg_sz(outNxLocal*outNyLocal*grid.axis.Npx(s)*grid.axis.Npy(s));
-        Array4D<double> dataGlobal(grid.axis.Npx(s),grid.axis.Npy(s),outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-        double pbuf[grid.axis.Npx(s)*grid.axis.Npy(s)*outNxLocal*outNyLocal];
-        vector<double> p1axis(valtovec(grid.axis.px(s)));
-        vector<double> p3axis(valtovec(grid.axis.pz(s)));
+//         int msg_sz(outNxLocal*outNyLocal*grid.axis.Npx(s)*grid.axis.Npy(s));
+//         Array4D<double> dataGlobal(grid.axis.Npx(s),grid.axis.Npy(s),outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//         double pbuf[grid.axis.Npx(s)*grid.axis.Npy(s)*outNxLocal*outNyLocal];
+//         vector<double> p1axis(valtovec(grid.axis.px(s)));
+//         vector<double> p3axis(valtovec(grid.axis.pz(s)));
 
-        counter = 0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                Array2D<double> data2D = p_x.p1p3( Y.DF(s), ix, iy, s);
+//         counter = 0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 Array2D<double> data2D = p_x.p1p3( Y.DF(s), ix, iy, s);
 
-                for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                {
-                    for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                    {
-                        pbuf[counter]=data2D(j,k);
-                        ++counter;
-                    }
-                }
-            }
-        }
+//                 for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                 {
+//                     for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                     {
+//                         pbuf[counter]=data2D(j,k);
+//                         ++counter;
+//                     }
+//                 }
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) 
-        {
-            if (PE.RANK()!=0) {
-                MPI_Send(pbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else 
-            {
-                // Fill data for rank = 0
-                counter = 0;
-                for(size_t ix(0); ix < outNxLocal; ++ix) 
-                {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) 
-                    {
-                        for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                        {
-                            for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                            {
-                                dataGlobal(j,k,ix,iy) = pbuf[counter];
-                                ++counter;
-                            }
-                        }
-                   }
-               }
-               // Fill data for rank > 0
-               for (int rr(1); rr < PE.MPI_Processes(); ++rr)
-               {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) 
+//         {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(pbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else 
+//             {
+//                 // Fill data for rank = 0
+//                 counter = 0;
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                 {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                     {
+//                         for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                         {
+//                             for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                             {
+//                                 dataGlobal(j,k,ix,iy) = pbuf[counter];
+//                                 ++counter;
+//                             }
+//                         }
+//                    }
+//                }
+//                // Fill data for rank > 0
+//                for (int rr(1); rr < PE.MPI_Processes(); ++rr)
+//                {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    counter = 0;
+//                     counter = 0;
 
-                    MPI_Recv(pbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     MPI_Recv(pbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
                     
-                    for(size_t ix(0); ix < outNxLocal; ++ix) 
-                    {
-                        for(size_t iy(0); iy < outNyLocal; ++iy)
-                        {
-                            for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                            {
-                                for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                                {
-                                    dataGlobal(j,k,ix + outNxLocal*rankx,iy + outNyLocal*ranky) = pbuf[counter];
-                                    ++counter;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        else 
-        {
-            counter = 0;
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) 
+//                     {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy)
+//                         {
+//                             for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                             {
+//                                 for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                                 {
+//                                     dataGlobal(j,k,ix + outNxLocal*rankx,iy + outNyLocal*ranky) = pbuf[counter];
+//                                     ++counter;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         else 
+//         {
+//             counter = 0;
 
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                for(size_t iy(0); iy < outNyLocal; ++iy) 
-                {
-                    for (size_t j(0); j < grid.axis.Npx(s); ++j) 
-                    {
-                        for (size_t k(0); k < grid.axis.Npy(s); ++k) 
-                        {
-                            dataGlobal(j,k,ix,iy) = pbuf[counter];
-                            ++counter;
-                        }
-                    }
-                }
-            }
-        }
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                 {
+//                     for (size_t j(0); j < grid.axis.Npx(s); ++j) 
+//                     {
+//                         for (size_t k(0); k < grid.axis.Npy(s); ++k) 
+//                         {
+//                             dataGlobal(j,k,ix,iy) = pbuf[counter];
+//                             ++counter;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
        
 
-       if (PE.RANK() == 0) expo.Export_h5("pxpz", p1axis, p3axis, xaxis, yaxis, dataGlobal, tout, time, dt, s);
+//        if (PE.RANK() == 0) expo.Export_h5("pxpz", p1axis, p3axis, xaxis, yaxis, dataGlobal, tout, time, dt, s);
 
-   }
+//    }
 
-}
+// }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 /**
@@ -3894,9 +3893,9 @@ void Output_Data::Output_Preprocessor::allfs(const State1D& Y, const Grid_Info& 
                 vector<double> allfs_pvec(Np);
                 for(size_t ip(0); ip < Np; ++ip)
                 {
-                    // allfs_localarray[ix*(Nl+1)+il*Np+ip] = Y.DF(s)(il)(ip,ix).real();
+                    // allfs_localarray[ix*(Nl+1)+il*Np+ip] = Y.DF(s)(il)(ip,ix);
 
-                    allfs_pvec[ip] = Y.DF(s)(il)(ip,ix).real();
+                    allfs_pvec[ip] = Y.DF(s)(il)(ip,ix);
                 }
                 allfs_lvec[il] = allfs_pvec;   
             }
@@ -3939,7 +3938,7 @@ void Output_Data::Output_Preprocessor::allfs_f2(const State1D& Y, const Grid_Inf
 
             for(size_t ip(0); ip < grid.axis.Np(0); ++ip)       
             {
-                allfsbuf[ix*(Nl+1)+il] += pow(Y.DF(0)(il)(ip,ix).real(), fpow);
+                allfsbuf[ix*(Nl+1)+il] += pow(Y.DF(0)(il)(ip,ix), fpow);
             }
         }
     }
@@ -3991,7 +3990,7 @@ void Output_Data::Output_Preprocessor::allfs_flogf(const State1D& Y, const Grid_
 
             for(size_t ip(0); ip < grid.axis.Np(0); ++ip)       
             {
-                allfsbuf[ix*(Nl+1)+il] += Y.DF(0)(il)(ip,ix).real()*log(abs(Y.DF(0)(il)(ip,ix).real()));
+                allfsbuf[ix*(Nl+1)+il] += Y.DF(0)(il)(ip,ix)*log(abs(Y.DF(0)(il)(ip,ix)));
             }
         }
     }
@@ -4404,475 +4403,475 @@ void Output_Data::Output_Preprocessor::fl0(const State1D& Y, const Grid_Info& gr
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::f0(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
+// void Output_Data::Output_Preprocessor::f0(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
     
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    vector<double> re_im_axis;
-    re_im_axis.push_back(0.);
-    re_im_axis.push_back(1.);
+//     vector<double> re_im_axis;
+//     re_im_axis.push_back(0.);
+//     re_im_axis.push_back(1.);
 
-    for(int s(0); s < Y.Species(); ++s) {
-        int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
-        Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2); //, yglob_axis.dim());
-        double buf[msg_sz];
-        vector<double> paxis(valtovec(grid.axis.p(s)));
+//     for(int s(0); s < Y.Species(); ++s) {
+//         int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
+//         Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2); //, yglob_axis.dim());
+//         double buf[msg_sz];
+//         vector<double> paxis(valtovec(grid.axis.p(s)));
 
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
 
-                Array2D<double> data2D = f_x(Y.DF(s), 0, 0, ix + Nbc, iy + Nbc, s);
+//                 Array2D<double> data2D = f_x(Y.DF(s), 0, 0, ix + Nbc, iy + Nbc, s);
 
-                for (size_t j(0); j < f_x.Np(s); ++j) {
-                    // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
-                    buf[i] = data2D(j, 0);
-                    buf[i + 1] = data2D(j, 1);
-                    i+=2;
-                }
-            }
+//                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                     // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
+//                     buf[i] = data2D(j, 0);
+//                     buf[i + 1] = data2D(j, 1);
+//                     i+=2;
+//                 }
+//             }
 
-        }
+//         }
 
-            if (PE.MPI_Processes() > 1) {
-                if (PE.RANK()!=0) {
-                    MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-                }
-                else {
-                    // Fill data for rank = 0
-                    i=0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            for (size_t j(0); j < f_x.Np(s); ++j) {
-                                global(ix, iy, j, 0) = buf[i];
-                                global(ix, iy, j, 1) = buf[i+1];
-                                i+=2;
-                            }
-                        }
-                    }
-                    // Fill data for rank > 0
-                    for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                        MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                        rankx = rr % PE.MPI_X();
-                        ranky = rr / PE.MPI_X();
-                        i=0;
-                        for (size_t ix(0); ix < outNxLocal; ++ix) {
-                            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                                for (size_t j(0); j < f_x.Np(s); ++j) {
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
-                                    i+=2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                i=0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        for (size_t j(0); j < f_x.Np(s); ++j) {
-                            global(ix, iy, j, 0) = buf[i];
-                            global(ix, iy, j, 1) = buf[i+1];
-                            i+=2;
-                        }
-                    }
-                }
-            }
+//             if (PE.MPI_Processes() > 1) {
+//                 if (PE.RANK()!=0) {
+//                     MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//                 }
+//                 else {
+//                     // Fill data for rank = 0
+//                     i=0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                 global(ix, iy, j, 0) = buf[i];
+//                                 global(ix, iy, j, 1) = buf[i+1];
+//                                 i+=2;
+//                             }
+//                         }
+//                     }
+//                     // Fill data for rank > 0
+//                     for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                         MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                         rankx = rr % PE.MPI_X();
+//                         ranky = rr / PE.MPI_X();
+//                         i=0;
+//                         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
+//                                     i+=2;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//             else {
+//                 i=0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         for (size_t j(0); j < f_x.Np(s); ++j) {
+//                             global(ix, iy, j, 0) = buf[i];
+//                             global(ix, iy, j, 1) = buf[i+1];
+//                             i+=2;
+//                         }
+//                     }
+//                 }
+//             }
 
-            if (PE.RANK() == 0) expo.Export_h5("f0", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
+//             if (PE.RANK() == 0) expo.Export_h5("f0", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
 
-        }
+//         }
 
-    }
+//     }
 //-----------------------------------------------------------------
 //--------------------------------------------------------------
-    void Output_Data::Output_Preprocessor::f10(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                                 const Parallel_Environment_2D& PE) {
-        size_t Nbc(Input::List().BoundaryCells);
-        MPI_Status status;
-        size_t i(0);
-        size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-        size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-        size_t outNxGlobal(grid.axis.Nxg(0));
-        size_t outNyGlobal(grid.axis.Nxg(1));
-        int rankx,ranky;
-        vector<double> xaxis(valtovec(grid.axis.xg(0)));
-        vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     void Output_Data::Output_Preprocessor::f10(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                                  const Parallel_Environment_2D& PE) {
+//         size_t Nbc(Input::List().BoundaryCells);
+//         MPI_Status status;
+//         size_t i(0);
+//         size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//         size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//         size_t outNxGlobal(grid.axis.Nxg(0));
+//         size_t outNyGlobal(grid.axis.Nxg(1));
+//         int rankx,ranky;
+//         vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//         vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-        vector<double> re_im_axis;
-        re_im_axis.push_back(0.);
-        re_im_axis.push_back(1.);
-
-
-        for(int s(0); s < Y.Species(); ++s) {
-            int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
-            Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2);
-            vector<double> paxis(valtovec(grid.axis.p(s)));
-
-            double buf[msg_sz];
-            i=0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    Array2D<double> data2D = f_x(Y.DF(s), 1, 0, ix + Nbc, iy + Nbc, s);
-                    for (size_t j(0); j < f_x.Np(s); ++j) {
-                        // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
-                        buf[i] = data2D(j, 0);
-                        buf[i + 1] = data2D(j, 1);
-                        i+=2;
-                    }
-                }
-            }
-
-                if (PE.MPI_Processes() > 1) {
-                    if (PE.RANK()!=0) {
-                        MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-                    }
-                    else {
-                        // Fill data for rank = 0
-                        i=0;
-                        for (size_t ix(0); ix < outNxLocal; ++ix) {
-                            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                                for (size_t j(0); j < f_x.Np(s); ++j) {
-                                    global(ix, iy, j, 0) = buf[i];
-                                    global(ix, iy, j, 1) = buf[i+1];
-                                    i+=2;
-                                }
-                            }
-                        }
-                        // Fill data for rank > 0
-                        for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                            MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                            rankx = rr % PE.MPI_X();
-                            ranky = rr / PE.MPI_X();
-                            i=0;
-                            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                                    for (size_t j(0); j < f_x.Np(s); ++j) {
-                                        global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
-                                        global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
-                                        i+=2;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                else {
-                    i=0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            for (size_t j(0); j < f_x.Np(s); ++j) {
-                                global(ix, iy, j, 0) = buf[i];
-                                global(ix, iy, j, 1) = buf[i+1];
-                                i+=2;
-                            }
-                        }
-                    }
-                }
-
-                if (PE.RANK() == 0) expo.Export_h5("f10", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
-
-            }
-
-        }
-//-----------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::f11(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-
-    vector<double> re_im_axis;
-    re_im_axis.push_back(0.);
-    re_im_axis.push_back(1.);
-
-    for(int s(0); s < Y.Species(); ++s) {
-        int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
-        Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2);
-        double buf[msg_sz];
-        vector<double> paxis(valtovec(grid.axis.p(s)));
-
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
-
-                Array2D<double> data2D = f_x(Y.DF(s), 1, 1, ix + Nbc, iy + Nbc, s);
-
-                for (size_t j(0); j < f_x.Np(s); ++j) {
-                    // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
-                    buf[i] = data2D(j, 0);
-                    buf[i + 1] = data2D(j, 1);
-                    i+=2;
-                }
-            }
-
-        }
-
-            if (PE.MPI_Processes() > 1) {
-                if (PE.RANK()!=0) {
-                    MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-                }
-                else {
-                    // Fill data for rank = 0
-                    i=0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            for (size_t j(0); j < f_x.Np(s); ++j) {
-                                global(ix, iy, j, 0) = buf[i];
-                                global(ix, iy, j, 1) = buf[i+1];
-                                i+=2;
-                            }
-                        }
-                    }
-                    // Fill data for rank > 0
-                    for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                        MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                        rankx = rr % PE.MPI_X();
-                        ranky = rr / PE.MPI_X();
-                        i=0;
-                        for (size_t ix(0); ix < outNxLocal; ++ix) {
-                            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                                for (size_t j(0); j < f_x.Np(s); ++j) {
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
-                                    i+=2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                i=0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        for (size_t j(0); j < f_x.Np(s); ++j) {
-                            global(ix, iy, j, 0) = buf[i];
-                            global(ix, iy, j, 1) = buf[i+1];
-                            i+=2;
-                        }
-                    }
-                }
-            }
-
-            if (PE.RANK() == 0) expo.Export_h5("f11", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
-
-        }
-
-    }
-//-----------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::f20(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-
-    vector<double> re_im_axis;
-    re_im_axis.push_back(0.);
-    re_im_axis.push_back(1.);
-
-//    double buf[msg_sz];
-//    Array2D<double> global(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-
-    for(int s(0); s < Y.Species(); ++s) {
-        int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
-        Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2); //, yglob_axis.dim());
-        double buf[msg_sz];
-        vector<double> paxis(valtovec(grid.axis.p(s)));
+//         vector<double> re_im_axis;
+//         re_im_axis.push_back(0.);
+//         re_im_axis.push_back(1.);
 
 
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
+//         for(int s(0); s < Y.Species(); ++s) {
+//             int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
+//             Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2);
+//             vector<double> paxis(valtovec(grid.axis.p(s)));
 
-                Array2D<double> data2D = f_x(Y.DF(s), 2, 0, ix + Nbc, iy + Nbc, s);
+//             double buf[msg_sz];
+//             i=0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     Array2D<double> data2D = f_x(Y.DF(s), 1, 0, ix + Nbc, iy + Nbc, s);
+//                     for (size_t j(0); j < f_x.Np(s); ++j) {
+//                         // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
+//                         buf[i] = data2D(j, 0);
+//                         buf[i + 1] = data2D(j, 1);
+//                         i+=2;
+//                     }
+//                 }
+//             }
 
-                for (size_t j(0); j < f_x.Np(s); ++j) {
-                    // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
-                    buf[i] = data2D(j, 0);
-                    buf[i + 1] = data2D(j, 1);
-                    i+=2;
-                }
-            }
+//                 if (PE.MPI_Processes() > 1) {
+//                     if (PE.RANK()!=0) {
+//                         MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//                     }
+//                     else {
+//                         // Fill data for rank = 0
+//                         i=0;
+//                         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                     global(ix, iy, j, 0) = buf[i];
+//                                     global(ix, iy, j, 1) = buf[i+1];
+//                                     i+=2;
+//                                 }
+//                             }
+//                         }
+//                         // Fill data for rank > 0
+//                         for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                             MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                             rankx = rr % PE.MPI_X();
+//                             ranky = rr / PE.MPI_X();
+//                             i=0;
+//                             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                                     for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                         global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
+//                                         global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
+//                                         i+=2;
+//                                     }
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//                 else {
+//                     i=0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                 global(ix, iy, j, 0) = buf[i];
+//                                 global(ix, iy, j, 1) = buf[i+1];
+//                                 i+=2;
+//                             }
+//                         }
+//                     }
+//                 }
 
-        }
+//                 if (PE.RANK() == 0) expo.Export_h5("f10", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
 
-            if (PE.MPI_Processes() > 1) {
-                if (PE.RANK()!=0) {
-                    MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-                }
-                else {
-                    // Fill data for rank = 0
-                    i=0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            for (size_t j(0); j < f_x.Np(s); ++j) {
-                                global(ix, iy, j, 0) = buf[i];
-                                global(ix, iy, j, 1) = buf[i+1];
-                                i+=2;
-                            }
-                        }
-                    }
-                    // Fill data for rank > 0
-                    for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                        MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                        rankx = rr % PE.MPI_X();
-                        ranky = rr / PE.MPI_X();
-                        i=0;
-                        for (size_t ix(0); ix < outNxLocal; ++ix) {
-                            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                                for (size_t j(0); j < f_x.Np(s); ++j) {
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
-                                    i+=2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                i=0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        for (size_t j(0); j < f_x.Np(s); ++j) {
-                            global(ix, iy, j, 0) = buf[i];
-                            global(ix, iy, j, 1) = buf[i+1];
-                            i+=2;
-                        }
-                    }
-                }
-            }
+//             }
 
-            if (PE.RANK() == 0) expo.Export_h5("f20", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
+//         }
+// //-----------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::f11(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-        }
+//     vector<double> re_im_axis;
+//     re_im_axis.push_back(0.);
+//     re_im_axis.push_back(1.);
 
-    }
-//-----------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::fl0(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     for(int s(0); s < Y.Species(); ++s) {
+//         int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
+//         Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2);
+//         double buf[msg_sz];
+//         vector<double> paxis(valtovec(grid.axis.p(s)));
 
-    vector<double> re_im_axis;
-    re_im_axis.push_back(0.);
-    re_im_axis.push_back(1.);
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
 
-//    double buf[msg_sz];
-//    Array2D<double> global(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//                 Array2D<double> data2D = f_x(Y.DF(s), 1, 1, ix + Nbc, iy + Nbc, s);
 
-    for(int s(0); s < Y.Species(); ++s) {
-        int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
-        Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2); //, yglob_axis.dim());
-        double buf[msg_sz];
-        vector<double> paxis(valtovec(grid.axis.p(s)));
+//                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                     // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
+//                     buf[i] = data2D(j, 0);
+//                     buf[i + 1] = data2D(j, 1);
+//                     i+=2;
+//                 }
+//             }
 
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
+//         }
 
-                Array2D<double> data2D = f_x(Y.DF(s), Y.DF(s).l0(), 0, ix + Nbc, iy + Nbc, s);
+//             if (PE.MPI_Processes() > 1) {
+//                 if (PE.RANK()!=0) {
+//                     MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//                 }
+//                 else {
+//                     // Fill data for rank = 0
+//                     i=0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                 global(ix, iy, j, 0) = buf[i];
+//                                 global(ix, iy, j, 1) = buf[i+1];
+//                                 i+=2;
+//                             }
+//                         }
+//                     }
+//                     // Fill data for rank > 0
+//                     for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                         MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                         rankx = rr % PE.MPI_X();
+//                         ranky = rr / PE.MPI_X();
+//                         i=0;
+//                         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
+//                                     i+=2;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//             else {
+//                 i=0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         for (size_t j(0); j < f_x.Np(s); ++j) {
+//                             global(ix, iy, j, 0) = buf[i];
+//                             global(ix, iy, j, 1) = buf[i+1];
+//                             i+=2;
+//                         }
+//                     }
+//                 }
+//             }
 
-                for (size_t j(0); j < f_x.Np(s); ++j) {
-                    // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
-                    buf[i] = data2D(j, 0);
-                    buf[i + 1] = data2D(j, 1);
-                    i+=2;
-                }
-            }
+//             if (PE.RANK() == 0) expo.Export_h5("f11", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
 
-        }
+//         }
 
-            if (PE.MPI_Processes() > 1) {
-                if (PE.RANK()!=0) {
-                    MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-                }
-                else {
-                    // Fill data for rank = 0
-                    i=0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            for (size_t j(0); j < f_x.Np(s); ++j) {
-                                global(ix, iy, j, 0) = buf[i];
-                                global(ix, iy, j, 1) = buf[i+1];
-                                i+=2;
-                            }
-                        }
-                    }
-                    // Fill data for rank > 0
-                    for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                        MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                        rankx = rr % PE.MPI_X();
-                        ranky = rr / PE.MPI_X();
-                        i=0;
-                        for (size_t ix(0); ix < outNxLocal; ++ix) {
-                            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                                for (size_t j(0); j < f_x.Np(s); ++j) {
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
-                                    global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
-                                    i+=2;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else {
-                i=0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        for (size_t j(0); j < f_x.Np(s); ++j) {
-                            global(ix, iy, j, 0) = buf[i];
-                            global(ix, iy, j, 1) = buf[i+1];
-                            i+=2;
-                        }
-                    }
-                }
-            }
+//     }
+// //-----------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::f20(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-            if (PE.RANK() == 0) expo.Export_h5("fl0", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
+//     vector<double> re_im_axis;
+//     re_im_axis.push_back(0.);
+//     re_im_axis.push_back(1.);
 
-        }
+// //    double buf[msg_sz];
+// //    Array2D<double> global(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
 
-    }
+//     for(int s(0); s < Y.Species(); ++s) {
+//         int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
+//         Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2); //, yglob_axis.dim());
+//         double buf[msg_sz];
+//         vector<double> paxis(valtovec(grid.axis.p(s)));
+
+
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+
+//                 Array2D<double> data2D = f_x(Y.DF(s), 2, 0, ix + Nbc, iy + Nbc, s);
+
+//                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                     // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
+//                     buf[i] = data2D(j, 0);
+//                     buf[i + 1] = data2D(j, 1);
+//                     i+=2;
+//                 }
+//             }
+
+//         }
+
+//             if (PE.MPI_Processes() > 1) {
+//                 if (PE.RANK()!=0) {
+//                     MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//                 }
+//                 else {
+//                     // Fill data for rank = 0
+//                     i=0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                 global(ix, iy, j, 0) = buf[i];
+//                                 global(ix, iy, j, 1) = buf[i+1];
+//                                 i+=2;
+//                             }
+//                         }
+//                     }
+//                     // Fill data for rank > 0
+//                     for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                         MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                         rankx = rr % PE.MPI_X();
+//                         ranky = rr / PE.MPI_X();
+//                         i=0;
+//                         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
+//                                     i+=2;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//             else {
+//                 i=0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         for (size_t j(0); j < f_x.Np(s); ++j) {
+//                             global(ix, iy, j, 0) = buf[i];
+//                             global(ix, iy, j, 1) = buf[i+1];
+//                             i+=2;
+//                         }
+//                     }
+//                 }
+//             }
+
+//             if (PE.RANK() == 0) expo.Export_h5("f20", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
+
+//         }
+
+//     }
+// //-----------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::fl0(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+
+//     vector<double> re_im_axis;
+//     re_im_axis.push_back(0.);
+//     re_im_axis.push_back(1.);
+
+// //    double buf[msg_sz];
+// //    Array2D<double> global(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+
+//     for(int s(0); s < Y.Species(); ++s) {
+//         int msg_sz(2*outNxLocal*outNyLocal*f_x.Np(s));
+//         Array4D<double> global(outNxGlobal,outNyGlobal,f_x.Np(s),2); //, yglob_axis.dim());
+//         double buf[msg_sz];
+//         vector<double> paxis(valtovec(grid.axis.p(s)));
+
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+
+//                 Array2D<double> data2D = f_x(Y.DF(s), Y.DF(s).l0(), 0, ix + Nbc, iy + Nbc, s);
+
+//                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                     // std::cout << "\n f0(" << i << "," << j << ") = (" << data2D(j,1) << "," << data2D(j,2) <<")";
+//                     buf[i] = data2D(j, 0);
+//                     buf[i + 1] = data2D(j, 1);
+//                     i+=2;
+//                 }
+//             }
+
+//         }
+
+//             if (PE.MPI_Processes() > 1) {
+//                 if (PE.RANK()!=0) {
+//                     MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//                 }
+//                 else {
+//                     // Fill data for rank = 0
+//                     i=0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                 global(ix, iy, j, 0) = buf[i];
+//                                 global(ix, iy, j, 1) = buf[i+1];
+//                                 i+=2;
+//                             }
+//                         }
+//                     }
+//                     // Fill data for rank > 0
+//                     for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                         MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                         rankx = rr % PE.MPI_X();
+//                         ranky = rr / PE.MPI_X();
+//                         i=0;
+//                         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                                 for (size_t j(0); j < f_x.Np(s); ++j) {
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 0) = buf[i];
+//                                     global(ix + outNxLocal * rankx, iy + outNyLocal * ranky, j, 1) = buf[i+1];
+//                                     i+=2;
+//                                 }
+//                             }
+//                         }
+//                     }
+//                 }
+//             }
+//             else {
+//                 i=0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         for (size_t j(0); j < f_x.Np(s); ++j) {
+//                             global(ix, iy, j, 0) = buf[i];
+//                             global(ix, iy, j, 1) = buf[i+1];
+//                             i+=2;
+//                         }
+//                     }
+//                 }
+//             }
+
+//             if (PE.RANK() == 0) expo.Export_h5("fl0", xaxis, yaxis, paxis, re_im_axis, global, tout, time, dt, s);
+
+//         }
+
+//     }
 //-----------------------------------------------------------------
 //--------------------------------------------------------------    
 //--------------------------------------------------------------
@@ -4894,7 +4893,7 @@ void Output_Data::Output_Preprocessor::n(const State1D& Y, const Grid_Info& grid
     for(int s(0); s < Y.Species(); ++s) {
         valarray<double> pra( (grid.axis.p(s)));
         for(size_t i(0); i < msg_sz; ++i) {
-            nbuf[i] = 4.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 2);
+            nbuf[i] = 4.0*M_PI*Algorithms::moment(  ( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 2);
         }
 
         if (PE.MPI_Processes() > 1) {
@@ -4951,8 +4950,8 @@ void Output_Data::Output_Preprocessor::T(const State1D& Y, const Grid_Info& grid
         valarray<double> pra( (grid.axis.p(s)) );
         
         for(size_t i(0); i < msg_sz; ++i) {
-            tbuf[i] = 4.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 4);
-            tbuf[i] /= 3.0*4.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 2);
+            tbuf[i] = 4.0*M_PI*Algorithms::moment(  ( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 4);
+            tbuf[i] /= 3.0*4.0*M_PI*Algorithms::moment(  ( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 2);
 
             tbuf[i] *= 1.0/Y.DF(s).mass();
         }
@@ -5010,7 +5009,7 @@ void Output_Data::Output_Preprocessor::Jx(const State1D& Y, const Grid_Info& gri
         valarray<double> pra( (grid.axis.p(s)) );
 
         for(size_t i(0); i < msg_sz; ++i) {
-            Jxbuf[i] = Y.DF(s).q()*4.0/3.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,1,0)).xVec(i+Nbc) ), pra, 3);
+            Jxbuf[i] = Y.DF(s).q()*4.0/3.0*M_PI*Algorithms::moment(  ( (Y.SH(s,1,0)).xVec(i+Nbc) ), pra, 3);
         }
 
         if (PE.MPI_Processes() > 1) {
@@ -5067,7 +5066,7 @@ void Output_Data::Output_Preprocessor::Jy(const State1D& Y, const Grid_Info& gri
         valarray<double> pra( (grid.axis.p(s)) );
 
         for(size_t i(0); i < msg_sz; ++i) {
-            Jybuf[i] = Y.DF(s).q()*8.0/3.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 3);
+            Jybuf[i] = Y.DF(s).q()*8.0/3.0*M_PI*Algorithms::moment(  ( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 3);
         }
 
         if (PE.MPI_Processes() > 1) {
@@ -5122,7 +5121,7 @@ void Output_Data::Output_Preprocessor::Jz(const State1D& Y, const Grid_Info& gri
     {
         valarray<double> pra( (grid.axis.p(s)) );
         for(size_t i(0); i < msg_sz; ++i) {
-            Jzbuf[i] = Y.DF(s).q()*-8.0/3.0*M_PI*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 3);
+            Jzbuf[i] = 0.; //Y.DF(s).q()*-8.0/3.0*M_PI*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 3);
         }
 
         if (PE.MPI_Processes() > 1) {
@@ -5179,7 +5178,7 @@ void Output_Data::Output_Preprocessor::Qx(const State1D& Y, const Grid_Info& gri
         valarray<double> pra( (grid.axis.p(s)) );
         for(size_t i(0); i < msg_sz; ++i) {
 
-            Qxbuf[i] = 4.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_real( (Y.SH(s,1,0)).xVec(i+Nbc) ), pra, 5);
+            Qxbuf[i] = 4.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  ( (Y.SH(s,1,0)).xVec(i+Nbc) ), pra, 5);
             Qxbuf[i] *= 0.5;
         }
 
@@ -5236,7 +5235,7 @@ void Output_Data::Output_Preprocessor::Qy(const State1D& Y, const Grid_Info& gri
         valarray<double> pra( (grid.axis.p(s)) );
         for(size_t i(0); i < msg_sz; ++i) {
 
-            Qxbuf[i] = 8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_real( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 5);
+            Qxbuf[i] = 8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  ( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 5);
             Qxbuf[i] *= 0.5;
 
         }
@@ -5297,8 +5296,8 @@ void Output_Data::Output_Preprocessor::Qz(const State1D& Y, const Grid_Info& gri
         
         for(size_t i(0); i < msg_sz; ++i) 
         {
-            Qxbuf[i] = -8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 5);
-            Qxbuf[i] *= 0.5;
+            // Qxbuf[i] = -8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(i+Nbc) ), pra, 5);
+            Qxbuf[i] = 0.5;
         }
 
         if (PE.MPI_Processes() > 1) {
@@ -5357,8 +5356,8 @@ void Output_Data::Output_Preprocessor::vNx(const State1D& Y, const Grid_Info& gr
         valarray<double> pra( (grid.axis.p(s)) );
 
         for(size_t i(0); i < msg_sz; ++i) {
-            vNxbuf[i] = static_cast<double>( (1.0 / 6.0 * (Algorithms::moment(vdouble_real((Y.SH(s, 1, 0)).xVec(i + Nbc) ), pra, 6)
-              / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 5))) );
+            vNxbuf[i] = static_cast<double>( (1.0 / 6.0 * (Algorithms::moment(((Y.SH(s, 1, 0)).xVec(i + Nbc) ), pra, 6)
+              / Algorithms::moment(  ( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 5))) );
         }
 
         if (PE.MPI_Processes() > 1) {
@@ -5412,8 +5411,8 @@ void Output_Data::Output_Preprocessor::vNy(const State1D& Y, const Grid_Info& gr
         valarray<double> pra( (grid.axis.p(s)) );
 
         for(size_t i(0); i < msg_sz; ++i) {
-            vNxbuf[i] = static_cast<double>( (2.0 / 6.0 * (Algorithms::moment(vdouble_real((Y.SH(s, 1, 1)).xVec(i + Nbc) ), pra, 6)
-              / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 5))) );
+            vNxbuf[i] = static_cast<double>( (2.0 / 6.0 * (Algorithms::moment(((Y.SH(s, 1, 1)).xVec(i + Nbc) ), pra, 6)
+              / Algorithms::moment(  ( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 5))) );
         }
         if (PE.MPI_Processes() > 1) {
             if (PE.RANK()!=0) {
@@ -5465,8 +5464,8 @@ void Output_Data::Output_Preprocessor::vNz(const State1D& Y, const Grid_Info& gr
         valarray<double> pra( (grid.axis.p(s)) );
 
         for(size_t i(0); i < msg_sz; ++i) {
-            vNxbuf[i] = static_cast<double>( (-2.0 / 6.0 * (Algorithms::moment(vdouble_imag((Y.SH(s, 1, 1)).xVec(i + Nbc) ), pra, 6)
-               / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 5))));
+            vNxbuf[i] = 0.; //static_cast<double>( (-2.0 / 6.0 * (Algorithms::moment(vdouble_imag((Y.SH(s, 1, 1)).xVec(i + Nbc) ), pra, 6)
+               // / Algorithms::moment(  ( (Y.SH(s,0,0)).xVec(i+Nbc) ), pra, 5))));
         }
         if (PE.MPI_Processes() > 1) {
             if (PE.RANK()!=0) {
@@ -5498,1198 +5497,1198 @@ void Output_Data::Output_Preprocessor::vNz(const State1D& Y, const Grid_Info& gr
 }
 // --------------------------------------------------------------
 // --------------------------------------------------------------
-void Output_Data::Output_Preprocessor::n(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                            const Parallel_Environment_2D& PE) {
+// void Output_Data::Output_Preprocessor::n(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                             const Parallel_Environment_2D& PE) {
 
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc), outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0)), outNyGlobal(grid.axis.Nxg(1));
 
-    int msg_sz(outNxLocal*outNyLocal); //*szy);
-    double nbuf[msg_sz];
-    Array2D<double> nGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
+//     int msg_sz(outNxLocal*outNyLocal); //*szy);
+//     double nbuf[msg_sz];
+//     Array2D<double> nGlobal(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
 
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    for(int s(0); s < Y.Species(); ++s) {
+//     for(int s(0); s < Y.Species(); ++s) {
 
-        valarray<double> pra( (grid.axis.p(s)) );
+//         valarray<double> pra( (grid.axis.p(s)) );
 
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) {
-            for(size_t iy(0); iy < outNyLocal; ++iy) {
-                // std::cout << "f00n[" << i << "]=" << (Y.SH(s,0,0)).xVec(i+Nbc)[0] << "\n";
-                nbuf[i] = 4.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 2);
-                ++i;
-            }
-        }
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                 // std::cout << "f00n[" << i << "]=" << (Y.SH(s,0,0)).xVec(i+Nbc)[0] << "\n";
+//                 nbuf[i] = 4.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 2);
+//                 ++i;
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK()!=0) {
-                MPI_Send(nbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else {
-                // Fill data for rank = 0
-                i=0;
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        nGlobal(ix,iy) = nbuf[i]; ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(nbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else {
+//                 // Fill data for rank = 0
+//                 i=0;
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         nGlobal(ix,iy) = nbuf[i]; ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    i=0;
-                    MPI_Recv(nbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                    for(size_t ix(0); ix < outNxLocal; ++ix) {
-                        for(size_t iy(0); iy < outNyLocal; ++iy) {
-                            nGlobal(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = nbuf[i]; 
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i=0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    nGlobal(ix,iy) = nbuf[i];
-                    ++i;
-                }
-            }
-        }
+//                     i=0;
+//                     MPI_Recv(nbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                             nGlobal(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = nbuf[i]; 
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i=0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     nGlobal(ix,iy) = nbuf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
 
-        if (PE.RANK() == 0) expo.Export_h5("n", xaxis, yaxis, nGlobal, tout, time, dt, s);
+//         if (PE.RANK() == 0) expo.Export_h5("n", xaxis, yaxis, nGlobal, tout, time, dt, s);
 
-    }
+//     }
 
     
 
-}
+// }
 //--------------------------------------------------------------
 
-void Output_Data::Output_Preprocessor::T(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                            const Parallel_Environment_2D& PE) {
+// void Output_Data::Output_Preprocessor::T(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                             const Parallel_Environment_2D& PE) {
 
 
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    int outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    int outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal*outNyLocal);
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     int outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     int outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal*outNyLocal);
 
-    double tbuf[msg_sz];
-    Array2D<double> tGlobal(outNxGlobal,outNyGlobal);
+//     double tbuf[msg_sz];
+//     Array2D<double> tGlobal(outNxGlobal,outNyGlobal);
 
-    double convert_factor = (2.99792458e8)*(2.99792458e8)*(9.1093829e-31)/(1.602176565e-19);
+//     double convert_factor = (2.99792458e8)*(2.99792458e8)*(9.1093829e-31)/(1.602176565e-19);
 
-    for(size_t s(0); s < Y.Species(); ++s) 
-    {
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
+//     for(size_t s(0); s < Y.Species(); ++s) 
+//     {
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
 
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                tbuf[i] = Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 4);
-                tbuf[i] /= 3.0*Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 2);
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 tbuf[i] = Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 4);
+//                 tbuf[i] /= 3.0*Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 2);
 
-                tbuf[i] *= 1.0/Y.DF(s).mass();
+//                 tbuf[i] *= 1.0/Y.DF(s).mass();
 
-                // std::cout << "T1[" << ix << "," << iy << "] = " << tbuf[i] << "\n";
+//                 // std::cout << "T1[" << ix << "," << iy << "] = " << tbuf[i] << "\n";
                 
-                ++i;
+//                 ++i;
      
      
-            }
-        }
+//             }
+//         }
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK()!=0) {
-                MPI_Send(tbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else {
-                // Fill data for rank = 0
-                i=0;
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        tGlobal(ix,iy) = tbuf[i];++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr){
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(tbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else {
+//                 // Fill data for rank = 0
+//                 i=0;
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         tGlobal(ix,iy) = tbuf[i];++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr){
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-                    MPI_Recv(tbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     MPI_Recv(tbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-                    i=0;
-                    for(size_t ix(0); ix < outNxLocal; ++ix) {
-                        for(size_t iy(0); iy < outNyLocal; ++iy) {
-                            tGlobal(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = tbuf[i]; 
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-        // Fill data for Nodes = 0
-        else 
-        {
-            i=0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    tGlobal(ix,iy) = tbuf[i]; 
-                    // std::cout << "T2[" << ix << "," << iy << "] = " << tbuf[i] << "\n";
-                    ++i;
+//                     i=0;
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                             tGlobal(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = tbuf[i]; 
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//         // Fill data for Nodes = 0
+//         else 
+//         {
+//             i=0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     tGlobal(ix,iy) = tbuf[i]; 
+//                     // std::cout << "T2[" << ix << "," << iy << "] = " << tbuf[i] << "\n";
+//                     ++i;
                     
-                }
-            }
-            // exit(1);
-        }
+//                 }
+//             }
+//             // exit(1);
+//         }
 
-        if (PE.RANK() == 0) expo.Export_h5("T", xaxis, yaxis, tGlobal, tout, time, dt, s);
+//         if (PE.RANK() == 0) expo.Export_h5("T", xaxis, yaxis, tGlobal, tout, time, dt, s);
 
-    }
-
-    
-
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Jx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-
-
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal*outNyLocal);
-
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
-
-    for(int s(0); s < Y.Species(); ++s) 
-    {
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                buf[i] = static_cast<double>(Y.DF(s).q()*4.0/3.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,1,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 3));
-                ++i;
-            }
-        }
-
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK()!=0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else {
-                // Fill data for rank = 0
-                i=0;
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix,iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr){
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
-
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-
-                    i=0;
-                    for(size_t ix(0); ix < outNxLocal; ++ix) {
-                        for(size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = buf[i]; 
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else 
-        {
-            i=0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                for(size_t iy(0); iy < outNyLocal; ++iy) 
-                {
-                    global(ix,iy) = buf[i]; ++i;
-                }
-            }
-        }
-
-        if (PE.RANK() == 0) expo.Export_h5("Jx", xaxis, yaxis, global, tout, time, dt, s);
-
-    }
+//     }
 
     
 
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Jy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-
-
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal*outNyLocal);
-
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal,outNyGlobal);
-
-    for(int s(0); s < Y.Species(); ++s) {
-
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for(size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                buf[i] = static_cast<double>(Y.DF(s).q()*8.0/3.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 3));
-                ++i;
-            }
-        }
-
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK()!=0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            }
-            else {
-                // Fill data for rank = 0
-                i=0;
-                for(size_t ix(0); ix < outNxLocal; ++ix) {
-                    for(size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix,iy) = buf[i];++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr){
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
-
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-
-                    i=0;
-                    for(size_t ix(0); ix < outNxLocal; ++ix) {
-                        for(size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = buf[i]; ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i=0;
-            for(size_t ix(0); ix < outNxLocal; ++ix) {
-                for(size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix,iy) = buf[i]; ++i;
-                }
-            }
-        }
-
-        if (PE.RANK() == 0) expo.Export_h5("Jy", xaxis, yaxis, global, tout, time, dt, s);
-
-    }
-
-    
-
-}
+// }
 // //--------------------------------------------------------------
 // //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Jz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Jx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
 
 
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal * outNyLocal);
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal*outNyLocal);
 
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal, outNyGlobal);
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal,outNyGlobal); //, yglob_axis.dim());
 
-    for (int s(0); s < Y.Species(); ++s) {
+//     for(int s(0); s < Y.Species(); ++s) 
+//     {
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 buf[i] = static_cast<double>(Y.DF(s).q()*4.0/3.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,1,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 3));
+//                 ++i;
+//             }
+//         }
 
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                buf[i] = static_cast<double>(Y.DF(s).q()*-8.0/3.0*M_PI*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 3));
-                ++i;
-            }
-        }
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else {
+//                 // Fill data for rank = 0
+//                 i=0;
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix,iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr){
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK() != 0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            } else {
-                // Fill data for rank = 0
-                i = 0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix, iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     i=0;
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = buf[i]; 
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else 
+//         {
+//             i=0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) 
+//                 {
+//                     global(ix,iy) = buf[i]; ++i;
+//                 }
+//             }
+//         }
 
-                    i = 0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i = 0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix, iy) = buf[i];
-                    ++i;
-                }
-            }
-        }
+//         if (PE.RANK() == 0) expo.Export_h5("Jx", xaxis, yaxis, global, tout, time, dt, s);
 
-        if (PE.RANK() == 0) expo.Export_h5("Jz", xaxis, yaxis, global, tout, time, dt, s);
-
-    }
-
-    
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Qx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal * outNyLocal);
-
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal, outNyGlobal);
-
-    for (int s(0); s < Y.Species(); ++s) {
-
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                buf[i] = 0.5*4.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_real( (Y.SH(s,1,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 5);
-                ++i;
-            }
-        }
-
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK() != 0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            } else {
-                // Fill data for rank = 0
-                i = 0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix, iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
-
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-
-                    i = 0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i = 0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix, iy) = buf[i];
-                    ++i;
-                }
-            }
-        }
-
-        if (PE.RANK() == 0) expo.Export_h5("Qx", xaxis, yaxis, global, tout, time, dt, s);
-
-    }
+//     }
 
     
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Qy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal * outNyLocal);
 
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal, outNyGlobal);
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Jy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
 
-    for (int s(0); s < Y.Species(); ++s) {
 
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                buf[i] = 0.5*8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_real( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 5);
-                ++i;
-            }
-        }
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal*outNyLocal);
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK() != 0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            } else {
-                // Fill data for rank = 0
-                i = 0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix, iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal,outNyGlobal);
 
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//     for(int s(0); s < Y.Species(); ++s) {
 
-                    i = 0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i = 0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix, iy) = buf[i];
-                    ++i;
-                }
-            }
-        }
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for(size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for(size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 buf[i] = static_cast<double>(Y.DF(s).q()*8.0/3.0*M_PI*Algorithms::moment(  vdouble_real( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 3));
+//                 ++i;
+//             }
+//         }
 
-        if (PE.RANK() == 0) expo.Export_h5("Qy", xaxis, yaxis, global, tout, time, dt, s);
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK()!=0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             }
+//             else {
+//                 // Fill data for rank = 0
+//                 i=0;
+//                 for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix,iy) = buf[i];++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr){
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-    }
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-    
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Qz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                             const Parallel_Environment_2D& PE) {
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal * outNyLocal);
+//                     i=0;
+//                     for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal*rankx, iy + outNyLocal*ranky) = buf[i]; ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i=0;
+//             for(size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for(size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix,iy) = buf[i]; ++i;
+//                 }
+//             }
+//         }
 
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal, outNyGlobal);
+//         if (PE.RANK() == 0) expo.Export_h5("Jy", xaxis, yaxis, global, tout, time, dt, s);
 
-    for (int s(0); s < Y.Species(); ++s) {
-
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                buf[i] = 0.5*-8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 5);
-                ++i;
-            }
-        }
-
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK() != 0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            } else {
-                // Fill data for rank = 0
-                i = 0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix, iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
-
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-
-                    i = 0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i = 0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix, iy) = buf[i];
-                    ++i;
-                }
-            }
-        }
-
-        if (PE.RANK() == 0) expo.Export_h5("Qz", xaxis, yaxis, global, tout, time, dt, s);
-
-    }
+//     }
 
     
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::vNx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                              const Parallel_Environment_2D& PE) {
 
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal * outNyLocal);
+// }
+// // //--------------------------------------------------------------
+// // //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Jz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
 
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal, outNyGlobal); //, yglob_axis.dim());
 
-    for (int s(0); s < Y.Species(); ++s) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal * outNyLocal);
 
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                buf[i] = static_cast<double>( (1.0 / 6.0 * (Algorithms::moment(vdouble_real((Y.SH(s, 1, 0)).xVec(ix + Nbc, iy + Nbc) ), pra, 6)
-              / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc, iy+Nbc) ), pra, 5))) );
-                ++i;
-            }
-        }
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal, outNyGlobal);
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK() != 0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            } else {
-                // Fill data for rank = 0
-                i = 0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix, iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//     for (int s(0); s < Y.Species(); ++s) {
 
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                 buf[i] = static_cast<double>(Y.DF(s).q()*-8.0/3.0*M_PI*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 3));
+//                 ++i;
+//             }
+//         }
 
-                    i = 0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i = 0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix, iy) = buf[i];
-                    ++i;
-                }
-            }
-        }
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK() != 0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             } else {
+//                 // Fill data for rank = 0
+//                 i = 0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix, iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-        if (PE.RANK() == 0) expo.Export_h5("vNx", xaxis, yaxis, global, tout, time, dt, s);
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-    }
+//                     i = 0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i = 0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix, iy) = buf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
 
-    
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::vNy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                              const Parallel_Environment_2D& PE) {
+//         if (PE.RANK() == 0) expo.Export_h5("Jz", xaxis, yaxis, global, tout, time, dt, s);
 
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal * outNyLocal);
-
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal, outNyGlobal); //, yglob_axis.dim());
-
-    for (int s(0); s < Y.Species(); ++s) {
-
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) {
-            for (size_t iy(0); iy < outNyLocal; ++iy) {
-                buf[i] = static_cast<double>( (2.0 / 6.0 * (Algorithms::moment(vdouble_real((Y.SH(s, 1, 1)).xVec(ix + Nbc, iy + Nbc) ), pra, 6)
-              / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc, iy+Nbc) ), pra, 5))) );
-                ++i;
-            }
-        }
-
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK() != 0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            } else {
-                // Fill data for rank = 0
-                i = 0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix, iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
-
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-
-                    i = 0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i = 0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix, iy) = buf[i];
-                    ++i;
-                }
-            }
-        }
-
-        if (PE.RANK() == 0) expo.Export_h5("vNy", xaxis, yaxis, global, tout, time, dt, s);
-
-    }
+//     }
 
     
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::vNz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-                                              const Parallel_Environment_2D& PE) {
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Qx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal * outNyLocal);
 
-    size_t Nbc(Input::List().BoundaryCells);
-    MPI_Status status;
-    size_t i(0);
-    size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
-    int rankx,ranky;
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
-    int msg_sz(outNxLocal * outNyLocal);
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal, outNyGlobal);
 
-    double buf[msg_sz];
-    Array2D<double> global(outNxGlobal, outNyGlobal); //, yglob_axis.dim());
+//     for (int s(0); s < Y.Species(); ++s) {
 
-    for (int s(0); s < Y.Species(); ++s) {
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                 buf[i] = 0.5*4.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_real( (Y.SH(s,1,0)).xVec(ix+Nbc,iy+Nbc) ), pra, 5);
+//                 ++i;
+//             }
+//         }
 
-        valarray<double> pra( (grid.axis.p(s)) );
-        i=0;
-        for (size_t ix(0); ix < outNxLocal; ++ix) 
-        {
-            for (size_t iy(0); iy < outNyLocal; ++iy) 
-            {
-                buf[i] = static_cast<double>( (-2.0 / 6.0 * (Algorithms::moment(vdouble_imag((Y.SH(s, 1, 1)).xVec(ix + Nbc, iy + Nbc) ), pra, 6)
-                        / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc, iy+Nbc) ), pra, 5))) );
-                ++i;
-            }
-        }
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK() != 0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             } else {
+//                 // Fill data for rank = 0
+//                 i = 0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix, iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
 
-        if (PE.MPI_Processes() > 1) {
-            if (PE.RANK() != 0) {
-                MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-            } else {
-                // Fill data for rank = 0
-                i = 0;
-                for (size_t ix(0); ix < outNxLocal; ++ix) {
-                    for (size_t iy(0); iy < outNyLocal; ++iy) {
-                        global(ix, iy) = buf[i];
-                        ++i;
-                    }
-                }
-                // Fill data for rank > 0
-                for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
-                    rankx = rr % PE.MPI_X();
-                    ranky = rr / PE.MPI_X();
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
 
-                    MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                     i = 0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i = 0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix, iy) = buf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
 
-                    i = 0;
-                    for (size_t ix(0); ix < outNxLocal; ++ix) {
-                        for (size_t iy(0); iy < outNyLocal; ++iy) {
-                            global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
-                            ++i;
-                        }
-                    }
-                }
-            }
-        }
-            // Fill data for Nodes = 0
-        else {
-            i = 0;
-            for (size_t ix(0); ix < outNxLocal; ++ix) {
-                for (size_t iy(0); iy < outNyLocal; ++iy) {
-                    global(ix, iy) = buf[i];
-                    ++i;
-                }
-            }
-        }
+//         if (PE.RANK() == 0) expo.Export_h5("Qx", xaxis, yaxis, global, tout, time, dt, s);
 
-        if (PE.RANK() == 0) expo.Export_h5("vNz", xaxis, yaxis, global, tout, time, dt, s);
+//     }
 
-    }
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Ux(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_1D& PE) {
-
-
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-    //  
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-
-    int msg_sz(outNxLocal); 
-    double Uxbuf[msg_sz];
-    vector<double> UxGlobal(outNxGlobal);
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-
-    for(size_t i(0); i < msg_sz; ++i) 
-    {
-        Uxbuf[i] = static_cast<double>(Y.HYDRO().vx(i+Nbc));
-    }
-
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                UxGlobal[i] = Uxbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
-                }
-            }
-        }
-    }
-    // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            UxGlobal[i] = Uxbuf[i];
-        }
-    }
-
-    if (PE.RANK() == 0) expo.Export_h5("Ux", xaxis, UxGlobal, tout, time, dt, 0);
-
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Uy(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_1D& PE) {
-
-
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-    //  
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-
-    int msg_sz(outNxLocal); 
-    double Uxbuf[msg_sz];
-    vector<double> UxGlobal(outNxGlobal); 
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));  
-
-    for(size_t i(0); i < msg_sz; ++i) {
-        Uxbuf[i] = static_cast<double>(Y.HYDRO().vy(i+Nbc));
-    }
-
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                UxGlobal[i] = Uxbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            UxGlobal[i] = Uxbuf[i];
-        }
-    }
-
-    if (PE.RANK() == 0) expo.Export_h5("Uy", xaxis, UxGlobal, tout, time, dt, 0);
-
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Uz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_1D& PE) {
-
-
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-    //  
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-
-    int msg_sz(outNxLocal); //*szy);
-    double Uxbuf[msg_sz];
-    vector<double> UxGlobal(outNxGlobal);
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-
-
-    for(size_t i(0); i < msg_sz; ++i) {
-        Uxbuf[i] = static_cast<double>(Y.HYDRO().vz(i+Nbc));
-    }
-
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                UxGlobal[i] = Uxbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            UxGlobal[i] = Uxbuf[i];
-        }
-    }
-
-    if (PE.RANK() == 0) expo.Export_h5("Uz", xaxis, UxGlobal, tout, time, dt, 0);
-
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Z(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-    const Parallel_Environment_1D& PE) {
-
-
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
     
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Qy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal * outNyLocal);
 
-    int msg_sz(outNxLocal); //*szy);
-    double Uxbuf[msg_sz];
-    vector<double> UxGlobal(outNxGlobal);
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal, outNyGlobal);
+
+//     for (int s(0); s < Y.Species(); ++s) {
+
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                 buf[i] = 0.5*8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_real( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 5);
+//                 ++i;
+//             }
+//         }
+
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK() != 0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             } else {
+//                 // Fill data for rank = 0
+//                 i = 0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix, iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
+
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+
+//                     i = 0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i = 0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix, iy) = buf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
+
+//         if (PE.RANK() == 0) expo.Export_h5("Qy", xaxis, yaxis, global, tout, time, dt, s);
+
+//     }
+
+    
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Qz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                              const Parallel_Environment_2D& PE) {
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal * outNyLocal);
+
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal, outNyGlobal);
+
+//     for (int s(0); s < Y.Species(); ++s) {
+
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                 buf[i] = 0.5*-8.0*M_PI/3.0*Y.DF(s).mass()*Algorithms::moment(  vdouble_imag( (Y.SH(s,1,1)).xVec(ix+Nbc,iy+Nbc) ), pra, 5);
+//                 ++i;
+//             }
+//         }
+
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK() != 0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             } else {
+//                 // Fill data for rank = 0
+//                 i = 0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix, iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
+
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+
+//                     i = 0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i = 0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix, iy) = buf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
+
+//         if (PE.RANK() == 0) expo.Export_h5("Qz", xaxis, yaxis, global, tout, time, dt, s);
+
+//     }
+
+    
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::vNx(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                               const Parallel_Environment_2D& PE) {
+
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal * outNyLocal);
+
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal, outNyGlobal); //, yglob_axis.dim());
+
+//     for (int s(0); s < Y.Species(); ++s) {
+
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                 buf[i] = static_cast<double>( (1.0 / 6.0 * (Algorithms::moment(vdouble_real((Y.SH(s, 1, 0)).xVec(ix + Nbc, iy + Nbc) ), pra, 6)
+//               / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc, iy+Nbc) ), pra, 5))) );
+//                 ++i;
+//             }
+//         }
+
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK() != 0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             } else {
+//                 // Fill data for rank = 0
+//                 i = 0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix, iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
+
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+
+//                     i = 0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i = 0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix, iy) = buf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
+
+//         if (PE.RANK() == 0) expo.Export_h5("vNx", xaxis, yaxis, global, tout, time, dt, s);
+
+//     }
+
+    
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::vNy(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                               const Parallel_Environment_2D& PE) {
+
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal * outNyLocal);
+
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal, outNyGlobal); //, yglob_axis.dim());
+
+//     for (int s(0); s < Y.Species(); ++s) {
+
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                 buf[i] = static_cast<double>( (2.0 / 6.0 * (Algorithms::moment(vdouble_real((Y.SH(s, 1, 1)).xVec(ix + Nbc, iy + Nbc) ), pra, 6)
+//               / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc, iy+Nbc) ), pra, 5))) );
+//                 ++i;
+//             }
+//         }
+
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK() != 0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             } else {
+//                 // Fill data for rank = 0
+//                 i = 0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix, iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
+
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+
+//                     i = 0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i = 0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix, iy) = buf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
+
+//         if (PE.RANK() == 0) expo.Export_h5("vNy", xaxis, yaxis, global, tout, time, dt, s);
+
+//     }
+
+    
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::vNz(const State2D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//                                               const Parallel_Environment_2D& PE) {
+
+//     size_t Nbc(Input::List().BoundaryCells);
+//     MPI_Status status;
+//     size_t i(0);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2 * Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2 * Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
+//     int rankx,ranky;
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     int msg_sz(outNxLocal * outNyLocal);
+
+//     double buf[msg_sz];
+//     Array2D<double> global(outNxGlobal, outNyGlobal); //, yglob_axis.dim());
+
+//     for (int s(0); s < Y.Species(); ++s) {
+
+//         valarray<double> pra( (grid.axis.p(s)) );
+//         i=0;
+//         for (size_t ix(0); ix < outNxLocal; ++ix) 
+//         {
+//             for (size_t iy(0); iy < outNyLocal; ++iy) 
+//             {
+//                 buf[i] = static_cast<double>( (-2.0 / 6.0 * (Algorithms::moment(vdouble_imag((Y.SH(s, 1, 1)).xVec(ix + Nbc, iy + Nbc) ), pra, 6)
+//                         / Algorithms::moment(  vdouble_real( (Y.SH(s,0,0)).xVec(ix+Nbc, iy+Nbc) ), pra, 5))) );
+//                 ++i;
+//             }
+//         }
+
+//         if (PE.MPI_Processes() > 1) {
+//             if (PE.RANK() != 0) {
+//                 MPI_Send(buf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//             } else {
+//                 // Fill data for rank = 0
+//                 i = 0;
+//                 for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                     for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                         global(ix, iy) = buf[i];
+//                         ++i;
+//                     }
+//                 }
+//                 // Fill data for rank > 0
+//                 for (int rr(1); rr < PE.MPI_Processes(); ++rr) {
+//                     rankx = rr % PE.MPI_X();
+//                     ranky = rr / PE.MPI_X();
+
+//                     MPI_Recv(buf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+
+//                     i = 0;
+//                     for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                         for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                             global(ix + outNxLocal * rankx, iy + outNyLocal * ranky) = buf[i];
+//                             ++i;
+//                         }
+//                     }
+//                 }
+//             }
+//         }
+//             // Fill data for Nodes = 0
+//         else {
+//             i = 0;
+//             for (size_t ix(0); ix < outNxLocal; ++ix) {
+//                 for (size_t iy(0); iy < outNyLocal; ++iy) {
+//                     global(ix, iy) = buf[i];
+//                     ++i;
+//                 }
+//             }
+//         }
+
+//         if (PE.RANK() == 0) expo.Export_h5("vNz", xaxis, yaxis, global, tout, time, dt, s);
+
+//     }
+// }
+//--------------------------------------------------------------
+//--------------------------------------------------------------
+
+//--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Ux(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_1D& PE) {
 
 
-    for(size_t i(0); i < msg_sz; ++i) {
-        Uxbuf[i] = static_cast<double>(Y.HYDRO().Z(i+Nbc));
-    }
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+//     //  
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                UxGlobal[i] = Uxbuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            UxGlobal[i] = Uxbuf[i];
-        }
-    }
+//     int msg_sz(outNxLocal); 
+//     double Uxbuf[msg_sz];
+//     vector<double> UxGlobal(outNxGlobal);
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
-    if (PE.RANK() == 0) expo.Export_h5("Z", xaxis, UxGlobal, tout, time, dt, 0);
+//     for(size_t i(0); i < msg_sz; ++i) 
+//     {
+//         Uxbuf[i] = static_cast<double>(Y.HYDRO().vx(i+Nbc));
+//     }
 
-}
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < outNxLocal; i++) {
+//                 UxGlobal[i] = Uxbuf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < outNxLocal; i++) {
+//                     UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
+//                 }
+//             }
+//         }
+//     }
+//     // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < outNxGlobal; i++) {
+//             UxGlobal[i] = Uxbuf[i];
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("Ux", xaxis, UxGlobal, tout, time, dt, 0);
+
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Uy(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_1D& PE) {
+
+
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+//     //  
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+
+//     int msg_sz(outNxLocal); 
+//     double Uxbuf[msg_sz];
+//     vector<double> UxGlobal(outNxGlobal); 
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));  
+
+//     for(size_t i(0); i < msg_sz; ++i) {
+//         Uxbuf[i] = static_cast<double>(Y.HYDRO().vy(i+Nbc));
+//     }
+
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < outNxLocal; i++) {
+//                 UxGlobal[i] = Uxbuf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < outNxLocal; i++) {
+//                     UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < outNxGlobal; i++) {
+//             UxGlobal[i] = Uxbuf[i];
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("Uy", xaxis, UxGlobal, tout, time, dt, 0);
+
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Uz(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_1D& PE) {
+
+
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+//     //  
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+
+//     int msg_sz(outNxLocal); //*szy);
+//     double Uxbuf[msg_sz];
+//     vector<double> UxGlobal(outNxGlobal);
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+
+
+//     for(size_t i(0); i < msg_sz; ++i) {
+//         Uxbuf[i] = static_cast<double>(Y.HYDRO().vz(i+Nbc));
+//     }
+
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < outNxLocal; i++) {
+//                 UxGlobal[i] = Uxbuf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < outNxLocal; i++) {
+//                     UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < outNxGlobal; i++) {
+//             UxGlobal[i] = Uxbuf[i];
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("Uz", xaxis, UxGlobal, tout, time, dt, 0);
+
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Z(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//     const Parallel_Environment_1D& PE) {
+
+
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+    
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+
+//     int msg_sz(outNxLocal); //*szy);
+//     double Uxbuf[msg_sz];
+//     vector<double> UxGlobal(outNxGlobal);
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+
+
+//     for(size_t i(0); i < msg_sz; ++i) {
+//         Uxbuf[i] = static_cast<double>(Y.HYDRO().Z(i+Nbc));
+//     }
+
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Uxbuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < outNxLocal; i++) {
+//                 UxGlobal[i] = Uxbuf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(Uxbuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < outNxLocal; i++) {
+//                     UxGlobal[i + outNxLocal*rr] = Uxbuf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < outNxGlobal; i++) {
+//             UxGlobal[i] = Uxbuf[i];
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("Z", xaxis, UxGlobal, tout, time, dt, 0);
+
+// }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 //
 //--------------------------------------------------------------
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::ni(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_1D& PE) {
+// void Output_Data::Output_Preprocessor::ni(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_1D& PE) {
 
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-    //  
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+//     //  
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
 
-    int msg_sz(outNxLocal); //*szy);
-    double nibuf[msg_sz];
-    vector<double> niGlobal(outNxGlobal);
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     int msg_sz(outNxLocal); //*szy);
+//     double nibuf[msg_sz];
+//     vector<double> niGlobal(outNxGlobal);
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
 
-    for(size_t i(0); i < msg_sz; ++i) {
-        nibuf[i] = static_cast<double>(Y.HYDRO().density(i+Nbc));
-    }
+//     for(size_t i(0); i < msg_sz; ++i) {
+//         nibuf[i] = static_cast<double>(Y.HYDRO().density(i+Nbc));
+//     }
 
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(nibuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                niGlobal[i] = nibuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(nibuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    niGlobal[i + outNxLocal*rr] = nibuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            niGlobal[i] = nibuf[i];
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(nibuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < outNxLocal; i++) {
+//                 niGlobal[i] = nibuf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(nibuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < outNxLocal; i++) {
+//                     niGlobal[i + outNxLocal*rr] = nibuf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < outNxGlobal; i++) {
+//             niGlobal[i] = nibuf[i];
 
-        }
-    }
+//         }
+//     }
 
-    if (PE.RANK() == 0) expo.Export_h5("ni",  xaxis, niGlobal, tout, time, dt, 0);
+//     if (PE.RANK() == 0) expo.Export_h5("ni",  xaxis, niGlobal, tout, time, dt, 0);
 
-}
+// }
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// //
+// //--------------------------------------------------------------
+// //--------------------------------------------------------------
+// void Output_Data::Output_Preprocessor::Ti(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//  const Parallel_Environment_1D& PE) {
+
+
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
+//     //  
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+
+//     int msg_sz(outNxLocal); //*szy);
+//     double Thydrobuf[msg_sz];
+//     vector<double> ThydroGlobal(outNxGlobal);
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+
+//     for(size_t i(0); i < msg_sz; ++i) {
+//         Thydrobuf[i] = static_cast<double>(511000.0/3.0*Y.HYDRO().temperature(i+Nbc));
+//     }
+
+//     if (PE.MPI_Processes() > 1) {
+//         if (PE.RANK()!=0) {
+//             MPI_Send(Thydrobuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
+//         }
+//         else {
+//             // Fill data for rank = 0
+//             for(size_t i(0); i < outNxLocal; i++) {
+//                 ThydroGlobal[i] = Thydrobuf[i];
+//             }
+//             // Fill data for rank > 0
+//             for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
+//                 MPI_Recv(Thydrobuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
+//                 for(size_t i(0); i < outNxLocal; i++) {
+//                     ThydroGlobal[i + outNxLocal*rr] = Thydrobuf[i];
+//                 }
+//             }
+//         }
+//     }
+//         // Fill data for Nodes = 0
+//     else {
+//         for(size_t i(0); i < outNxGlobal; i++) {
+//             ThydroGlobal[i] = Thydrobuf[i];
+//         }
+//     }
+
+//     if (PE.RANK() == 0) expo.Export_h5("Ti", xaxis, ThydroGlobal, tout, time, dt, 0);
+
+// }
+// //--------------------------------------------------------------
 //--------------------------------------------------------------
-//--------------------------------------------------------------
-//
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::Ti(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
- const Parallel_Environment_1D& PE) {
-
-
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
-    //  
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
-
-    int msg_sz(outNxLocal); //*szy);
-    double Thydrobuf[msg_sz];
-    vector<double> ThydroGlobal(outNxGlobal);
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-
-    for(size_t i(0); i < msg_sz; ++i) {
-        Thydrobuf[i] = static_cast<double>(511000.0/3.0*Y.HYDRO().temperature(i+Nbc));
-    }
-
-    if (PE.MPI_Processes() > 1) {
-        if (PE.RANK()!=0) {
-            MPI_Send(Thydrobuf, msg_sz, MPI_DOUBLE, 0, PE.RANK(), MPI_COMM_WORLD);
-        }
-        else {
-            // Fill data for rank = 0
-            for(size_t i(0); i < outNxLocal; i++) {
-                ThydroGlobal[i] = Thydrobuf[i];
-            }
-            // Fill data for rank > 0
-            for (int rr = 1; rr < PE.MPI_Processes(); ++rr){
-                MPI_Recv(Thydrobuf, msg_sz, MPI_DOUBLE, rr, rr, MPI_COMM_WORLD, &status);
-                for(size_t i(0); i < outNxLocal; i++) {
-                    ThydroGlobal[i + outNxLocal*rr] = Thydrobuf[i];
-                }
-            }
-        }
-    }
-        // Fill data for Nodes = 0
-    else {
-        for(size_t i(0); i < outNxGlobal; i++) {
-            ThydroGlobal[i] = Thydrobuf[i];
-        }
-    }
-
-    if (PE.RANK() == 0) expo.Export_h5("Ti", xaxis, ThydroGlobal, tout, time, dt, 0);
-
-}
-//--------------------------------------------------------------
-//--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+void Output_Data::Output_Preprocessor::histdump(vector<valarray<double> >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
    const Parallel_Environment_1D& PE, std::string tag) 
 {
 
@@ -6711,7 +6710,7 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
     {
         for(size_t ix(0); ix < outNxLocal; ++ix) 
         {
-            ExtBuf[it*outNxLocal+ix] = fieldhistory[it][ix].real();
+            ExtBuf[it*outNxLocal+ix] = fieldhistory[it][ix];
         }
     }
 
@@ -6736,62 +6735,62 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------
-void Output_Data::Output_Preprocessor::histdump(vector<Array2D<complex<double> > >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
-   const Parallel_Environment_2D& PE, std::string tag) 
-{
+// void Output_Data::Output_Preprocessor::histdump(vector<Array2D<double> >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+//    const Parallel_Environment_2D& PE, std::string tag) 
+// {
 
-    size_t Nbc = Input::List().BoundaryCells;
-    MPI_Status status;
+//     size_t Nbc = Input::List().BoundaryCells;
+//     MPI_Status status;
     
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNyLocal(grid.axis.Nx(1) - 2*Nbc);
+//     size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+//     size_t outNyLocal(grid.axis.Nx(1) - 2*Nbc);
 
-    size_t outNxGlobal(grid.axis.Nxg(0));
-    size_t outNyGlobal(grid.axis.Nxg(1));
+//     size_t outNxGlobal(grid.axis.Nxg(0));
+//     size_t outNyGlobal(grid.axis.Nxg(1));
 
-    size_t number_of_time_steps(time_history.size());
-    int msg_sz(number_of_time_steps*outNxLocal*outNyLocal);
+//     size_t number_of_time_steps(time_history.size());
+//     int msg_sz(number_of_time_steps*outNxLocal*outNyLocal);
     
-    valarray<double> ExtBuf(msg_sz);
-    valarray<double> ExtGlobalBuf(number_of_time_steps*outNxGlobal*outNyGlobal);
+//     valarray<double> ExtBuf(msg_sz);
+//     valarray<double> ExtGlobalBuf(number_of_time_steps*outNxGlobal*outNyGlobal);
     
-    vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> yaxis(valtovec(grid.axis.xg(1)));
+//     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+//     vector<double> yaxis(valtovec(grid.axis.xg(1)));
 
-    Array3D<double> ExtGlobal(number_of_time_steps,outNxGlobal,outNyGlobal);
+//     Array3D<double> ExtGlobal(number_of_time_steps,outNxGlobal,outNyGlobal);
 
-    for(size_t it(0); it < number_of_time_steps; ++it) 
-    {
-        for(size_t iy(0); iy < outNyLocal; ++iy) 
-        {
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
-            {
-                ExtBuf[it*outNxLocal*outNyLocal+iy*outNxLocal+ix] = fieldhistory[it](ix,iy).real();
-            }
-        }
-    }
+//     for(size_t it(0); it < number_of_time_steps; ++it) 
+//     {
+//         for(size_t iy(0); iy < outNyLocal; ++iy) 
+//         {
+//             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//             {
+//                 ExtBuf[it*outNxLocal*outNyLocal+iy*outNxLocal+ix] = fieldhistory[it](ix,iy);
+//             }
+//         }
+//     }
 
-    MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+//     MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    // size_t offset(0);
-    // for (int rr(0); rr < PE.MPI_Processes(); ++rr)
-    // {            
-    //     offset = rr*msg_sz;
+//     // size_t offset(0);
+//     // for (int rr(0); rr < PE.MPI_Processes(); ++rr)
+//     // {            
+//     //     offset = rr*msg_sz;
 
-    //     for(size_t it(0); it < number_of_time_steps; ++it) 
-    //     {
-    //         for(size_t iy(0); iy < outNyLocal; ++iy) 
-    //         {
-    //             for(size_t ix(0); ix < outNxLocal; ++ix) 
-    //             {
-    //                 ExtGlobal(it,ix+rr*outNxLocal,iy) = ExtGlobalBuf[offset+ix];
-    //             }
-    //             offset += outNxLocal;
-    //     }
-    // }
+//     //     for(size_t it(0); it < number_of_time_steps; ++it) 
+//     //     {
+//     //         for(size_t iy(0); iy < outNyLocal; ++iy) 
+//     //         {
+//     //             for(size_t ix(0); ix < outNxLocal; ++ix) 
+//     //             {
+//     //                 ExtGlobal(it,ix+rr*outNxLocal,iy) = ExtGlobalBuf[offset+ix];
+//     //             }
+//     //             offset += outNxLocal;
+//     //     }
+//     // }
 
-    // if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
-}
+//     // if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+// }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
@@ -6813,24 +6812,24 @@ void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhi
     if (PE.RANK() == 0) expo.Export_h5(tag, time_history, indices, fieldhistoryArr, tout, time, dt, 0);
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
-   const Parallel_Environment_2D& PE, std::string tag) 
-{
-    size_t number_of_quantities(indices.size());
-    size_t number_of_time_steps(time_history.size());
+// void Output_Data::Output_Preprocessor::histdump(vector<vector<double> >& fieldhistory, vector<double>& time_history, vector<double> indices, const size_t tout, const double time, const double dt,
+//    const Parallel_Environment_2D& PE, std::string tag) 
+// {
+//     size_t number_of_quantities(indices.size());
+//     size_t number_of_time_steps(time_history.size());
     
-    Array2D<double> fieldhistoryArr(number_of_time_steps,number_of_quantities);
+//     Array2D<double> fieldhistoryArr(number_of_time_steps,number_of_quantities);
 
-    for(size_t it(0); it < number_of_time_steps; ++it) 
-    {
-        for(size_t i(0); i < number_of_quantities; ++i) 
-        {
-            fieldhistoryArr(it,i) = fieldhistory[it][i];
-        }
-    }
+//     for(size_t it(0); it < number_of_time_steps; ++it) 
+//     {
+//         for(size_t i(0); i < number_of_quantities; ++i) 
+//         {
+//             fieldhistoryArr(it,i) = fieldhistory[it][i];
+//         }
+//     }
 
-    if (PE.RANK() == 0) expo.Export_h5(tag, time_history, indices, fieldhistoryArr, tout, time, dt, 0);
-}
+//     if (PE.RANK() == 0) expo.Export_h5(tag, time_history, indices, fieldhistoryArr, tout, time, dt, 0);
+// }
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 void Export_Files::Xport:: Export_h5(const std::string tag,

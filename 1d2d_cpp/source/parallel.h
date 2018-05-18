@@ -52,7 +52,7 @@
             
 			
             // complex<double> *msg_bufX;
-            valarray< complex<double> > msg_bufX;
+            valarray< double > msg_bufX;
             
 
             // std::vector<complex<double> > msg_parX;
@@ -103,7 +103,7 @@
             // int  par_sizeX;
 
             // complex<double> *msg_bufX;
-            valarray<complex<double> > msg_bufX;
+            valarray<double > msg_bufX;
 
 //          Boundaries for single-node configurations
             void sameNode_periodic_X(State1D& Y);
@@ -161,186 +161,186 @@
 
 //**************************************************************
 //--------------------------------------------------------------
-        class Node_ImplicitE_Communications_2D {
-//--------------------------------------------------------------
-//      Declaration of the parallel module
-//--------------------------------------------------------------
-        public:
-//          Constructors/Destructors
-            Node_ImplicitE_Communications_2D(); 
-            ~Node_ImplicitE_Communications_2D();
+//         class Node_ImplicitE_Communications_2D {
+// //--------------------------------------------------------------
+// //      Declaration of the parallel module
+// //--------------------------------------------------------------
+//         public:
+// //          Constructors/Destructors
+//             Node_ImplicitE_Communications_2D(); 
+//             ~Node_ImplicitE_Communications_2D();
          
-//          Boundary conditions
-            int BNDX()   const;
-            int BNDY()   const;
+// //          Boundary conditions
+//             int BNDX()   const;
+//             int BNDY()   const;
 
-//          Data exchange in x direction
-            void Send_right_X(State2D& Y, int dest);
-            void Recv_from_left_X(State2D& Y,int origin);
-            void Send_left_X(State2D& Y, int dest);
-            void Recv_from_right_X(State2D& Y, int origin); 
+// //          Data exchange in x direction
+//             void Send_right_X(State2D& Y, int dest);
+//             void Recv_from_left_X(State2D& Y,int origin);
+//             void Send_left_X(State2D& Y, int dest);
+//             void Recv_from_right_X(State2D& Y, int origin); 
 
-//          Data exchange in y direction
-            void Send_right_Y(State2D& Y, int dest);
-            void Recv_from_left_Y(State2D& Y,int origin);
-            void Send_left_Y(State2D& Y, int dest);
-            void Recv_from_right_Y(State2D& Y, int origin);             
+// //          Data exchange in y direction
+//             void Send_right_Y(State2D& Y, int dest);
+//             void Recv_from_left_Y(State2D& Y,int origin);
+//             void Send_left_Y(State2D& Y, int dest);
+//             void Recv_from_right_Y(State2D& Y, int origin);             
 
-//          Boundaries 
-            void mirror_bound_Xleft(State2D& Y);
-            void mirror_bound_Xright(State2D& Y);
+// //          Boundaries 
+//             void mirror_bound_Xleft(State2D& Y);
+//             void mirror_bound_Xright(State2D& Y);
 
-            void mirror_bound_Yleft(State2D& Y);
-            void mirror_bound_Yright(State2D& Y);
+//             void mirror_bound_Yleft(State2D& Y);
+//             void mirror_bound_Yright(State2D& Y);
 
-//          Boundaries for single-node configurations
-            void sameNode_bound_X(State2D& Y);
-            void sameNode_bound_Y(State2D& Y);
+// //          Boundaries for single-node configurations
+//             void sameNode_bound_X(State2D& Y);
+//             void sameNode_bound_Y(State2D& Y);
 
-        private:
-//          Domain information
-            size_t Nbc, bndX, bndY;
-            size_t Nx_local, Ny_local;
-
-
-//          Information exchange
-            int  msg_sizeX, msg_sizeY;
-            complex<double> *msg_bufX, *msg_bufY;
-
-//          Boundaries for single-node configurations
-            void sameNode_periodic_X(State2D& Y);
-            void sameNode_periodic_Y(State2D& Y);
-            void sameNode_mirror_X(State2D& Y);
-            void sameNode_mirror_Y(State2D& Y);
-
-        };
-//--------------------------------------------------------------
-//**************************************************************
+//         private:
+// //          Domain information
+//             size_t Nbc, bndX, bndY;
+//             size_t Nx_local, Ny_local;
 
 
-//**************************************************************
-//--------------------------------------------------------------
-        class Node_Communications_2D {
-//--------------------------------------------------------------
-//      Declaration of the parallel module
-//--------------------------------------------------------------
-        public:
-//          Constructors/Destructors
-            Node_Communications_2D(); 
-            ~Node_Communications_2D();
+// //          Information exchange
+//             int  msg_sizeX, msg_sizeY;
+//             complex<double> *msg_bufX, *msg_bufY;
+
+// //          Boundaries for single-node configurations
+//             void sameNode_periodic_X(State2D& Y);
+//             void sameNode_periodic_Y(State2D& Y);
+//             void sameNode_mirror_X(State2D& Y);
+//             void sameNode_mirror_Y(State2D& Y);
+
+//         };
+// //--------------------------------------------------------------
+// //**************************************************************
+
+
+// //**************************************************************
+// //--------------------------------------------------------------
+//         class Node_Communications_2D {
+// //--------------------------------------------------------------
+// //      Declaration of the parallel module
+// //--------------------------------------------------------------
+//         public:
+// //          Constructors/Destructors
+//             Node_Communications_2D(); 
+//             ~Node_Communications_2D();
          
-//          Boundary conditions
-            int BNDX()   const;
-            int BNDY()   const;
+// //          Boundary conditions
+//             int BNDX()   const;
+//             int BNDY()   const;
 
-//          Data exchange in x direction
-            void Send_right_X(State2D& Y, int dest);
-            void Recv_from_left_X(State2D& Y,int origin);
-            void Send_left_X(State2D& Y, int dest);
-            void Recv_from_right_X(State2D& Y, int origin); 
+// //          Data exchange in x direction
+//             void Send_right_X(State2D& Y, int dest);
+//             void Recv_from_left_X(State2D& Y,int origin);
+//             void Send_left_X(State2D& Y, int dest);
+//             void Recv_from_right_X(State2D& Y, int origin); 
 
-            void Send_right_Y(State2D& Y, int dest);
-            void Recv_from_left_Y(State2D& Y,int origin);
-            void Send_left_Y(State2D& Y, int dest);
-            void Recv_from_right_Y(State2D& Y, int origin); 
+//             void Send_right_Y(State2D& Y, int dest);
+//             void Recv_from_left_Y(State2D& Y,int origin);
+//             void Send_left_Y(State2D& Y, int dest);
+//             void Recv_from_right_Y(State2D& Y, int origin); 
 
-//          Boundaries 
-            void mirror_bound_Xleft(State2D& Y);
-            void mirror_bound_Xright(State2D& Y);
+// //          Boundaries 
+//             void mirror_bound_Xleft(State2D& Y);
+//             void mirror_bound_Xright(State2D& Y);
 
-            void mirror_bound_Yleft(State2D& Y);
-            void mirror_bound_Yright(State2D& Y);
+//             void mirror_bound_Yleft(State2D& Y);
+//             void mirror_bound_Yright(State2D& Y);
 
-//          Boundaries for single-node configurations
-            void sameNode_bound_X(State2D& Y);
-            void sameNode_bound_Y(State2D& Y);
+// //          Boundaries for single-node configurations
+//             void sameNode_bound_X(State2D& Y);
+//             void sameNode_bound_Y(State2D& Y);
 
-        private:
-//          Domain information
-            // int Nbc, bndX, bndY;
-            int numspec; // numpmax;
+//         private:
+// //          Domain information
+//             // int Nbc, bndX, bndY;
+//             int numspec; // numpmax;
 
-            size_t Nbc, bndX, bndY;
-            size_t Nx_local, Ny_local;
+//             size_t Nbc, bndX, bndY;
+//             size_t Nx_local, Ny_local;
 
-//          Information exchange
-            int  msg_sizeX, msg_sizeY; 
-            complex<double> *msg_bufX, *msg_bufY;
+// //          Information exchange
+//             int  msg_sizeX, msg_sizeY; 
+//             complex<double> *msg_bufX, *msg_bufY;
             
-//          Boundaries for single-node configurations
-            void sameNode_periodic_X(State2D& Y);
-            void sameNode_mirror_X(State2D& Y);
+// //          Boundaries for single-node configurations
+//             void sameNode_periodic_X(State2D& Y);
+//             void sameNode_mirror_X(State2D& Y);
 
-            void sameNode_periodic_Y(State2D& Y);
-            void sameNode_mirror_Y(State2D& Y);
+//             void sameNode_periodic_Y(State2D& Y);
+//             void sameNode_mirror_Y(State2D& Y);
 
-        };
-//--------------------------------------------------------------
-//**************************************************************
-
-
-//**************************************************************
-//**************************************************************
+//         };
+// //--------------------------------------------------------------
+// //**************************************************************
 
 
-//**************************************************************
-//--------------------------------------------------------------
-        class Parallel_Environment_2D {
-//--------------------------------------------------------------
-//      Declaration of the parallel module
-//--------------------------------------------------------------
-        public:
-//          Constructors/Destructors
-            Parallel_Environment_2D(); 
-            ~Parallel_Environment_2D(); 
+// //**************************************************************
+// //**************************************************************
+
+
+// //**************************************************************
+// //--------------------------------------------------------------
+//         class Parallel_Environment_2D {
+// //--------------------------------------------------------------
+// //      Declaration of the parallel module
+// //--------------------------------------------------------------
+//         public:
+// //          Constructors/Destructors
+//             Parallel_Environment_2D(); 
+//             ~Parallel_Environment_2D(); 
          
-//          Parallel parameters
-            int RANK()  const;
-            int MPI_Processes() const;
-            int BNDX()  const;
-            int BNDY()  const;
-            int RANKX()  const;
-            int RANKY()  const;
-            int MPI_X() const;
-            int MPI_Y() const;
+// //          Parallel parameters
+//             int RANK()  const;
+//             int MPI_Processes() const;
+//             int BNDX()  const;
+//             int BNDY()  const;
+//             int RANKX()  const;
+//             int RANKY()  const;
+//             int MPI_X() const;
+//             int MPI_Y() const;
 
-//          Restart 
-//             bool READ_RESTART() const;
-//             void Read_Restart(State2D& Y); 
-// 
-//             bool WRITE_RESTART(const size_t step) const;
-//             void Write_Restart(size_t step, State2D& Y); 
-// 
-//             size_t T_IN() const;
+// //          Restart 
+// //             bool READ_RESTART() const;
+// //             void Read_Restart(State2D& Y); 
+// // 
+// //             bool WRITE_RESTART(const size_t step) const;
+// //             void Write_Restart(size_t step, State2D& Y); 
+// // 
+// //             size_t T_IN() const;
           
-//          Information exchange
-            void Neighbor_ImplicitE_Communications(State2D& Y);
-            void Neighbor_Communications(State2D& Y);
+// //          Information exchange
+//             void Neighbor_ImplicitE_Communications(State2D& Y);
+//             void Neighbor_Communications(State2D& Y);
 
-        private:
-//          Parallel parameters
-//          Boundaries 
-            int bndX, bndY;
-            int MPI_Processes_X, MPI_Processes_Y,MPI_Procs;
+//         private:
+// //          Parallel parameters
+// //          Boundaries 
+//             int bndX, bndY;
+//             int MPI_Processes_X, MPI_Processes_Y,MPI_Procs;
 
-            int rank;
-            vector<int> rankx;
+//             int rank;
+//             vector<int> rankx;
             
 
 
 
 
-//          Information Exchange
-            Node_ImplicitE_Communications_2D Bfield_Data;
-            Node_Communications_2D X_Data;
+// //          Information Exchange
+//             Node_ImplicitE_Communications_2D Bfield_Data;
+//             Node_Communications_2D X_Data;
 
-//          Error Checking of the constructor
-            bool error_check();
+// //          Error Checking of the constructor
+//             bool error_check();
 
 //          Restart files 
 //             int restart_time;
 //             int restart_step;
-        };
+        // };
 //--------------------------------------------------------------
 //**************************************************************
 

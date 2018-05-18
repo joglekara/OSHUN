@@ -26,8 +26,8 @@ INCLUDE_DIRS =
 EXEC_DIR = ../bin
 TMP_DIR = ../bin/tmp
 
-OBJECTS = input.o clock.o state.o stepper.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o fluid.o implicitE.o parallel.o export.o main.o
-
+OBJECTS = input.o clock.o state.o stepper.o formulary.o parser.o setup.o vlasov.o nmethods.o functors.o collisions.o parallel.o export.o main.o
+# fluid.oimplicitE.o
 EXEC = oshun.e
 
 GIT_VERSION := $(shell git describe --abbrev=4 --dirty --always --tags)

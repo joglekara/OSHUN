@@ -80,8 +80,8 @@ private:
     double next_restart;
     double start_time;
 
-    vector<valarray<complex<double> > > Ex_history1D, Ey_history1D, Ez_history1D;
-    vector<valarray<complex<double> > > Bx_history1D, By_history1D, Bz_history1D;
+    vector<valarray<double > > Ex_history1D, Ey_history1D, Ez_history1D;
+    vector<valarray<double > > Bx_history1D, By_history1D, Bz_history1D;
 
     // vector<Array2D<complex<double> > > Ex_history2D, Ey_history2D, Ez_history2D;
     // vector<Array2D<complex<double> > > Bx_history2D, By_history2D, Bz_history2D;

@@ -297,7 +297,7 @@ public:
     T  operator()(size_t i) const;
     vector<T>  d2c(size_t j);
 
-//      Slice iterators
+// //      Slice iterators
     GSlice_iter<T>  d1c(size_t b, size_t e);    // b: beginning, e: end (non-contiguous)
     GSlice_iter<T>  d2c(size_t b, size_t e);    // b: beginning, e: end (contiguous)
     GSlice_iter<T> SubArray2D(size_t st, size_t nx, size_t ny); // st: starting cell
@@ -385,7 +385,8 @@ template<class T> vector<T> Array2D<T>::d2c(size_t j){
 //--------------------------------------------------------------
 //  Slicers
 //--------------------------------------------------------------
-//  slices for given d1 value range 
+//  slices for given d1 value range  
+
 template<class T>
 inline GSlice_iter<T> Array2D<T>::d1c(size_t b, size_t e){
     valarray<size_t> sz(2), str(2);
@@ -432,7 +433,7 @@ inline CGSlice_iter<T> Array2D<T>::SubArray2D(size_t st, size_t nx, size_t ny) c
     str[1] = 1;  str[0] = dim1();
     sz[1]  = nx;  sz[0] = ny;
     return CGSlice_iter<T>(v,gslice(st,sz,str));
-}
+} 
 
 //--------------------------------------------------------------
 //  Operators
@@ -590,8 +591,8 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
     Array2D<T> temp(*this);
     // temp = static_cast<complex<double> > (0.);
 
-    complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
-    complex<double> eight(static_cast<complex<double> >(8.));
+    double onesixth(static_cast<double >(1.0/6.0));
+    double eight(static_cast<double >(8.));
 
     for (long i2(0); i2<long(d2);++i2)
     {
@@ -625,8 +626,8 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 template<class T> Array2D<T>& Array2D<T>::Dd2_4th_order(){
     Array2D<T> temp(*this);
 
-    complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
-    complex<double> fourthirds(static_cast<complex<double> >(4./3.));
+    double onesixth(static_cast<double >(1.0/6.0));
+    double fourthirds(static_cast<double >(4./3.));
 
     for (long i2(2); i2<long(d2)-2;++i2)
     {

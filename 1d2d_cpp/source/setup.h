@@ -51,9 +51,9 @@ class WaveDriver {
         // WaveDriver(Grid_Info& grid);
         ~WaveDriver();
         void applyexternalfields(State1D& Y, double time);
-        void applyexternalfields(State2D& Y, double time);
+        // void applyexternalfields(State2D& Y, double time);
         void applytravelingwave(EMF1D& fields, const double time);
-        void applytravelingwave(State2D& Y, const double time);
+        // void applytravelingwave(State2D& Y, const double time);
 
     private:
 
@@ -102,9 +102,9 @@ namespace Setup_Y {
 
     // 2D
 
-    void init_f0(size_t s, SHarmonic2D& h, const valarray<double>& p, const valarray<double>& x, const valarray<double>& y,
-    Array2D<double>& density, Array2D<double>& temperature,const double mass, const Array2D<double>& pedestal);
-
+    // void init_f0(size_t s, SHarmonic2D& h, const valarray<double>& p, const valarray<double>& x, const valarray<double>& y,
+    // Array2D<double>& density, Array2D<double>& temperature,const double mass, const Array2D<double>& pedestal);
+// 
     // void init_f1(size_t s, SHarmonic1D& h, const valarray<double>& p, const valarray<double>& x,
     // valarray<double>& density, valarray<double>& temperature, valarray<double>& f10x, const SHarmonic1D& f0, const double mass);
 
@@ -112,10 +112,10 @@ namespace Setup_Y {
     // valarray<double>& density, valarray<double>& temperature, valarray<double>& f20x, const double mass);
 
 //      Initialize the appropriate density and temperature profiles (from the list below)
-    void initialize(State2D &Y, Grid_Info &grid);
+    // void initialize(State2D &Y, Grid_Info &grid);
 
-    void applyexternalfields(Grid_Info &grid, State2D &Y, double time);
-    void applytravelingwave(Grid_Info &grid, State2D &Y, double time, double stepsize);
+    // void applyexternalfields(Grid_Info &grid, State2D &Y, double time);
+    // void applytravelingwave(Grid_Info &grid, State2D &Y, double time, double stepsize);
 
 }
 

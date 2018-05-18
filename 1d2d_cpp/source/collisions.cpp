@@ -15,13 +15,13 @@
 #include <iostream>
 #include <vector>
 #include <valarray>
-#include <complex>
 #include <algorithm>
 #include <cstdlib>
 #include <math.h>
 #include <map>
 #include <omp.h>
 #include <mpi.h>
+#include <complex>
 
 //  My libraries
 #include "lib-array.h"
@@ -509,7 +509,7 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
         for (size_t ip(0); ip < f00.nump(); ++ip)
         {
             // fin[ip] = (f00(ip,ix+Nbc)).real();
-            fin[ip] = (f00(ip,ix)).real();
+            fin[ip] = (f00(ip,ix));
            // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
         }
         // collide.takestep(fin,fout,Zarray[ix+Nbc],heatingprofile_1d[ix+Nbc],step_size);//,coolingprofile_1d[ix+Nbc]);
@@ -525,7 +525,7 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
         // Return updated data to the harmonic
         for (size_t ip(0); ip < f00.nump(); ++ip)
         {
-            f00h(ip,ix).real(fout[ip]);
+            f00h(ip,ix) = (fout[ip]);
             // f00h(ip,ix+Nbc) = fin[ip];
             
             // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
@@ -537,62 +537,62 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
 }
 
 //-------------------------------------------------------------------
-void self_f00_implicit_collisions::loop(const SHarmonic2D& f00, const Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size){
+// void self_f00_implicit_collisions::loop(const SHarmonic2D& f00, const Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size){
 
-    //-------------------------------------------------------------------
-    //  This loop scans all the locations in configuration space
-    //  and calls the implicit Chang-Cooper/Langdon/Epperlein algorithm
-    //-------------------------------------------------------------------
-    //      Initialization
-    //-------------------------------------------------------------------
+//     //-------------------------------------------------------------------
+//     //  This loop scans all the locations in configuration space
+//     //  and calls the implicit Chang-Cooper/Langdon/Epperlein algorithm
+//     //-------------------------------------------------------------------
+//     //      Initialization
+//     //-------------------------------------------------------------------
 
-    double timecoeff;
-    if (IB_heating && ib){
+//     double timecoeff;
+//     if (IB_heating && ib){
 
-        /// Get time and heating profile
-        /// Ray-trace would go here
-        /// 
+//         /// Get time and heating profile
+//         /// Ray-trace would go here
+//         /// 
         
-        Parser::parseprofile(xgrid, ygrid, Input::List().intensity_profile_str, heatingprofile_2d);
-        Parser::parseprofile(time, Input::List().intensity_time_profile_str, timecoeff);
+//         Parser::parseprofile(xgrid, ygrid, Input::List().intensity_profile_str, heatingprofile_2d);
+//         Parser::parseprofile(time, Input::List().intensity_time_profile_str, timecoeff);
 
-        /// Make vos(x,t)
-        heatingprofile_2d *= (Input::List().lambda_0 * sqrt(7.3e-19*Input::List().I_0))*timecoeff;
+//         /// Make vos(x,t)
+//         heatingprofile_2d *= (Input::List().lambda_0 * sqrt(7.3e-19*Input::List().I_0))*timecoeff;
 
-    }
+//     }
 
-    #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
-    for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
-    {
-        for (size_t iy = 0; iy < szy-2*Nbc; ++iy)
-        {
-            valarray<double> fin(0.0, f00.nump());
-            valarray<double> fout(0.0, f00.nump());
-            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            // Copy data for a specific location in space to valarray
-            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            for (size_t ip(0); ip < fin.size(); ++ip)
-            {
-                fin[ip] = (f00(ip,ix,iy)).real();
-               // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
-            }
-    //  
-    //  
-            // std::cout << "ix,iy = " << ix << " , " << iy << ", hfp = " << heatingprofile_2d(ix,iy) << "\n";
-            collide.takestep(fin,fout,Zarray(ix,iy),heatingprofile_2d(ix,iy),step_size);//,coolingprofile_2d(ix,iy));
+//     #pragma omp parallel for num_threads(Input::List().ompthreads) collapse(2)
+//     for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
+//     {
+//         for (size_t iy = 0; iy < szy-2*Nbc; ++iy)
+//         {
+//             valarray<double> fin(0.0, f00.nump());
+//             valarray<double> fout(0.0, f00.nump());
+//             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//             // Copy data for a specific location in space to valarray
+//             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//             for (size_t ip(0); ip < fin.size(); ++ip)
+//             {
+//                 fin[ip] = (f00(ip,ix,iy)).real();
+//                // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
+//             }
+//     //  
+//     //  
+//             // std::cout << "ix,iy = " << ix << " , " << iy << ", hfp = " << heatingprofile_2d(ix,iy) << "\n";
+//             collide.takestep(fin,fout,Zarray(ix,iy),heatingprofile_2d(ix,iy),step_size);//,coolingprofile_2d(ix,iy));
 
-            // Return updated data to the harmonic
-            for (size_t ip(0); ip < fin.size(); ++ip)
-            {
-                f00h(ip,ix,iy) = static_cast<complex<double> >(fout[ip]);
-                // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
-            }
-        }
+//             // Return updated data to the harmonic
+//             for (size_t ip(0); ip < fin.size(); ++ip)
+//             {
+//                 f00h(ip,ix,iy) = (fout[ip]);
+//                 // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
+//             }
+//         }
         
-    }
-    //-------------------------------------------------------------------
+//     }
+//     //-------------------------------------------------------------------
 
-}
+// }
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
 /**
@@ -857,7 +857,7 @@ void self_f00_explicit_collisions::loop(const SHarmonic1D& f00, SHarmonic1D& f00
 
         // Copy data for a specific location in space to valarray
         for (size_t ip(0); ip < fin.size(); ++ip){
-            fin[ip] = (f00(ip,ix)).real();
+            fin[ip] = (f00(ip,ix));
         }
 
         // std::cout << "\n\n h = " << num_h << ", \n \n";
@@ -876,41 +876,41 @@ void self_f00_explicit_collisions::loop(const SHarmonic1D& f00, SHarmonic1D& f00
 }
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
-void self_f00_explicit_collisions::loop(const SHarmonic2D& f00, SHarmonic2D& f00h, const double deltat){
+// void self_f00_explicit_collisions::loop(const SHarmonic2D& f00, SHarmonic2D& f00h, const double deltat){
 
-    //-------------------------------------------------------------------
-    //  This loop scans all the locations in configuration space
-    //  and calls the RK4 for explicit integration at each location
-    //-------------------------------------------------------------------
-    //      Initialization
+//     //-------------------------------------------------------------------
+//     //  This loop scans all the locations in configuration space
+//     //  and calls the RK4 for explicit integration at each location
+//     //-------------------------------------------------------------------
+//     //      Initialization
     
-    num_h = size_t(deltat/Input::List().small_dt)+1;
-    h = deltat/static_cast<double>(num_h);
+//     num_h = size_t(deltat/Input::List().small_dt)+1;
+//     h = deltat/static_cast<double>(num_h);
 
-    for (size_t ix(0); ix < szx; ++ix)
-    {
-        for (size_t iy(0); iy < szy; ++iy)
-        {
-            // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-            // Copy data for a specific location in space to valarray
-            for (size_t ip(0); ip < fin.size(); ++ip){
-                fin[ip] = (f00(ip,ix,iy)).real();
-            }
+//     for (size_t ix(0); ix < szx; ++ix)
+//     {
+//         for (size_t iy(0); iy < szy; ++iy)
+//         {
+//             // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+//             // Copy data for a specific location in space to valarray
+//             for (size_t ip(0); ip < fin.size(); ++ip){
+//                 fin[ip] = (f00(ip,ix,iy)).real();
+//             }
 
-            // std::cout << "\n\n h = " << num_h << ", \n \n";
-            // Time loop: Update the valarray
-            for (size_t h_step(0); h_step < num_h; ++h_step){
-                fin = RK(fin,h,&rkf00);
-            }
+//             // std::cout << "\n\n h = " << num_h << ", \n \n";
+//             // Time loop: Update the valarray
+//             for (size_t h_step(0); h_step < num_h; ++h_step){
+//                 fin = RK(fin,h,&rkf00);
+//             }
 
-            // Return updated data to the harmonic
-            for (size_t ip(0); ip < fin.size(); ++ip){
-                f00h(ip,ix,iy) = fin[ip];
-            }
-        }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    }
-}
+//             // Return updated data to the harmonic
+//             for (size_t ip(0); ip < fin.size(); ++ip){
+//                 f00h(ip,ix,iy) = fin[ip];
+//             }
+//         }
+//     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     }
+// }
 //-------------------------------------------------------------------
 #pragma optimize("", off)
 //*******************************************************************
@@ -1358,13 +1358,13 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
 /// @param      fin   Input distribution function
 /// @param[in]  el    Number of elements in matrix (?)
 ///
-void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int el, const size_t position) {
+void  self_flm_implicit_step::advance(valarray<double>& fin, const int el, const size_t position) {
 // valarray<complex<double> >  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int el, const size_t position) {
 //-------------------------------------------------------------------
 //  Collisions
 //-------------------------------------------------------------------
     Array2D<double> Alpha(Alpha_Tri_x[position]);
-    valarray<complex<double> > fout(fin);
+    valarray<double> fout(fin);
 
 //      ZEROTH CELL FOR TRIDIAGONAL ARRAY
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -1471,7 +1471,7 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 }
-void  self_flm_implicit_step::collide_f0withRBflm(valarray<complex<double> >& fin_singleharmonic, const double LL, const size_t position)
+void  self_flm_implicit_step::collide_f0withRBflm(valarray<double>& fin_singleharmonic, const double LL, const size_t position)
 {
     double A1(         (LL+1.0)*(LL+2.0) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
     double A2( (-1.0) *(LL-1.0)* LL      / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
@@ -1480,11 +1480,11 @@ void  self_flm_implicit_step::collide_f0withRBflm(valarray<complex<double> >& fi
     double B3(         ( 0.5 *LL*(LL+1.0) +(LL-1.0) ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
     double B4(         ( 0.5 *LL*(LL+1.0) - LL      ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
 
-    valarray<complex<double> > I_ellplustwo(0.,fin_singleharmonic.size());
-    valarray<complex<double> > J_minusellminusone(0.,fin_singleharmonic.size());
-    valarray<complex<double> > I_ell(0.,fin_singleharmonic.size());
-    valarray<complex<double> > J_oneminusell(0.,fin_singleharmonic.size());
-    valarray<complex<double> > fv2dv(0.,fin_singleharmonic.size());
+    valarray<double > I_ellplustwo(0.,fin_singleharmonic.size());
+    valarray<double > J_minusellminusone(0.,fin_singleharmonic.size());
+    valarray<double > I_ell(0.,fin_singleharmonic.size());
+    valarray<double > J_oneminusell(0.,fin_singleharmonic.size());
+    valarray<double > fv2dv(0.,fin_singleharmonic.size());
 
     double deltav = vr[2]-vr[1];
 
@@ -1535,7 +1535,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     size_t szx = DF(0,0).numx() - 2*Nbc;
     size_t nump = DF(0,0).nump();
     size_t numh = (dist_il.size()-id_low);
-    int n_systems(szx * numh * 2);
+    int n_systems(szx * numh);
     int totalsize(n_systems * nump);
 
     // valarray<double> ld(totalsize), dd(totalsize), ud(totalsize), fin(totalsize);
@@ -1545,7 +1545,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     {           
         for(size_t id = 0; id < numh ; ++id)
         {
-            valarray<complex<double> > fin_singleharmonic(0.,nump);
+            valarray<double > fin_singleharmonic(0.,nump);
     
             for (size_t i(0); i < nump; ++i)
             {
@@ -1568,7 +1568,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
             /// ---------------------------------------------
             
             /// Determine offset
-            size_t base_index = 2*(ix*numh+id)*nump;
+            size_t base_index = (ix*numh+id)*nump;
             
             double ll1(static_cast<double>(dist_il[id+id_low]));
             ll1 *= (-0.5)*(ll1 + 1.0);
@@ -1582,27 +1582,27 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
             for (size_t i(0); i < nump; ++i)
             {
                 dd_GPU[ i + base_index] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
-                fin_GPU[i + base_index] = fin_singleharmonic[i].real();
+                fin_GPU[i + base_index] = fin_singleharmonic[i];
                 //DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).real();
 
-                dd_GPU[ i + base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
-                fin_GPU[i + base_index + nump] = fin_singleharmonic[i].imag();
+                // dd_GPU[ i + base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i)  + (1.0 - ll1 * (Scattering_Term_x[ix+Nbc])[i]);
+                // fin_GPU[i + base_index + nump] = fin_singleharmonic[i].imag();
                 // DF(dist_il[id+id_low],dist_im[id+id_low])(i,ix+Nbc).imag();
             }
             
             ld_GPU[base_index] = 0.;
             ud_GPU[base_index+nump-1] = 0.;
 
-            ld_GPU[base_index+nump] = 0.;
-            ud_GPU[base_index+nump-1+nump] = 0.;
+            // ld_GPU[base_index+nump] = 0.;
+            // ud_GPU[base_index+nump-1+nump] = 0.;
 
             for (size_t i(0); i < nump - 1; ++i)
             {
                 ld_GPU[i + 1 + base_index] = Alpha_Tri_x[ix+Nbc](i+1,i);
                 ud_GPU[i +     base_index] = Alpha_Tri_x[ix+Nbc](i,i+1);
                 
-                ld_GPU[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
-                ud_GPU[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
+                // ld_GPU[i + 1 + base_index + nump] = Alpha_Tri_x[ix+Nbc](i+1,i);
+                // ud_GPU[i +     base_index + nump] = Alpha_Tri_x[ix+Nbc](i,i+1);
             }
         }
     }
@@ -1631,7 +1631,7 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
     {
         for(size_t id = 0; id < numh ; ++id)
         {
-            valarray<complex<double> > fin_singleharmonic(0.,nump);
+            valarray<double > fin_singleharmonic(0.,nump);
 
             /// ---------------------------------------------
             /// ---------------------------------------------
@@ -1641,12 +1641,12 @@ void  self_flm_implicit_step::flm_solve(const DistFunc1D& DF, DistFunc1D& DFh)
             /// ---------------------------------------------
             /// ---------------------------------------------
             /// ---------------------------------------------
-            size_t base_index = 2*(ix*numh+id)*nump;
+            size_t base_index = (ix*numh+id)*nump;
 
             for (size_t i(0); i < DF(0,0).nump(); ++i)
             {
-                fin_singleharmonic[i].real(fin_GPU[base_index + i]);
-                fin_singleharmonic[i].imag(fin_GPU[base_index + i + nump]);
+                fin_singleharmonic[i] = fin_GPU[base_index + i];
+                // fin_singleharmonic[i].imag(fin_GPU[base_index + i + nump]);
             }
 
             if ( !(if_tridiagonal) && (Input::List().coll_op < 2) )
@@ -1748,7 +1748,7 @@ void self_flm_implicit_collisions::advanceflm(const DistFunc1D& DF, const valarr
             {
                 for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
                 {
-                    valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
+                    valarray<double > fc(0.,DF(0,0).nump());
                     // This harmonic --> Valarray
                     for (size_t ip(0); ip < fc.size(); ++ip){
                         fc[ip] = (DF(l,m))(ip,ix+Nbc);
@@ -1782,7 +1782,7 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
         // "00" harmonic --> Valarray
         valarray<double> f00(0.,DF(0,0).nump());
         for (size_t ip(0); ip < f00.size(); ++ip){
-            f00[ip] = (DF(0,0)(ip,ix)).real();
+            f00[ip] = (DF(0,0)(ip,ix));
             // std::cout << "f00[" << ip << "] = " << f00[ip] <<"\n";
 
         }
@@ -1801,7 +1801,7 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
         // Loop over the harmonics for this (x,y)
         for(size_t m = 0; m < f1_m_upperlimit; ++m)
         {
-            valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
+            valarray<double > fc((0.),DF(0,0).nump());
             // This harmonic --> Valarray
             for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
                 fc[ip] = DF(1,m)(ip,ix);
@@ -1825,105 +1825,105 @@ void self_flm_implicit_collisions::advancef1(const DistFunc1D& DF, const valarra
 
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
-void self_flm_implicit_collisions::advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size){
-//-------------------------------------------------------------------
-//  This is the collision calculation for the harmonics f10, f11 
-//-------------------------------------------------------------------
+// void self_flm_implicit_collisions::advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size){
+// //-------------------------------------------------------------------
+// //  This is the collision calculation for the harmonics f10, f11 
+// //-------------------------------------------------------------------
 
-// For every location in space within the domain of this node
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -          
-    // Need advance f1 over whole domain for implicit E solver
-    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
-    for (size_t ix = 0; ix < szx; ++ix)
-    {
-        for (size_t iy = 0; iy < szy; ++iy)
-        {
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
-            // "00" harmonic --> Valarray
-            valarray<double> f00(0.,DF(0,0).nump());
-            for (size_t ip(0); ip < f00.size(); ++ip){
-                f00[ip] = (DF(0,0)(ip,ix,iy)).real();
-            }
+// // For every location in space within the domain of this node
+// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -          
+//     // Need advance f1 over whole domain for implicit E solver
+//     #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+//     for (size_t ix = 0; ix < szx; ++ix)
+//     {
+//         for (size_t iy = 0; iy < szy; ++iy)
+//         {
+// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
+//             // "00" harmonic --> Valarray
+//             valarray<double> f00(0.,DF(0,0).nump());
+//             for (size_t ip(0); ip < f00.size(); ++ip){
+//                 f00[ip] = (DF(0,0)(ip,ix,iy)).real();
+//             }
             
-            // Reset the integrals and coefficients
-            // implicit_step.reset_coeff(f00, Zarray(ix,iy), step_size, ix*szy+iy);
-            if (Input::List().coll_op == 0 || Input::List().coll_op == 1)
-                implicit_step.reset_coeff_FP(f00, Zarray(ix,iy), step_size, ix*szy+iy);
-            else if (Input::List().coll_op == 2 || Input::List().coll_op == 3)
-                implicit_step.reset_coeff_LB(f00, Zarray(ix,iy), step_size, ix*szy+iy);
-        }
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
-    }
+//             // Reset the integrals and coefficients
+//             // implicit_step.reset_coeff(f00, Zarray(ix,iy), step_size, ix*szy+iy);
+//             if (Input::List().coll_op == 0 || Input::List().coll_op == 1)
+//                 implicit_step.reset_coeff_FP(f00, Zarray(ix,iy), step_size, ix*szy+iy);
+//             else if (Input::List().coll_op == 2 || Input::List().coll_op == 3)
+//                 implicit_step.reset_coeff_LB(f00, Zarray(ix,iy), step_size, ix*szy+iy);
+//         }
+// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
+//     }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
-    #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
-    for (size_t ix = 0; ix < szx; ++ix)
-    {
-        for (size_t iy = 0; iy < szy; ++iy)
-        {
-            // Loop over the harmonics for this (x,y)
-            for(size_t m = 0; m < f1_m_upperlimit; ++m)
-            {
-                valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
-                // This harmonic --> Valarray
-                for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
-                    fc[ip] = DF(1,m)(ip,ix,iy);
-                }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
-                // Take an implicit step
-                implicit_step.advance(fc, 1, ix*szy+iy);
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
+// // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
+//     #pragma omp parallel for collapse(2) num_threads(Input::List().ompthreads)
+//     for (size_t ix = 0; ix < szx; ++ix)
+//     {
+//         for (size_t iy = 0; iy < szy; ++iy)
+//         {
+//             // Loop over the harmonics for this (x,y)
+//             for(size_t m = 0; m < f1_m_upperlimit; ++m)
+//             {
+//                 valarray<double > fc((0.),DF(0,0).nump());
+//                 // This harmonic --> Valarray
+//                 for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
+//                     fc[ip] = DF(1,m)(ip,ix,iy);
+//                 }
+//     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
+//                 // Take an implicit step
+//                 implicit_step.advance(fc, 1, ix*szy+iy);
+//     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -      
 
-                //  Valarray --> This harmonic
-                for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
-                    DFh(1,m)(ip,ix,iy) = fc[ip];
-                }
-            }
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
-        }
-    }
-}
+//                 //  Valarray --> This harmonic
+//                 for (size_t ip(0); ip < DF(1,m).nump(); ++ip) {
+//                     DFh(1,m)(ip,ix,iy) = fc[ip];
+//                 }
+//             }
+//     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  
+//         }
+//     }
+// }
 //-------------------------------------------------------------------
 
 //-------------------------------------------------------------------
-void self_flm_implicit_collisions::advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh)
-{
-//-------------------------------------------------------------------
-//  This is the calculation for the high order harmonics 
-//    To be specific, this routine does l=2 to l0
-//-------------------------------------------------------------------
+// void self_flm_implicit_collisions::advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh)
+// {
+// //-------------------------------------------------------------------
+// //  This is the calculation for the high order harmonics 
+// //    To be specific, this routine does l=2 to l0
+// //-------------------------------------------------------------------
 
-    // ********************************************** //
-    // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-    // Loop over the harmonics for this (x,y)
-    #pragma omp parallel for collapse(3) schedule(static) num_threads(Input::List().ompthreads)
-    for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
-    {
-        for (size_t iy = 0; iy < szy-2*Nbc; ++iy)
-        {
-            for(size_t l = 2; l < l0+1 ; ++l)
-            {
-                for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
-                {       
-                    valarray<complex<double> > fc(static_cast<complex<double> >(0.),DF(0,0).nump());
-                    // This harmonic --> Valarray
-                    for (size_t ip(0); ip < fc.size(); ++ip){
-                        fc[ip] = (DF(l,m))(ip,ix+Nbc,iy+Nbc);
-                    }
+//     // ********************************************** //
+//     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+//     // Loop over the harmonics for this (x,y)
+//     #pragma omp parallel for collapse(3) schedule(static) num_threads(Input::List().ompthreads)
+//     for (size_t ix = 0; ix < szx-2*Nbc; ++ix)
+//     {
+//         for (size_t iy = 0; iy < szy-2*Nbc; ++iy)
+//         {
+//             for(size_t l = 2; l < l0+1 ; ++l)
+//             {
+//                 for(size_t m = 0; m < ((m0 < l)? m0:l)+1; ++m)
+//                 {       
+//                     valarray<double > fc((0.),DF(0,0).nump());
+//                     // This harmonic --> Valarray
+//                     for (size_t ip(0); ip < fc.size(); ++ip){
+//                         fc[ip] = (DF(l,m))(ip,ix+Nbc,iy+Nbc);
+//                     }
 
-                    // Take an implicit step
-                    implicit_step.advance(fc, l, (ix+Nbc)*szy+(iy+Nbc));
+//                     // Take an implicit step
+//                     implicit_step.advance(fc, l, (ix+Nbc)*szy+(iy+Nbc));
 
-                    //  Valarray --> This harmonic
-                    for (size_t ip(0); ip < fc.size(); ++ip){
-                        DFh(l,m)(ip,ix+Nbc,iy+Nbc) = fc[ip];
-                    }
-                }
-            }
-        }
-    }
+//                     //  Valarray --> This harmonic
+//                     for (size_t ip(0); ip < fc.size(); ++ip){
+//                         DFh(l,m)(ip,ix+Nbc,iy+Nbc) = fc[ip];
+//                     }
+//                 }
+//             }
+//         }
+//     }
     
-}
+// }
 //-------------------------------------------------------------------
 ////*******************************************************************
 //-------------------------------------------------------------------
@@ -1962,28 +1962,28 @@ void self_collisions::advancef1(const DistFunc1D& DFin,  const valarray<double>&
     self_flm_imp_collisions.advancef1(DFin,Zarray,DFh,step_size);
 }
 //-------------------------------------------------------------------
-void self_collisions::advancef00(const SHarmonic2D& f00, const Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size)
-//-------------------------------------------------------------------
-{    
-    if (Input::List().f00_implicitorexplicit == 2) self_f00_imp_collisions.loop(f00,Zarray,f00h,time,step_size);
-    // else self_f00_exp_collisions.loop(f00,f00h,step_size);
+// void self_collisions::advancef00(const SHarmonic2D& f00, const Array2D<double>& Zarray, SHarmonic2D& f00h, const double time, const double step_size)
+// //-------------------------------------------------------------------
+// {    
+//     if (Input::List().f00_implicitorexplicit == 2) self_f00_imp_collisions.loop(f00,Zarray,f00h,time,step_size);
+//     // else self_f00_exp_collisions.loop(f00,f00h,step_size);
     
-}
+// }
 //-------------------------------------------------------------------
 //-------------------------------------------------------------------
-void self_collisions::advanceflm(const DistFunc2D& DFin, const Array2D<double>& Zarray, DistFunc2D& DFh)
-//-------------------------------------------------------------------
-{
-    self_flm_imp_collisions.advanceflm(DFin,Zarray,DFh);
-}
+// void self_collisions::advanceflm(const DistFunc2D& DFin, const Array2D<double>& Zarray, DistFunc2D& DFh)
+// //-------------------------------------------------------------------
+// {
+//     self_flm_imp_collisions.advanceflm(DFin,Zarray,DFh);
+// }
 
 //-------------------------------------------------------------------
-void self_collisions::advancef1(const DistFunc2D& DFin,  const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size)
-//-------------------------------------------------------------------
-{    
-    self_flm_imp_collisions.advancef1(DFin,Zarray,DFh, step_size);
-}
-////*******************************************************************
+// void self_collisions::advancef1(const DistFunc2D& DFin,  const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size)
+// //-------------------------------------------------------------------
+// {    
+//     self_flm_imp_collisions.advancef1(DFin,Zarray,DFh, step_size);
+// }
+// ////*******************************************************************
 
 
 
@@ -1993,7 +1993,7 @@ collisions_1D::collisions_1D(const State1D& Yin):Yh(Yin)
 //  Constructor
 //-------------------------------------------------------------------
 {
-    Yh = static_cast<complex<double> >(0.0,0.0);
+    Yh = 0.;
     for(size_t s(0); s < Yin.Species(); ++s){
         self_coll.push_back( self_collisions(Yin.DF(s).l0(),
             Yin.DF(s).m0(),Yin.DF(s).getdp(),Yin.DF(s).q(),Yin.DF(s).mass())  );
@@ -2010,7 +2010,7 @@ collisions_1D::collisions_1D(const State1D& Yin):Yh(Yin)
 void collisions_1D::advance(State1D& Yin, const double time, const double step_size)
 //-------------------------------------------------------------------
 {
-    // Yh = complex<double>(0.0,0.0);
+    // Yh = double(0.0,0.0);
     Yh = Yin;
     
     if (Input::List().f00_implicitorexplicit)
@@ -2048,12 +2048,13 @@ void collisions_1D::advanceflm(const State1D& Yin, State1D& Yh)
 {
     size_t sdummy(0);
 
-
+    
     for(size_t s(0); s < Yin.Species(); ++s)
     {
+        valarray<double> Zarray(1.,Yin.DF(s)(0,0).numx());
         if (Yin.DF(s).l0() > 1)
         {
-            self_coll[s].advanceflm(Yin.DF(s), Yin.HYDRO().Zarray(), Yh.DF(s) );    
+            self_coll[s].advanceflm(Yin.DF(s), Zarray, Yh.DF(s) );    
         }
         if (Yin.Species() > 1)
         {
@@ -2076,7 +2077,7 @@ void collisions_1D::advanceflm(const State1D& Yin, State1D& Yh)
 void collisions_1D::operator()(const State1D& Yin, State1D& Yslope, double current_time, double step_size)
 //-------------------------------------------------------------------
 {
-    Yh = complex<double>(0.0,0.0);
+    Yh = 0.0;
 
     if (Input::List().collisions)
     {        
@@ -2107,7 +2108,7 @@ void collisions_1D::operator()(const State1D& Yin, State1D& Yslope, double curre
             for (size_t i(0); i < Yin.DF(s).dim(); ++i)
             {
                 Yh.DF(s)(i) -= Yin.DF(s)(i);
-                Yh.DF(s)(i) *= static_cast<complex<double> >(1./step_size);
+                Yh.DF(s)(i) *= (1./step_size);
             }
         }
     }
@@ -2125,9 +2126,11 @@ void collisions_1D::advancef0(const State1D& Yin, State1D& Yh, double current_ti
     size_t sdummy(0);
 
 
+
     for(size_t s(0); s < Yin.Species(); ++s)
     {   
-        self_coll[s].advancef00(Yin.DF(s)(0,0),Yin.HYDRO().Zarray(),Yh.DF(s)(0,0),current_time,step_size);
+        valarray<double> Zarray(1.,Yin.DF(s)(0,0).numx());
+        self_coll[s].advancef00(Yin.DF(s)(0,0),Zarray,Yh.DF(s)(0,0),current_time,step_size);
     
         if (Yin.Species() > 1)
         {
@@ -2155,10 +2158,13 @@ void collisions_1D::advancef1(const State1D& Yin, State1D& Yh, double step_size)
 {
     size_t sdummy(0);
 
+    
+
 
     for(size_t s(0); s < Yin.Species(); ++s)
     {
-        self_coll[s].advancef1(Yin.DF(s), Yin.HYDRO().Zarray(), Yh.DF(s) , step_size );
+        valarray<double> Zarray(1.,Yin.DF(s)(0,0).numx());
+        self_coll[s].advancef1(Yin.DF(s), Zarray, Yh.DF(s) , step_size );
 
         if (Yin.Species() > 1)
         {
@@ -2187,12 +2193,12 @@ vector<self_collisions> collisions_1D::self(){
 
 
 //-------------------------------------------------------------------
-collisions_2D::collisions_2D(const State2D& Yin):Yh(Yin)
+/*collisions_2D::collisions_2D(const State2D& Yin):Yh(Yin)
 //-------------------------------------------------------------------
 //  Constructor
 //-------------------------------------------------------------------
 {
-    Yh = complex<double>(0.0,0.0);
+    Yh = double(0.0,0.0);
     for(size_t s(0); s < Yin.Species(); ++s){
         self_coll.push_back( self_collisions(Yin.DF(s).l0(),
             Yin.DF(s).m0(),Yin.DF(s).getdp(),Yin.DF(s).q(),Yin.DF(s).mass())  );
@@ -2209,7 +2215,7 @@ collisions_2D::collisions_2D(const State2D& Yin):Yh(Yin)
 void collisions_2D::advance(State2D& Yin, const double time, const double step_size)
 //-------------------------------------------------------------------
 {
-    // Yh = complex<double>(0.0,0.0);
+    // Yh = double(0.0,0.0);
     
     if (Input::List().f00_implicitorexplicit)
     {
@@ -2361,5 +2367,5 @@ vector<self_collisions> collisions_2D::self(){
 
     return self_coll;
 
-}
+}*/
 //*******************************************************************

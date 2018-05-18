@@ -11,10 +11,9 @@
 #include <iostream>
 #include <vector>
 #include <valarray>
-#include <complex>
 #include <algorithm>
 #include <cstdlib>
-
+#include <complex>
 #include <math.h>
 #include <map>
 #include <iomanip>
@@ -634,8 +633,8 @@ double Clock::check_last_harmonic(const State1D& Ystar, const State1D& Y, double
     {
         for (size_t ip(0); ip < Y.SH(0,0,0).nump(); ++ip)
         {
-            fave[ip] += Y.SH(0,nl,0)(ix,ip).real();
-            fstarave[ip] += Ystar.SH(0,nl,0)(ix,ip).real();
+            fave[ip] += Y.SH(0,nl,0)(ix,ip);
+            fstarave[ip] += Ystar.SH(0,nl,0)(ix,ip);
         }
     }
 
@@ -660,9 +659,9 @@ double Clock::check_flds(const State1D& Ystar, const State1D& Y, double& maxval)
     {
         for (size_t ix(Nbc); ix < tmp_err.size() - Nbc; ++ix)
         {
-            tmp_err[ix] = Ystar.FLD(i)(ix).real()-Y.FLD(i)(ix).real();
-            maxval = max(maxval,abs(Y.FLD(i)(ix).real()));
-            maxval = max(maxval,abs(Ystar.FLD(i)(ix).real()));
+            tmp_err[ix] = Ystar.FLD(i)(ix)-Y.FLD(i)(ix);
+            maxval = max(maxval,abs(Y.FLD(i)(ix)));
+            maxval = max(maxval,abs(Ystar.FLD(i)(ix)));
         }
 
         tmp_err *= tmp_err;

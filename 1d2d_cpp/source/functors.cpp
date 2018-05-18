@@ -26,7 +26,6 @@
 #include "state.h"
 #include "setup.h"
 #include "input.h"
-#include "fluid.h"
 #include "vlasov.h"
 #include "functors.h"
 
@@ -52,12 +51,12 @@ VlasovFunctor1D_explicitE::VlasovFunctor1D_explicitE(vector<size_t> Nl,vector<si
 
         JX.push_back( Current() );
 
-        BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );
+        // BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );
     }
 
-    AM.push_back( Ampere(xmin, xmax, Nx, 0., 1., 1) );
+    // AM.push_back( Ampere(xmin, xmax, Nx, 0., 1., 1) );
 
-    FA.push_back( Faraday(xmin, xmax, Nx, 0., 1., 1) );
+    // FA.push_back( Faraday(xmin, xmax, Nx, 0., 1., 1) );
 
     
 }
@@ -68,14 +67,14 @@ VlasovFunctor1D_explicitE::VlasovFunctor1D_explicitE(vector<size_t> Nl,vector<si
 //  Collect all of the terms
 void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
 //--------------------------------------------------------------
-    bool debug(0);
+    // bool debug(0);
 
-    Yslope = static_cast<complex<double> > (0.0);
+    // Yslope =  (0.0);
 
-    for (size_t s(0); s < Yin.Species(); ++s) 
-    {
+    // for (size_t s(0); s < Yin.Species(); ++s) 
+    // {
 
-        if (Yin.DF(s).m0() == 0) {
+    //     if (Yin.DF(s).m0() == 0) {
 
             // GA[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
             
@@ -98,11 +97,11 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
                 // EF[s].gpu1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
                 // SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
             // }
-            SA[s].es1d(Yin.DF(s),Yslope.DF(s));
+            // SA[s].es1d(Yin.DF(s),Yslope.DF(s));
             // { 
             
 
-            EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+            // EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
                 
             // }
             
@@ -113,7 +112,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
             //         std::cout << "\nf(" << ip << ") = " << Yslope.SH(0,1,0)(ip,4);
             //     }
             // }
-            JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
+            // JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
 
 
 
@@ -136,36 +135,36 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
             // }
             // 
             // collide.advance(Yin,Yslope,time,dt);
-        }
-        else
-        {
-            if (Yin.DF(s).l0() == 1) 
-            {
-                SA[s].f1only(Yin.DF(s),Yslope.DF(s));
+        // }
+        // else
+        // {
+    //         if (Yin.DF(s).l0() == 1) 
+    //         {
+    //             SA[s].f1only(Yin.DF(s),Yslope.DF(s));
 
-                EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+    //             EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
 
-                BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+    //             BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
 
-                JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+    //             JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
 
-            }
+    //         }
 
-            else 
-            {
-                SA[s](Yin.DF(s),Yslope.DF(s));
+    //         else 
+    //         {
+    //             SA[s](Yin.DF(s),Yslope.DF(s));
 
-                EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+    //             EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
 
-                BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+    //             BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
 
-                JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
-            }
-        }
-    }
+    //             JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+    //         }
+    //     }
+    // }
     
-    AM[0](Yin.EMF(),Yslope.EMF());
-    FA[0](Yin.EMF(),Yslope.EMF());
+    // AM[0](Yin.EMF(),Yslope.EMF());
+    // FA[0](Yin.EMF(),Yslope.EMF());
             
 }
 
@@ -173,13 +172,13 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
 void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, double time, double dt){
     bool debug(0);
 
-    Yslope = static_cast<complex<double> > (0.0);
+    Yslope =  (0.0);
 
     for (size_t s(0); s < Yin.Species(); ++s) 
     {
 
-        if (Yin.DF(s).m0() == 0) 
-        {
+        // if (Yin.DF(s).m0() == 0) 
+        // {
 
             // EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
             JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
@@ -201,10 +200,10 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 //  Initialize work variables
                 SHarmonic1D fd1(SA[s].get_vr().size(),Yin.DF(s)(0,0).numx()),fd2(SA[s].get_vr().size(),Yin.DF(s)(0,0).numx());
                 
-                valarray<complex<double> > vtemp(SA[s].get_vr());
+                valarray<double > vtemp(SA[s].get_vr());
                 vtemp /= Yin.DF(s).mass();
                 
-                valarray<complex<double> > Ex(Yin.FLD(0).array());
+                valarray<double > Ex(Yin.FLD(0).array());
                 Ex *= Yin.DF(s).q();
                 
 
@@ -278,10 +277,10 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
             for (size_t threadboundaries = 0; threadboundaries < Input::List().ompthreads - 1; ++threadboundaries)
             {
                 SHarmonic1D fd1(Yin.DF(s)(0,0).nump(),Yin.DF(s)(0,0).numx()),fd2(Yin.DF(s)(0,0).nump(),Yin.DF(s)(0,0).numx());
-                valarray<complex<double> > vtemp(SA[s].get_vr());
+                valarray<double > vtemp(SA[s].get_vr());
                 vtemp /= Yin.DF(s).mass();    
 
-                valarray<complex<double> > Ex(Yin.FLD(0).array());
+                valarray<double > Ex(Yin.FLD(0).array());
                 Ex *= Yin.DF(s).q();
 
             //  Initialize Ex so that it its ready for loop iteration l
@@ -304,35 +303,35 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 }
             }         
 
-        }
-        else
-        {
-            if (Yin.DF(s).l0() == 1) 
-            {
-                SA[s].f1only(Yin.DF(s),Yslope.DF(s));
+        // }
+        // else
+        // {
+        //     if (Yin.DF(s).l0() == 1) 
+        //     {
+        //         SA[s].f1only(Yin.DF(s),Yslope.DF(s));
 
-                EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+        //         EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
 
-                BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+        //         BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
 
-                JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+        //         JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
 
-            }
+        //     }
 
-            else 
-            {
-                SA[s](Yin.DF(s),Yslope.DF(s));
+        //     else 
+        //     {
+        //         SA[s](Yin.DF(s),Yslope.DF(s));
 
-                EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+        //         EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
 
-                BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+        //         BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
 
-                JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
-            }
+        //         JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+        //     }
 
-            AM[0](Yin.EMF(),Yslope.EMF());
-            FA[0](Yin.EMF(),Yslope.EMF());
-        }
+        //     AM[0](Yin.EMF(),Yslope.EMF());
+        //     FA[0](Yin.EMF(),Yslope.EMF());
+        // }
         
         if (Input::List().filterdistribution)  Yslope.DF(s).Filterp();
 
@@ -515,320 +514,320 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
 
 //--------------------------------------------------------------
 //  Constructor
-VlasovFunctor2D_explicitE::VlasovFunctor2D_explicitE(vector<size_t> Nl,vector<size_t> Nm,
-                                                    // vector<double> pmax, vector<size_t> Np,
-                                                    vector<valarray<double> > dp,
-                                                     double xmin, double xmax, size_t Nx,
-                                                     double ymin, double ymax, size_t Ny) {
-//--------------------------------------------------------------
+// VlasovFunctor2D_explicitE::VlasovFunctor2D_explicitE(vector<size_t> Nl,vector<size_t> Nm,
+//                                                     // vector<double> pmax, vector<size_t> Np,
+//                                                     vector<valarray<double> > dp,
+//                                                      double xmin, double xmax, size_t Nx,
+//                                                      double ymin, double ymax, size_t Ny) {
+// //--------------------------------------------------------------
 
-    for (size_t s(0); s < Nl.size(); ++s){
+//     for (size_t s(0); s < Nl.size(); ++s){
 
-        SA.push_back( Spatial_Advection(Nl[s], Nm[s], dp[s], xmin, xmax, Nx, ymin, ymax, Ny) );
+//         SA.push_back( Spatial_Advection(Nl[s], Nm[s], dp[s], xmin, xmax, Nx, ymin, ymax, Ny) );
 
-        EF.push_back( Electric_Field(Nl[s], Nm[s], dp[s]) );        
+//         EF.push_back( Electric_Field(Nl[s], Nm[s], dp[s]) );        
 
-        JX.push_back( Current() );
+//         JX.push_back( Current() );
 
-        BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );    
+//         BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );    
 
-    }
-    AM.push_back( Ampere(xmin, xmax, Nx, ymin, ymax, Ny) );
+//     }
+//     AM.push_back( Ampere(xmin, xmax, Nx, ymin, ymax, Ny) );
 
-    FA.push_back( Faraday(xmin, xmax, Nx, ymin, ymax, Ny) );
-}
-//--------------------------------------------------------------
+//     FA.push_back( Faraday(xmin, xmax, Nx, ymin, ymax, Ny) );
+// }
+// //--------------------------------------------------------------
 
 
-//--------------------------------------------------------------
-//  Collect all of the terms
-void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope){
-//--------------------------------------------------------------
-    bool debug(0);
+// //--------------------------------------------------------------
+// //  Collect all of the terms
+// void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope){
+// //--------------------------------------------------------------
+//     bool debug(0);
 
-    Yslope = 0.0;
+//     Yslope = 0.0;
 
-    for (size_t s(0); s < Yin.Species(); ++s) 
-    {
+//     for (size_t s(0); s < Yin.Species(); ++s) 
+//     {
 
-        if (Yin.DF(s).l0() == 1) 
-        {
+//         if (Yin.DF(s).l0() == 1) 
+//         {
 
-            SA[s].f1only(Yin.DF(s),Yslope.DF(s));
+//             SA[s].f1only(Yin.DF(s),Yslope.DF(s));
 
-            EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+//             EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
 
-            BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+//             BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
 
-            JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+//             JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
 
-        }
+//         }
         
-        else 
-        {
+//         else 
+//         {
 
-            SA[s](Yin.DF(s),Yslope.DF(s));
+//             SA[s](Yin.DF(s),Yslope.DF(s));
 
-            EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+//             EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
 
-            BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+//             BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
 
-            JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+//             JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
             
-        }
+//         }
 
-    }
+//     }
 
-    AM[0](Yin.EMF(),Yslope.EMF());
+//     AM[0](Yin.EMF(),Yslope.EMF());
 
-    FA[0](Yin.EMF(),Yslope.EMF());
+//     FA[0](Yin.EMF(),Yslope.EMF());
 
-}
+// }
 
-void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, size_t direction){}
-void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){}
+// void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, size_t direction){}
+// void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){}
 //--------------------------------------------------------------
 //  Functor to be used in the Runge-Kutta methods with implicit
 //  E-field solver
 
 //--------------------------------------------------------------
 //  Constructor
-VlasovFunctor1D_implicitE_p1::VlasovFunctor1D_implicitE_p1(vector<size_t> Nl,vector<size_t> Nm,
-                                                            // vector<double> pmax, vector<size_t> Np,
-                                                    vector<valarray<double> > dp,
-                                                           double xmin, double xmax, size_t Nx) {
+// VlasovFunctor1D_implicitE_p1::VlasovFunctor1D_implicitE_p1(vector<size_t> Nl,vector<size_t> Nm,
+//                                                             // vector<double> pmax, vector<size_t> Np,
+//                                                     vector<valarray<double> > dp,
+//                                                            double xmin, double xmax, size_t Nx) {
+// // //--------------------------------------------------------------
+
+//     for (size_t s(0); s < Nl.size(); ++s){
+
+//         SA.push_back( Spatial_Advection(Nl[s], Nm[s], dp[s], xmin, xmax, Nx, 0., 1., 1) );
+
+//         // HA.push_back( Hydro_Advection_1D(Nl[s], Nm[s], dp[s], xmin, xmax, Nx) );
+
+//         BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );
+
+//     }
+
+// }
+
+// //--------------------------------------------------------------
+// //
+// //
+// void VlasovFunctor1D_implicitE_p1::operator()(const State1D& Yin, State1D& Yslope){
 // //--------------------------------------------------------------
 
-    for (size_t s(0); s < Nl.size(); ++s){
+//     Yslope = 0.0;
 
-        SA.push_back( Spatial_Advection(Nl[s], Nm[s], dp[s], xmin, xmax, Nx, 0., 1., 1) );
+//     for (size_t s(0); s < Yin.Species(); ++s) {
 
-        // HA.push_back( Hydro_Advection_1D(Nl[s], Nm[s], dp[s], xmin, xmax, Nx) );
+//         if (Yin.DF(s).l0() == 1) 
+//         {
+//             SA[s].f1only(Yin.DF(s),Yslope.DF(s));
+//             BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+//             // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
+//         }
+//         else {
+//             SA[s](Yin.DF(s),Yslope.DF(s));
+//             BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+//             // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
+//         }
 
-        BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );
-
-    }
-
-}
-
-//--------------------------------------------------------------
-//
-//
-void VlasovFunctor1D_implicitE_p1::operator()(const State1D& Yin, State1D& Yslope){
-//--------------------------------------------------------------
-
-    Yslope = 0.0;
-
-    for (size_t s(0); s < Yin.Species(); ++s) {
-
-        if (Yin.DF(s).l0() == 1) 
-        {
-            SA[s].f1only(Yin.DF(s),Yslope.DF(s));
-            BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
-            // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
-        }
-        else {
-            SA[s](Yin.DF(s),Yslope.DF(s));
-            BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
-            // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
-        }
-
-        // if (Input::List().filterdistribution)  Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         // if (Input::List().filterdistribution)  Yslope.DF(s) = Yslope.DF(s).Filterp();
 
 
-    }
+//     }
 
-}
-void VlasovFunctor1D_implicitE_p1::operator()(const State1D& Yin, State1D& Yslope, size_t direction){}
-void VlasovFunctor1D_implicitE_p1::operator()(const State1D& Yin, State1D& Yslope, double time, double dt){}
+// }
+// void VlasovFunctor1D_implicitE_p1::operator()(const State1D& Yin, State1D& Yslope, size_t direction){}
+// void VlasovFunctor1D_implicitE_p1::operator()(const State1D& Yin, State1D& Yslope, double time, double dt){}
 
 //--------------------------------------------------------------
 //  Constructor
-VlasovFunctor2D_implicitE_p1::VlasovFunctor2D_implicitE_p1(vector<size_t> Nl,vector<size_t> Nm,
+// VlasovFunctor2D_implicitE_p1::VlasovFunctor2D_implicitE_p1(vector<size_t> Nl,vector<size_t> Nm,
                                             
-                                                    vector<valarray<double> > dp,
-                                                    double xmin, double xmax, size_t Nx,
-                                                    double ymin, double ymax, size_t Ny) {
-// //--------------------------------------------------------------
+//                                                     vector<valarray<double> > dp,
+//                                                     double xmin, double xmax, size_t Nx,
+//                                                     double ymin, double ymax, size_t Ny) {
+// // //--------------------------------------------------------------
 
-    for (size_t s(0); s < Nl.size(); ++s){
+//     for (size_t s(0); s < Nl.size(); ++s){
 
-        SA.push_back( Spatial_Advection(Nl[s], Nm[s], dp[s], xmin, xmax, Nx, ymin, ymax, Ny) );
+//         SA.push_back( Spatial_Advection(Nl[s], Nm[s], dp[s], xmin, xmax, Nx, ymin, ymax, Ny) );
 
-        // HA.push_back( Hydro_Advection_1D(Nl[s], Nm[s], dp[s], xmin, xmax, Nx) );
+//         // HA.push_back( Hydro_Advection_1D(Nl[s], Nm[s], dp[s], xmin, xmax, Nx) );
 
-        BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );
+//         BF.push_back( Magnetic_Field(Nl[s], Nm[s], dp[s]) );
 
-    }
+//     }
 
-}
+// }
 
 //--------------------------------------------------------------
 //
 //
-void VlasovFunctor2D_implicitE_p1::operator()(const State2D& Yin, State2D& Yslope){
-//--------------------------------------------------------------
-
-    Yslope = 0.0;
-
-    for (size_t s(0); s < Yin.Species(); ++s) {
-
-        if (Yin.DF(s).l0() == 1) 
-        {
-            SA[s].f1only(Yin.DF(s),Yslope.DF(s));
-            BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
-            // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
-        }
-        else {
-            SA[s](Yin.DF(s),Yslope.DF(s));
-            BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
-            // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
-        }
-
-        // if (Input::List().filterdistribution)  Yslope.DF(s) = Yslope.DF(s).Filterp();
-
-
-    }
-
-}
-void VlasovFunctor2D_implicitE_p1::operator()(const State2D& Yin, State2D& Yslope, size_t direction){}
-void VlasovFunctor2D_implicitE_p1::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){}
-
-
-//--------------------------------------------------------------
-//  Constructor
-VlasovFunctor1D_implicitE_p2::VlasovFunctor1D_implicitE_p2(vector<size_t> Nl,vector<size_t> Nm,
-                                                                vector<valarray<double> > dp,
-                                                           double xmin, double xmax, size_t Nx) {
+// void VlasovFunctor2D_implicitE_p1::operator()(const State2D& Yin, State2D& Yslope){
 // //--------------------------------------------------------------
 
-    for (size_t s(0); s < Nl.size(); ++s){
+//     Yslope = 0.0;
 
-        FA.push_back( Faraday(xmin, xmax, Nx, 0., 1., 1) );
-        EF.push_back( Electric_Field(Nl[s], Nm[s], dp[s]) );
+//     for (size_t s(0); s < Yin.Species(); ++s) {
 
-    }
+//         if (Yin.DF(s).l0() == 1) 
+//         {
+//             SA[s].f1only(Yin.DF(s),Yslope.DF(s));
+//             BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+//             // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
+//         }
+//         else {
+//             SA[s](Yin.DF(s),Yslope.DF(s));
+//             BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+//             // HA[s](Yin.DF(s),Yin.HYDRO(),Yslope.DF(s));
+//         }
 
-}
-//------------------------------------------------------------------------------------------------------
-void VlasovFunctor1D_implicitE_p2::operator()(const State1D& Yin, State1D& Yslope){
-// //---------------------------------------------------------------------------------------------------
+//         // if (Input::List().filterdistribution)  Yslope.DF(s) = Yslope.DF(s).Filterp();
 
-    Yslope = 0.0;
 
-    for (size_t s(0); s < Yin.Species(); ++s) {
-        FA[s](Yin.EMF(),Yslope.EMF());
+//     }
 
-        if (Yin.DF(s).l0() == 1) EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
-        else                     EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+// }
+// void VlasovFunctor2D_implicitE_p1::operator()(const State2D& Yin, State2D& Yslope, size_t direction){}
+// void VlasovFunctor2D_implicitE_p1::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){}
 
-        // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
 
-    }
+// //--------------------------------------------------------------
+// //  Constructor
+// VlasovFunctor1D_implicitE_p2::VlasovFunctor1D_implicitE_p2(vector<size_t> Nl,vector<size_t> Nm,
+//                                                                 vector<valarray<double> > dp,
+//                                                            double xmin, double xmax, size_t Nx) {
+// // //--------------------------------------------------------------
 
-}
+//     for (size_t s(0); s < Nl.size(); ++s){
 
-//--------------------------------------------------------------------------------------------------
-void VlasovFunctor1D_implicitE_p2::operator()(const State1D& Yin, State1D& Yslope, size_t direction){
-//--------------------------------------------------------------------------------------------------
+//         FA.push_back( Faraday(xmin, xmax, Nx, 0., 1., 1) );
+//         EF.push_back( Electric_Field(Nl[s], Nm[s], dp[s]) );
 
-    Yslope = 0.0;
+//     }
 
-    if (direction == 1)
-    {
-        for (size_t s(0); s < Yin.Species(); ++s) {
-            if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ex_f1only(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-            else                     EF[s].Implicit_Ex(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-            // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
-        }
-    }
-    else if (direction == 2)
-    {
-        for (size_t s(0); s < Yin.Species(); ++s) {
-            if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ey_f1only(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
-            else                     EF[s].Implicit_Ey(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
-            // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
-        }
-    }
-    else
-    {
-        // complex<double> ii(0.0,1.0);
-        for (size_t s(0); s < Yin.Species(); ++s) {
-            if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ez_f1only(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
-            else                     EF[s].Implicit_Ez(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
-            // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
-        }
-    }
+// }
+// //------------------------------------------------------------------------------------------------------
+// void VlasovFunctor1D_implicitE_p2::operator()(const State1D& Yin, State1D& Yslope){
+// // //---------------------------------------------------------------------------------------------------
 
-}
-void VlasovFunctor1D_implicitE_p2::operator()(const State1D& Yin, State1D& Yslope, double time, double dt){}
+//     Yslope = 0.0;
+
+//     for (size_t s(0); s < Yin.Species(); ++s) {
+//         FA[s](Yin.EMF(),Yslope.EMF());
+
+//         if (Yin.DF(s).l0() == 1) EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+//         else                     EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+
+//         // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+
+//     }
+
+// }
+
+// //--------------------------------------------------------------------------------------------------
+// void VlasovFunctor1D_implicitE_p2::operator()(const State1D& Yin, State1D& Yslope, size_t direction){
+// //--------------------------------------------------------------------------------------------------
+
+//     Yslope = 0.0;
+
+//     if (direction == 1)
+//     {
+//         for (size_t s(0); s < Yin.Species(); ++s) {
+//             if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ex_f1only(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+//             else                     EF[s].Implicit_Ex(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+//             // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         }
+//     }
+//     else if (direction == 2)
+//     {
+//         for (size_t s(0); s < Yin.Species(); ++s) {
+//             if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ey_f1only(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
+//             else                     EF[s].Implicit_Ey(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
+//             // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         }
+//     }
+//     else
+//     {
+//         // complex<double> ii(0.0,1.0);
+//         for (size_t s(0); s < Yin.Species(); ++s) {
+//             if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ez_f1only(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
+//             else                     EF[s].Implicit_Ez(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
+//             // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         }
+//     }
+
+// }
+// void VlasovFunctor1D_implicitE_p2::operator()(const State1D& Yin, State1D& Yslope, double time, double dt){}
 //--------------------------------------------------------------
 //  Constructor
-VlasovFunctor2D_implicitE_p2::VlasovFunctor2D_implicitE_p2(vector<size_t> Nl,vector<size_t> Nm,
-                                                                vector<valarray<double> > dp,
-                                                           double xmin, double xmax, size_t Nx,
-                                                           double ymin, double ymax, size_t Ny) {
-// //--------------------------------------------------------------
+// VlasovFunctor2D_implicitE_p2::VlasovFunctor2D_implicitE_p2(vector<size_t> Nl,vector<size_t> Nm,
+//                                                                 vector<valarray<double> > dp,
+//                                                            double xmin, double xmax, size_t Nx,
+//                                                            double ymin, double ymax, size_t Ny) {
+// // //--------------------------------------------------------------
 
-    for (size_t s(0); s < Nl.size(); ++s){
+//     for (size_t s(0); s < Nl.size(); ++s){
 
-        FA.push_back( Faraday(xmin, xmax, Nx, ymin, ymax, Ny) );
-        EF.push_back( Electric_Field(Nl[s], Nm[s], dp[s]) );
+//         FA.push_back( Faraday(xmin, xmax, Nx, ymin, ymax, Ny) );
+//         EF.push_back( Electric_Field(Nl[s], Nm[s], dp[s]) );
 
-    }
+//     }
 
-}
-//------------------------------------------------------------------------------------------------------
-void VlasovFunctor2D_implicitE_p2::operator()(const State2D& Yin, State2D& Yslope){
-// //---------------------------------------------------------------------------------------------------
+// }
+// //------------------------------------------------------------------------------------------------------
+// void VlasovFunctor2D_implicitE_p2::operator()(const State2D& Yin, State2D& Yslope){
+// // //---------------------------------------------------------------------------------------------------
 
-    Yslope = 0.0;
+//     Yslope = 0.0;
 
-    for (size_t s(0); s < Yin.Species(); ++s) {
-        FA[s](Yin.EMF(),Yslope.EMF());
+//     for (size_t s(0); s < Yin.Species(); ++s) {
+//         FA[s](Yin.EMF(),Yslope.EMF());
 
-        if (Yin.DF(s).l0() == 1) EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
-        else                     EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+//         if (Yin.DF(s).l0() == 1) EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+//         else                     EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
 
-        // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
 
-    }
+//     }
 
-}
+// }
 
-//--------------------------------------------------------------------------------------------------
-void VlasovFunctor2D_implicitE_p2::operator()(const State2D& Yin, State2D& Yslope, size_t direction){
-//--------------------------------------------------------------------------------------------------
+// //--------------------------------------------------------------------------------------------------
+// void VlasovFunctor2D_implicitE_p2::operator()(const State2D& Yin, State2D& Yslope, size_t direction){
+// //--------------------------------------------------------------------------------------------------
 
-    Yslope = 0.0;
+//     Yslope = 0.0;
 
-    if (direction == 1)
-    {
-        for (size_t s(0); s < Yin.Species(); ++s) {
-            if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ex_f1only(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-            else                     EF[s].Implicit_Ex(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-            // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
-        }
-    }
-    else if (direction == 2)
-    {
-        for (size_t s(0); s < Yin.Species(); ++s) {
-            if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ey_f1only(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
-            else                     EF[s].Implicit_Ey(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
-            // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
-        }
-    }
-    else
-    {
-        // complex<double> ii(0.0,1.0);
-        for (size_t s(0); s < Yin.Species(); ++s) {
-            if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ez_f1only(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
-            else                     EF[s].Implicit_Ez(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
-            // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
-        }
-    }
+//     if (direction == 1)
+//     {
+//         for (size_t s(0); s < Yin.Species(); ++s) {
+//             if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ex_f1only(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+//             else                     EF[s].Implicit_Ex(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+//             // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         }
+//     }
+//     else if (direction == 2)
+//     {
+//         for (size_t s(0); s < Yin.Species(); ++s) {
+//             if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ey_f1only(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
+//             else                     EF[s].Implicit_Ey(Yin.DF(s),Yin.EMF().Ey(),Yslope.DF(s));
+//             // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         }
+//     }
+//     else
+//     {
+//         // complex<double> ii(0.0,1.0);
+//         for (size_t s(0); s < Yin.Species(); ++s) {
+//             if (Yin.DF(s).l0() == 1) EF[s].Implicit_Ez_f1only(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
+//             else                     EF[s].Implicit_Ez(Yin.DF(s),Yin.EMF().Ez(),Yslope.DF(s));
+//             // if (Input::List().filterdistribution) Yslope.DF(s) = Yslope.DF(s).Filterp();
+//         }
+//     }
 
-}
-void VlasovFunctor2D_implicitE_p2::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){}
+// }
+// void VlasovFunctor2D_implicitE_p2::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){}
 
 
