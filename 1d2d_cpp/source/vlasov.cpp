@@ -1281,7 +1281,7 @@ void Electric_Field::MakeGH(const SHarmonic1D& f, SHarmonic1D& G, SHarmonic1D& H
     G *= -(2.0*ld+1.0)/ld;
     G += H;
 
-    for (size_t i(0); i < G.numx(); ++i) G(0,i) = 0.0;
+    for (size_t i(0); i < G.numx(); ++i) G(0,i) = (f(1,i) - f(0,i))/(pr[1]-pr[0]) - ld/pr[0]*f(0,i);
     for (size_t i(0); i < H.numx(); ++i) H(0,i) = (ld+1.0)/pr[0]*f(0,i) + (f(1,i) - f(0,i))/(pr[1]-pr[0]);
 
 }
