@@ -1304,13 +1304,13 @@ void DistFunc1D::Filterp()
         size_t last_resolved_cell;
         if (il < 256)
             last_resolved_cell = (Input::List().filter_pmax/dp[0]);
-        else if (il > 256 && il < 512)
+        else if (il > 255 && il < 512)
             last_resolved_cell = 2*(Input::List().filter_pmax/dp[0]);
-        else if (il > 512 && il < 1024)
+        else if (il > 511 && il < 1024)
             last_resolved_cell = 3*(Input::List().filter_pmax/dp[0]);
-        else if (il > 1024 && il < 1536)
+        else if (il > 1023 && il < 1536)
             last_resolved_cell = 4*(Input::List().filter_pmax/dp[0]);
-        else if (il > 1536 && il < 2048)
+        else if (il > 1535 && il < 2048)
             last_resolved_cell = 5*(Input::List().filter_pmax/dp[0]);
         else
             last_resolved_cell = 6*(Input::List().filter_pmax/dp[0]);
