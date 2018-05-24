@@ -1291,11 +1291,23 @@ DistFunc1D& DistFunc1D::operator-=(const DistFunc1D& other){
     return *this;
 }
 
-void DistFunc1D::Filterp(){
+void DistFunc1D::Filterp()
+{
+    
+    valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
+    size_t last_resolved_cell(Input::List().filter_pmax/dp[0]);
+
     #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for(size_t i = 0; i < dim() ; ++i) 
+    for(size_t il = 2; il < dim() ; ++il) 
     {
-        (*df)[i] *= complex<double>(exp(-36.*pow(i/(dim()-1),36)));
+        for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
+        {
+            for(size_t ip = 0; ip < last_resolved_cell; ++ip) 
+            {
+                (*df)[il](ip,ix) = (*df)[il](last_resolved_cell,ix)*pow(vr[ip]/vr[last_resolved_cell],il);
+            }
+        }
+        // (*df)[i] *= complex<double>(exp(-36.*pow(i/(dim()-1),36)));
         // (*df)[i].Filterp(i);
         // (*df)[i].Filterp(filter_ceiling[i]);
     }
