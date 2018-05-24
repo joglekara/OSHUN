@@ -1295,11 +1295,26 @@ void DistFunc1D::Filterp()
 {
     
     valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
-    size_t last_resolved_cell(Input::List().filter_pmax/dp[0]);
+    
 
     #pragma omp parallel for num_threads(Input::List().ompthreads)
     for(size_t il = 2; il < dim() ; ++il) 
     {
+        
+        size_t last_resolved_cell;
+        if (il < 256)
+            last_resolved_cell = (Input::List().filter_pmax/dp[0]);
+        else if (il > 256 && il < 512)
+            last_resolved_cell = 2*(Input::List().filter_pmax/dp[0]);
+        else if (il > 512 && il < 1024)
+            last_resolved_cell = 3*(Input::List().filter_pmax/dp[0]);
+        else if (il > 1024 && il < 1536)
+            last_resolved_cell = 4*(Input::List().filter_pmax/dp[0]);
+        else if (il > 1536 && il < 2048)
+            last_resolved_cell = 5*(Input::List().filter_pmax/dp[0]);
+        else
+            last_resolved_cell = 6*(Input::List().filter_pmax/dp[0]);
+
         for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
         {
             for(size_t ip = 0; ip < last_resolved_cell; ++ip) 
