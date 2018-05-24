@@ -1101,6 +1101,8 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
         {
             ind(il,0) = il;
 
+            first_resolved_cell[il] = static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0]));
+
             if (il > 255 && il < 512)
                 first_resolved_cell[il] = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
             else if (il > 511 && il < 1024)
