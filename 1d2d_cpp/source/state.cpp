@@ -1095,30 +1095,38 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
 //      Define the index for the triangular array 
     ind = -1;
 
+    double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/256.);
+    size_t filter_base(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
+    // double filter_numH(256.);
+
     if (mmax == 0)
     {
         for (size_t il(0); il < lmax+1 ; ++il)
         {
             ind(il,0) = il;
 
-            first_resolved_cell[il] = static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0]));
 
-            if (il > 255 && il < 512)
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
-            else if (il > 511 && il < 1024)
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
-            else if (il > 1023 && il < 1536)
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(4*Input::List().filter_pmax/dp[0]));
-            else if (il > 1535 && il < 2048)
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(5*Input::List().filter_pmax/dp[0]));
-            else if (il > 2047 && il < 2560)
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
-            else if (il > 2047 && il < 2560)
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
-            else if (il > 2559 && il < 3072)
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(7*Input::List().filter_pmax/dp[0]));
-            else
-                first_resolved_cell[il] = static_cast<size_t>(std::ceil(8*Input::List().filter_pmax/dp[0]));
+
+            first_resolved_cell[il] = filter_base + static_cast<size_t>(std::round(filter_pcell_per_harmonic * double(il)));
+
+            // static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0]));
+
+            // if (il > 255 && il < 512)
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
+            // else if (il > 511 && il < 1024)
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
+            // else if (il > 1023 && il < 1536)
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(4*Input::List().filter_pmax/dp[0]));
+            // else if (il > 1535 && il < 2048)
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(5*Input::List().filter_pmax/dp[0]));
+            // else if (il > 2047 && il < 2560)
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
+            // else if (il > 2047 && il < 2560)
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
+            // else if (il > 2559 && il < 3072)
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(7*Input::List().filter_pmax/dp[0]));
+            // else
+            //     first_resolved_cell[il] = static_cast<size_t>(std::ceil(8*Input::List().filter_pmax/dp[0]));
         }
 
     }
