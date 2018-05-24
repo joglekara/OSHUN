@@ -1303,17 +1303,17 @@ void DistFunc1D::Filterp()
         
         size_t last_resolved_cell;
         if (il < 256)
-            last_resolved_cell = (Input::List().filter_pmax/dp[0]);
+            last_resolved_cell = static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0]));
         else if (il > 255 && il < 512)
-            last_resolved_cell = 2*(Input::List().filter_pmax/dp[0]);
+            last_resolved_cell = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
         else if (il > 511 && il < 1024)
-            last_resolved_cell = 3*(Input::List().filter_pmax/dp[0]);
+            last_resolved_cell = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
         else if (il > 1023 && il < 1536)
-            last_resolved_cell = 4*(Input::List().filter_pmax/dp[0]);
+            last_resolved_cell = static_cast<size_t>(std::ceil(4*Input::List().filter_pmax/dp[0]));
         else if (il > 1535 && il < 2048)
-            last_resolved_cell = 5*(Input::List().filter_pmax/dp[0]);
+            last_resolved_cell = static_cast<size_t>(std::ceil(5*Input::List().filter_pmax/dp[0]));
         else
-            last_resolved_cell = 6*(Input::List().filter_pmax/dp[0]);
+            last_resolved_cell = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
 
         for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
         {
