@@ -1297,35 +1297,59 @@ void DistFunc1D::Filterp()
     valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
     
 
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
-    for(size_t il = 2; il < dim() ; ++il) 
+    if (Input::List().filter_pmax > 0.)
     {
-        
-        size_t last_resolved_cell(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
-    
-        if (il > 255 && il < 512)
-            last_resolved_cell = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
-        else if (il > 511 && il < 1024)
-            last_resolved_cell = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
-        else if (il > 1023 && il < 1536)
-            last_resolved_cell = static_cast<size_t>(std::ceil(4*Input::List().filter_pmax/dp[0]));
-        else if (il > 1535 && il < 2048)
-            last_resolved_cell = static_cast<size_t>(std::ceil(5*Input::List().filter_pmax/dp[0]));
-        else
-            last_resolved_cell = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
-
-        for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t il = 2; il < dim() ; ++il) 
         {
-            for(size_t ip = 0; ip < last_resolved_cell; ++ip) 
+            
+            size_t last_resolved_cell(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
+        
+            if (il > 255 && il < 512)
+                last_resolved_cell = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
+            else if (il > 511 && il < 1024)
+                last_resolved_cell = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
+            else if (il > 1023 && il < 1536)
+                last_resolved_cell = static_cast<size_t>(std::ceil(4*Input::List().filter_pmax/dp[0]));
+            else if (il > 1535 && il < 2048)
+                last_resolved_cell = static_cast<size_t>(std::ceil(5*Input::List().filter_pmax/dp[0]));
+            else
+                last_resolved_cell = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
+
+            for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
             {
-                (*df)[il](ip,ix) = (*df)[il](last_resolved_cell,ix)*pow(vr[ip]/vr[last_resolved_cell],il);
+                for(size_t ip = 0; ip < last_resolved_cell; ++ip) 
+                {
+                    (*df)[il](ip,ix) = (*df)[il](last_resolved_cell,ix)*pow(vr[ip]/vr[last_resolved_cell],il);
+
+                    if (!Input::List().collisions)
+                        (*df)[il](ip,ix) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+                }
+
+             
+                if (!Input::List().collisions)
+                {
+                    for(size_t ip = last_resolved_cell; ip < (*df)[il].nump(); ++ip) 
+                    {
+                        (*df)[il](ip,ix) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+                    }
+                }
+
             }
         }
-        // (*df)[i] *= complex<double>(exp(-36.*pow(i/(dim()-1),36)));
-        // (*df)[i].Filterp(i);
-        // (*df)[i].Filterp(filter_ceiling[i]);
     }
-    // return *this;
+    else
+    {
+        if (!Input::List().collisions)
+        {
+            #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t il = 2; il < dim() ; ++il)
+            {
+                (*df)[il] *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+            }
+        }
+    }
+        // (*df)[i].Filterp(i);
 }
 //--------------------------------------------------------------------------------------------------------------------------
 //  Moments for Hydro
