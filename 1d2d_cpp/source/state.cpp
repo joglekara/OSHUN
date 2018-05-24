@@ -1080,7 +1080,7 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
                         double q, double _ma)
         : lmax(l), mmax(m), sz(((m+1)*(2*l-m+2))/2),
         dp(_dp), 
-        charge(q), ma(_ma), ind(l+1,m+1) {
+        charge(q), ma(_ma), ind(l+1,m+1), first_resolved_cell(l+1) {
 
 //      Initialize the array of the harmonics
     if (lmax < 1) {
@@ -1100,6 +1100,23 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
         for (size_t il(0); il < lmax+1 ; ++il)
         {
             ind(il,0) = il;
+
+            if (il > 255 && il < 512)
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
+            else if (il > 511 && il < 1024)
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
+            else if (il > 1023 && il < 1536)
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(4*Input::List().filter_pmax/dp[0]));
+            else if (il > 1535 && il < 2048)
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(5*Input::List().filter_pmax/dp[0]));
+            else if (il > 2047 && il < 2560)
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
+            else if (il > 2047 && il < 2560)
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
+            else if (il > 2559 && il < 3072)
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(7*Input::List().filter_pmax/dp[0]));
+            else
+                first_resolved_cell[il] = static_cast<size_t>(std::ceil(8*Input::List().filter_pmax/dp[0]));
         }
 
     }
@@ -1114,6 +1131,10 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
             }
         }
     }
+
+
+            
+
 }
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
@@ -1295,32 +1316,17 @@ void DistFunc1D::Filterp()
 {
     
     valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
-    
 
     if (Input::List().filter_pmax > 0.)
     {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t il = 2; il < dim() ; ++il) 
         {
-            
-            size_t last_resolved_cell(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
-        
-            if (il > 255 && il < 512)
-                last_resolved_cell = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
-            else if (il > 511 && il < 1024)
-                last_resolved_cell = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
-            else if (il > 1023 && il < 1536)
-                last_resolved_cell = static_cast<size_t>(std::ceil(4*Input::List().filter_pmax/dp[0]));
-            else if (il > 1535 && il < 2048)
-                last_resolved_cell = static_cast<size_t>(std::ceil(5*Input::List().filter_pmax/dp[0]));
-            else
-                last_resolved_cell = static_cast<size_t>(std::ceil(6*Input::List().filter_pmax/dp[0]));
-
             for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
             {
-                for(size_t ip = 0; ip < last_resolved_cell; ++ip) 
+                for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
                 {
-                    (*df)[il](ip,ix) = (*df)[il](last_resolved_cell,ix)*pow(vr[ip]/vr[last_resolved_cell],il);
+                    (*df)[il](ip,ix) = (*df)[il](first_resolved_cell[il],ix)*pow(vr[ip]/vr[first_resolved_cell[il]],il);
 
                     if (!Input::List().collisions)
                         (*df)[il](ip,ix) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
@@ -1329,7 +1335,7 @@ void DistFunc1D::Filterp()
              
                 if (!Input::List().collisions)
                 {
-                    for(size_t ip = last_resolved_cell; ip < (*df)[il].nump(); ++ip) 
+                    for(size_t ip = first_resolved_cell[il]; ip < (*df)[il].nump(); ++ip) 
                     {
                         (*df)[il](ip,ix) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
                     }

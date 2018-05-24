@@ -375,6 +375,8 @@ private:
 
     Array2D<int> ind;
 
+    valarray<size_t> first_resolved_cell;
+
 public:
 
 //      Constructors/Destructors
