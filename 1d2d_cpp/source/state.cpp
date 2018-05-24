@@ -1301,10 +1301,9 @@ void DistFunc1D::Filterp()
     for(size_t il = 2; il < dim() ; ++il) 
     {
         
-        size_t last_resolved_cell;
-        if (il < 256)
-            last_resolved_cell = static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0]));
-        else if (il > 255 && il < 512)
+        size_t last_resolved_cell(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
+    
+        if (il > 255 && il < 512)
             last_resolved_cell = static_cast<size_t>(std::ceil(2*Input::List().filter_pmax/dp[0]));
         else if (il > 511 && il < 1024)
             last_resolved_cell = static_cast<size_t>(std::ceil(3*Input::List().filter_pmax/dp[0]));
