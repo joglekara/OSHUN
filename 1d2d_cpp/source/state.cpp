@@ -1095,7 +1095,7 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
 //      Define the index for the triangular array 
     ind = -1;
 
-    double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/256.);
+    double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/Input::List().filter_dp);
     size_t filter_base(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
     // double filter_numH(256.);
 
@@ -1145,7 +1145,7 @@ DistFunc1D:: DistFunc1D(const DistFunc1D& other)
         (*df).push_back(other(i));
     }
 
-    double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/256.);
+    double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/Input::List().filter_dp);
     size_t filter_base(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
      // Define the index for the triangular array 
     ind = -1;
