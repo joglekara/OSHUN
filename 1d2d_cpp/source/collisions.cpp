@@ -2026,6 +2026,8 @@ void collisions_1D::advance(State1D& Yin, const double time, const double step_s
         // std::cout << "\n 11 \n";
         // Yh.checknan();
         advanceflm(Yin,Yh);
+
+        Yh.DF(0).Filterp();
         // std::cout << "\n 12 \n";
         // Yh.checknan();
     }
