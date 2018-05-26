@@ -1312,7 +1312,7 @@ void DistFunc1D::Filterp()
     if (Input::List().filter_pmax > 0.)
     {
         #pragma omp parallel for num_threads(Input::List().ompthreads)
-        for(size_t il = 2; il < dim() ; ++il) 
+        for(size_t il = 1; il < dim() ; ++il) 
         {
             for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
             {
@@ -1324,7 +1324,6 @@ void DistFunc1D::Filterp()
                         (*df)[il](ip,ix) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
                 }
 
-             
                 if (!Input::List().collisions)
                 {
                     for(size_t ip = first_resolved_cell[il]; ip < (*df)[il].nump(); ++ip) 
@@ -1332,7 +1331,6 @@ void DistFunc1D::Filterp()
                         (*df)[il](ip,ix) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
                     }
                 }
-
             }
         }
     }
@@ -1341,7 +1339,7 @@ void DistFunc1D::Filterp()
         if (!Input::List().collisions)
         {
             #pragma omp parallel for num_threads(Input::List().ompthreads)
-            for(size_t il = 2; il < dim() ; ++il)
+            for(size_t il = 1; il < dim() ; ++il)
             {
                 (*df)[il] *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
             }
