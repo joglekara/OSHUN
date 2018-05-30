@@ -205,6 +205,14 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 vtemp /= Yin.DF(s).mass();
                 
                 valarray<complex<double> > Ex(Yin.FLD(0).array());
+                
+
+
+                EMF1D EMF_ext(Yin.DF(s)(0,0).numx()); EMF_ext = static_cast<complex<double> > (0.0);
+
+                if (Input::List().trav_wave) WD.applytravelingwave(EMF_ext,time + dt*0.5);
+                // valarray<complex<double> > Ex_ext(EMF_ext(0).array());
+                Ex = Ex + EMF_ext(0).array();
                 Ex *= Yin.DF(s).q();
                 
 
@@ -282,6 +290,13 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 vtemp /= Yin.DF(s).mass();    
 
                 valarray<complex<double> > Ex(Yin.FLD(0).array());
+                
+                EMF1D EMF_ext(Yin.DF(s)(0,0).numx()); EMF_ext = static_cast<complex<double> > (0.0);
+                
+                if (Input::List().trav_wave) WD.applytravelingwave(EMF_ext,time + dt*0.5);
+                // valarray<complex<double> > Ex_ext(EMF_ext(0).array());
+                Ex = Ex + EMF_ext(0).array();
+
                 Ex *= Yin.DF(s).q();
 
             //  Initialize Ex so that it its ready for loop iteration l
@@ -338,7 +353,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
 
     }
 
-    if (Input::List().trav_wave) WD.applytravelingwave(Yslope.EMF(),time);
+    // if (Input::List().trav_wave) WD.applytravelingwave(Yslope.EMF(),time);
     
 }
 
