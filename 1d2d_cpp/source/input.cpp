@@ -47,7 +47,7 @@ Input::Input_List::Input_List():
     ymin(-1000.0),
     ymax(1000.0),
     dt(1.0),
-    filterdistribution(0),filter_dp(0.0001),filter_pmax(0.0002),
+    filterdistribution(0),filter_dp(0.0001),filter_pmax(0.0002), filter_Nl(0),
     if_tridiagonal(1),
     implicit_E(1),
     dbydx_order(2),dbydy_order(2),dbydv_order(2),
@@ -446,6 +446,15 @@ Input::Input_List::Input_List():
                     exit(1);
                 }
                 deckfile >> filter_pmax;
+            }
+            if (deckstring == "filter_Nl") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                filter_Nl = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
 
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////

@@ -625,19 +625,28 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 template<class T> Array2D<T>& Array2D<T>::Dd2_4th_order(){
     Array2D<T> temp(*this);
 
-    complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
-    complex<double> fourthirds(static_cast<complex<double> >(4./3.));
+    // complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
+    // complex<double> fourthirds(static_cast<complex<double> >(4./3.));
+
+    // for (long i1(0); i1<long(d1);++i1)
+    // {
+    //     temp(i1,1)  = ((*this)(i1,0))-((*this)(i1,2));
+    //     temp(i1,d2-2)  = ((*this)(i1,d2-3))-((*this)(i1,d2-1));
+    // }
 
     for (long i2(2); i2<long(d2)-2;++i2)
     {
         for (long i1(0); i1<long(d1);++i1)
         {
-            temp(i1,i2)  = onesixth*((*this)(i1,i2+2));
-            temp(i1,i2) -= fourthirds*(*this)(i1,i2+1);
-            temp(i1,i2) += fourthirds*(*this)(i1,i2-1);
-            temp(i1,i2) -= onesixth*(*this)(i1,i2-2);         
+            temp(i1,i2)  = 0.5*((*this)(i1,i2+2));
+            temp(i1,i2) -= 4.0*(*this)(i1,i2+1);
+            temp(i1,i2) += 4.0*(*this)(i1,i2-1);
+            temp(i1,i2) -= 0.5*(*this)(i1,i2-2);         
+            temp(i1,i2) /= 3.0;
         }
    }
+   
+
 
    *this = temp; 
    

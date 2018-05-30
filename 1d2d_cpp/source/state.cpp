@@ -1320,11 +1320,11 @@ void DistFunc1D::Filterp()
                 {
                     (*df)[il](ip,ix) = (*df)[il](first_resolved_cell[il],ix)*pow(vr[ip]/vr[first_resolved_cell[il]],il);
 
-                    if (!Input::List().collisions)
+                    if (Input::List().filter_Nl)
                         (*df)[il](ip,ix) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
                 }
 
-                if (!Input::List().collisions)
+                if (Input::List().filter_Nl)
                 {
                     for(size_t ip = first_resolved_cell[il]; ip < (*df)[il].nump(); ++ip) 
                     {
@@ -1336,7 +1336,7 @@ void DistFunc1D::Filterp()
     }
     else
     {
-        if (!Input::List().collisions)
+        if (Input::List().filter_Nl)
         {
             #pragma omp parallel for num_threads(Input::List().ompthreads)
             for(size_t il = 1; il < dim() ; ++il)

@@ -50,7 +50,7 @@ namespace Input{
 
         double dt;
 
-        bool filterdistribution;
+        bool filterdistribution, filter_Nl;
         double filter_dp, filter_pmax;
 
 //          Algorithms
