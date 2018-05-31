@@ -588,29 +588,21 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_2nd_order(){
 template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
 
     Array2D<T> temp(*this);
-    // temp = static_cast<complex<double> > (0.);
-
-    complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
-    complex<double> eight(static_cast<complex<double> >(8.));
 
     for (long i2(0); i2<long(d2);++i2)
     {
-        temp(0,i2) = -1./onesixth*(-3.0*(*this)(0,i2) + 4.*(*this)(1,i2) - (*this)(2,i2));
-        temp(1,i2) = ((*this)(0,i2)-(*this)(2,i2))/onesixth;
+        temp(0,i2) = (3.0*(*this)(0,i2) - 4.*(*this)(1,i2) + (*this)(2,i2));
+        temp(1,i2) = ((*this)(0,i2)-(*this)(2,i2));
 
         for (long i1(2); i1<long(d1)-2;++i1)
         {
-            temp(i1,i2)  = ((*this)(i1+2,i2));
-            temp(i1,i2) -= eight*(*this)(i1+1,i2);
-            temp(i1,i2) += eight*(*this)(i1-1,i2);
-            temp(i1,i2) -= (*this)(i1-2,i2);
+            temp(i1,i2)  = 1./6.*((*this)(i1+2,i2)-(*this)(i1-2,i2));
+            temp(i1,i2) += 4.0/3.0*((*this)(i1-1,i2)-(*this)(i1+1,i2));
         }
         
-        temp(long(d1)-2,i2) = ((*this)(long(d1)-3,i2)-(*this)(long(d1)-1,i2))/onesixth;
-        temp(long(d1)-1,i2) = -1./onesixth*(3.0*(*this)(long(d1)-1,i2) - 4.*(*this)(long(d1)-2,i2) + (*this)(long(d1)-3,i2));
+        temp(long(d1)-2,i2) = ((*this)(long(d1)-3,i2)-(*this)(long(d1)-1,i2));
+        temp(long(d1)-1,i2) = (-3.0*(*this)(long(d1)-1,i2) + 4.*(*this)(long(d1)-2,i2) - (*this)(long(d1)-3,i2));
    }
-
-   temp *= onesixth;
 
    *this = temp; 
     return *this;
@@ -638,10 +630,8 @@ template<class T> Array2D<T>& Array2D<T>::Dd2_4th_order(){
     {
         for (long i1(0); i1<long(d1);++i1)
         {
-            temp(i1,i2)  = 0.5*((*this)(i1,i2+2));
-            temp(i1,i2) -= 4.0*(*this)(i1,i2+1);
-            temp(i1,i2) += 4.0*(*this)(i1,i2-1);
-            temp(i1,i2) -= 0.5*(*this)(i1,i2-2);         
+            temp(i1,i2)  = 0.5*((*this)(i1,i2+2)-(*this)(i1,i2-2));
+            temp(i1,i2) += 4.0*((*this)(i1,i2-1)-(*this)(i1,i2+1));
             temp(i1,i2) /= 3.0;
         }
    }

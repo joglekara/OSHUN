@@ -1165,72 +1165,110 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 //  Information exchange between neighbors 
 //--------------------------------------------------------------
 
-    int moduloX(RANK() % 2);
-    int RNx((RANK() + 1) % MPI_Processes()),         // This is the right neighbor
-            LNx((RANK() - 1 + MPI_Processes()) % MPI_Processes()); // This is the left  neighbor
+    int moduloX(RANK()%2);
+    int RNx((RANK()+1)%MPI_Processes()),         // This is the right neighbor
+            LNx((RANK()-1+MPI_Processes())%MPI_Processes()); // This is the left  neighbor
 
     if (MPI_Processes() > 1) {
         //even nodes
+        if (moduloX==0){
+            X_Data.Send_right_X(Y,RNx);                  //   (Send) 0 --> 1
+            if ((RANK() != 0) || (BNDX()==0)){
+                X_Data.Recv_from_left_X(Y,LNx);          //          1 --> 0 (Receive)
+                X_Data.Send_left_X(Y,LNx);               //          1 <-- 0 (Send)
+            }
+            else {
+                if (BNDX()==1) {
+                    X_Data.mirror_bound_Xleft(Y);        // Update node "0" in the x direction
+                }
+                else {
+                    cout<<"Invalid Boundary." << endl;
+                }
+            }
+            X_Data.Recv_from_right_X(Y,RNx);               // (Receive) 0 <-- 1
+        }
+            //odd nodes 
+        else {
+            X_Data.Recv_from_left_X(Y,LNx);               //           0 --> 1 (Receive)
+            if ((RANK()!=(MPI_Processes()-1)) || (BNDX()==0)){
+                X_Data.Send_right_X(Y,RNx);              //   (Send)  1 --> 0
+                X_Data.Recv_from_right_X(Y,RNx);         // (Receive) 1 <-- 0
+            }
+            else {
+                if (BNDX()==1) {
+                    X_Data.mirror_bound_Xright(Y);        // Update node "N-1" in the x direction
+                }
+                else {
+                    cout<<"Invalid Boundary." << endl;;
+                }
+            }
+            X_Data.Send_left_X(Y,LNx);                    //           0 <-- 1 (Send)
+        }
+    }
+    else { X_Data.sameNode_bound_X(Y); }
+
+    // if (MPI_Processes() > 1) {
+        //even nodes
 //        if (moduloX==0){
         
-        if (BNDX() == 0) {
-            if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
-                X_Data.Send_right_X(Y, RNx);                  //   (Send) 0 --> 1
-                X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
-                X_Data.Recv_from_right_X(Y, RNx);               // (Receive) 0 <-- 1
-            } else if (RANK() == 0) {                         /// Update node "0" in the x direction
-                X_Data.Recv_from_left_X(Y, MPI_Processes() - 1);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, MPI_Processes() - 1);               //          1 <-- 0 (Send)
-                X_Data.Send_right_X(Y, RNx);                ///   (Send) 0 --> 1
-                X_Data.Recv_from_right_X(Y, RNx);           /// (Receive) 0 <-- 1
-            } else if (RANK() == MPI_Processes() - 1) {               ///        // Update node "MPI_Processes()" in the x direction
-                X_Data.Send_right_X(Y, 0);                  //   (Send) 0 --> 1
-                X_Data.Recv_from_right_X(Y, 0);           /// (Receive) 0 <-- 1
-                X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
-            }
-        } 
-        else if (BNDX() == 1) {
-            if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
-                X_Data.Send_right_X(Y, RNx);                  //   (Send) 0 --> 1
-                X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
-                X_Data.Recv_from_right_X(Y, RNx);               // (Receive) 0 <-- 1
-            } else if (RANK() == 0) {                         /// Update node "0" in the x direction
-                X_Data.mirror_bound_Xleft(Y);
-                X_Data.Send_right_X(Y, RNx);                ///   (Send) 0 --> 1
-                X_Data.Recv_from_right_X(Y, RNx);           /// (Receive) 0 <-- 1
-            } else if (RANK() == MPI_Processes() - 1) {               ///        // Update node "MPI_Processes()" in the x direction
-                X_Data.mirror_bound_Xright(Y);
-                X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
-            }
+        // if (BNDX() == 0) {
+        //     if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
+        //         X_Data.Send_right_X(Y, RNx);                  //   (Send) 0 --> 1
+        //         X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
+        //         X_Data.Recv_from_right_X(Y, RNx);               // (Receive) 0 <-- 1
+        //     } else if (RANK() == 0) {                         /// Update node "0" in the x direction
+        //         X_Data.Recv_from_left_X(Y, MPI_Processes() - 1);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, MPI_Processes() - 1);               //          1 <-- 0 (Send)
+        //         X_Data.Send_right_X(Y, RNx);                ///   (Send) 0 --> 1
+        //         X_Data.Recv_from_right_X(Y, RNx);           /// (Receive) 0 <-- 1
+        //     } else if (RANK() == MPI_Processes() - 1) {               ///        // Update node "MPI_Processes()" in the x direction
+        //         X_Data.Send_right_X(Y, 0);                  //   (Send) 0 --> 1
+        //         X_Data.Recv_from_right_X(Y, 0);           /// (Receive) 0 <-- 1
+        //         X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
+        //     }
+        // } 
+        // else if (BNDX() == 1) {
+        //     if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
+        //         X_Data.Send_right_X(Y, RNx);                  //   (Send) 0 --> 1
+        //         X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
+        //         X_Data.Recv_from_right_X(Y, RNx);               // (Receive) 0 <-- 1
+        //     } else if (RANK() == 0) {                         /// Update node "0" in the x direction
+        //         X_Data.mirror_bound_Xleft(Y);
+        //         X_Data.Send_right_X(Y, RNx);                ///   (Send) 0 --> 1
+        //         X_Data.Recv_from_right_X(Y, RNx);           /// (Receive) 0 <-- 1
+        //     } else if (RANK() == MPI_Processes() - 1) {               ///        // Update node "MPI_Processes()" in the x direction
+        //         X_Data.mirror_bound_Xright(Y);
+        //         X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
+        //     }
 
-        }
-        else if (BNDX() == 2) {
-            if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
-                X_Data.Send_right_X(Y, RNx);                  //   (Send) 0 --> 1
-                X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
-                X_Data.Recv_from_right_X(Y, RNx);               // (Receive) 0 <-- 1
-            } else if (RANK() == 0) {                         /// Update node "0" in the x direction
-                X_Data.Recv_from_left_X(Y, MPI_Processes() - 1);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, MPI_Processes() - 1);               //          1 <-- 0 (Send)
-                X_Data.Send_right_X(Y, RNx);                ///   (Send) 0 --> 1
-                X_Data.Recv_from_right_X(Y, RNx);           /// (Receive) 0 <-- 1
-            } else if (RANK() == MPI_Processes() - 1) {               ///        // Update node "MPI_Processes()" in the x direction
-                X_Data.Send_right_X(Y, 0);                  //   (Send) 0 --> 1
-                X_Data.Recv_from_right_X(Y, 0);           /// (Receive) 0 <-- 1
-                X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
-                X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
-            }
+        // }
+        // else if (BNDX() == 2) {
+        //     if (((RANK() != 0) && (RANK() != MPI_Processes() - 1))) {
+        //         X_Data.Send_right_X(Y, RNx);                  //   (Send) 0 --> 1
+        //         X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
+        //         X_Data.Recv_from_right_X(Y, RNx);               // (Receive) 0 <-- 1
+        //     } else if (RANK() == 0) {                         /// Update node "0" in the x direction
+        //         X_Data.Recv_from_left_X(Y, MPI_Processes() - 1);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, MPI_Processes() - 1);               //          1 <-- 0 (Send)
+        //         X_Data.Send_right_X(Y, RNx);                ///   (Send) 0 --> 1
+        //         X_Data.Recv_from_right_X(Y, RNx);           /// (Receive) 0 <-- 1
+        //     } else if (RANK() == MPI_Processes() - 1) {               ///        // Update node "MPI_Processes()" in the x direction
+        //         X_Data.Send_right_X(Y, 0);                  //   (Send) 0 --> 1
+        //         X_Data.Recv_from_right_X(Y, 0);           /// (Receive) 0 <-- 1
+        //         X_Data.Recv_from_left_X(Y, LNx);          //          1 --> 0 (Receive)
+        //         X_Data.Send_left_X(Y, LNx);               //          1 <-- 0 (Send)
+        //     }
 
-        }
-        else {
-            cout << "Invalid Boundary." << endl;
-        }
-
+        // }
+        // else {
+        //     cout << "Invalid Boundary." << endl;
+        // }
+        
 //            //odd nodes
 //        else {
 //            X_Data.Recv_from_left_X(Y,LNx);               //           0 --> 1 (Receive)
@@ -1248,7 +1286,7 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 //            }
 //            X_Data.Send_left_X(Y,LNx);                    //           0 <-- 1 (Send)
 //        }
-    } else { X_Data.sameNode_bound_X(Y); }
+    // } else { X_Data.sameNode_bound_X(Y); }
 
 }
 //--------------------------------------------------------------

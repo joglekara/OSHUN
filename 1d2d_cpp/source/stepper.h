@@ -138,7 +138,7 @@ private:
 
     // State2D  Y0_2D, Y1_2D, Y2_2D, Yh_2D;
 
-    double onethird, twothird;
+    complex<double> onethird, twothird;
 };
 //--------------------------------------------------------------
 class RKDP85 {

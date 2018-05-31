@@ -175,18 +175,23 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
 
     Yslope = static_cast<complex<double> > (0.0);
 
+    
+
     for (size_t s(0); s < Yin.Species(); ++s) 
     {
 
+        EMF1D EMF_ext(Yin.DF(s)(0,0).numx()); EMF_ext = static_cast<complex<double> > (0.0);
+        if (Input::List().trav_wave) WD.applytravelingwave(EMF_ext,time + dt*0.5);
+
         if (Yin.DF(s).m0() == 0) 
         {
-
+            // std::cout << "\n10\n";
             // EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
             JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
             // SA[s].es1d(Yin.DF(s),Yslope.DF(s));
 
             size_t l0(Yin.DF(s).l0());
-
+            
             #pragma omp parallel num_threads(Input::List().ompthreads)
             {   
                 size_t this_thread  = omp_get_thread_num();
@@ -195,7 +200,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 size_t f_start_thread(EF[s].get_f_start(this_thread));
                 size_t f_end_thread(EF[s].get_f_end(this_thread));
 
-
+                
                 // std::cout << "\n els[ " << this_thread << "] = " << f_start_thread << "....\n";
                 // std::cout << "\n ele[ " << this_thread << "] = " << f_end_thread << "....\n";
                 //  Initialize work variables
@@ -203,18 +208,13 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 
                 valarray<complex<double> > vtemp(SA[s].get_vr());
                 vtemp /= Yin.DF(s).mass();
-                
+
+
                 valarray<complex<double> > Ex(Yin.FLD(0).array());
                 
-
-
-                EMF1D EMF_ext(Yin.DF(s)(0,0).numx()); EMF_ext = static_cast<complex<double> > (0.0);
-
-                if (Input::List().trav_wave) WD.applytravelingwave(EMF_ext,time + dt*0.5);
                 // valarray<complex<double> > Ex_ext(EMF_ext(0).array());
                 Ex = Ex + EMF_ext(0).array();
                 Ex *= Yin.DF(s).q();
-                
 
                 //  -------------------------------------------------------- //
                 //   First thread takes the boundary conditions (l = 0)
@@ -223,7 +223,6 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 //  -------------------------------------------------------- //
                 if (this_thread == 0)
                 {
-
                     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
                     //      m = 0, l = 0
                     // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -231,8 +230,8 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                     Ex *= EF[s].getA1(0,0);  Yslope.DF(s)(1,0) += fd1.mxaxis(Ex);
 
 
-                    fd1 = Yin.DF(s)(0,0);                         fd1 = fd1.Dx(Input::List().dbydx_order);
-                    vtemp *= SA[s].getA1(0,0);                       Yslope.DF(s)(1,0) += fd1.mpaxis(vtemp);
+                    fd1 = Yin.DF(s)(0,0);                           fd1.Dx(Input::List().dbydx_order); //fd1 = complex<double>(0.);
+                    vtemp *= SA[s].getA1(0,0);                      Yslope.DF(s)(1,0) += fd1.mpaxis(vtemp);
                     vtemp /= SA[s].getA1(0,0);
 
                     f_start_thread = 1;
@@ -249,8 +248,8 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                     Ex /= EF[s].getA2(l0,0);             // Reset Ex
                     
                         
-                    fd1 = Yin.DF(s)(l0,0);                        fd1 = fd1.Dx(Input::List().dbydx_order);
-                    vtemp *= SA[s].getA2(l0,0);                      Yslope.DF(s)(l0-1,0) += fd1.mpaxis(vtemp);
+                    fd1 = Yin.DF(s)(l0,0);                          fd1.Dx(Input::List().dbydx_order); //fd1 = complex<double>(0.);
+                    vtemp *= SA[s].getA2(l0,0);                     Yslope.DF(s)(l0-1,0) += fd1.mpaxis(vtemp);
                     vtemp /= SA[s].getA2(l0,0);
 
                     f_end_thread -= 1;
@@ -268,11 +267,11 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 {
                     EF[s].MakeGH(Yin.DF(s)(l,0),fd1,fd2,l);
 
-                    Ex *= EF[s].getA2(l,0) / EF[s].getA1(l-1,0);  Yslope.DF(s)(l-1,0) += fd2.mxaxis(Ex);
-                    Ex *= EF[s].getA1(l,0) / EF[s].getA2(l,0);   Yslope.DF(s)(l+1,0) += fd1.mxaxis(Ex);
+                    Ex *= EF[s].getA2(l,0) / EF[s].getA1(l-1,0);    Yslope.DF(s)(l-1,0) += fd2.mxaxis(Ex);
+                    Ex *= EF[s].getA1(l,0) / EF[s].getA2(l,0);      Yslope.DF(s)(l+1,0) += fd1.mxaxis(Ex);
 
                     fd1 = Yin.DF(s)(l,0);  //std::cout << "\n \n before dx, l = " << l << " \n";          
-                    fd1 = fd1.Dx(Input::List().dbydx_order);  //std::cout << " \n after dx\n";
+                    fd1.Dx(Input::List().dbydx_order);  //fd1 = complex<double>(0.); //std::cout << " \n after dx\n";
 
                     vtemp *= SA[s].getA2(l,0)/SA[s].getA1(l-1,0);    fd2 = fd1;  Yslope.DF(s)(l-1,0) += fd1.mpaxis(vtemp);
                     vtemp *= SA[s].getA1(l,0)/SA[s].getA2(l  ,0);                Yslope.DF(s)(l+1,0) += fd2.mpaxis(vtemp);
@@ -290,11 +289,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 vtemp /= Yin.DF(s).mass();    
 
                 valarray<complex<double> > Ex(Yin.FLD(0).array());
-                
-                EMF1D EMF_ext(Yin.DF(s)(0,0).numx()); EMF_ext = static_cast<complex<double> > (0.0);
-                
-                if (Input::List().trav_wave) WD.applytravelingwave(EMF_ext,time + dt*0.5);
-                // valarray<complex<double> > Ex_ext(EMF_ext(0).array());
+
                 Ex = Ex + EMF_ext(0).array();
 
                 Ex *= Yin.DF(s).q();
@@ -312,7 +307,7 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                     Ex *= EF[s].getA1(l,0) / EF[s].getA2(l,0);       Yslope.DF(s)(l+1,0) += fd1.mxaxis(Ex); 
 
                     fd1 = Yin.DF(s)(l,0);  //std::cout << "\n \n before dx, l = " << l << " \n";          
-                    fd1 = fd1.Dx(Input::List().dbydx_order); //std::cout << " \n after dx\n";
+                    fd1.Dx(Input::List().dbydx_order); //fd1 = complex<double>(0.);//std::cout << " \n after dx\n";
 
                     vtemp *= SA[s].getA2(l,0)/SA[s].getA1(l-1,0);    fd2 = fd1;  Yslope.DF(s)(l-1,0) += fd1.mpaxis(vtemp);
                     vtemp *= SA[s].getA1(l,0)/SA[s].getA2(l  ,0);                Yslope.DF(s)(l+1,0) += fd2.mpaxis(vtemp);

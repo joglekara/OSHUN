@@ -1421,21 +1421,21 @@ valarray<double> DistFunc1D::getcurrent(size_t dir){
 
     if (dir == 0)
     {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i<(*df)[0].numx();++i){
             out[i] = (4.0/3.0*M_PI*charge/ma)*(Algorithms::moment((*df)[1].xVec(i),vr,3.0)).real();
         }
     }
     else if (dir == 1)
     {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i<(*df)[0].numx();++i){
             out[i] = (8.0/3.0*M_PI*charge/ma)*(Algorithms::moment((*df)[2].xVec(i),vr,3.0)).real();
         }
     }
     else if (dir == 2)
     {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i<(*df)[0].numx();++i){
             out[i] = (-8.0/3.0*M_PI*charge/ma)*(Algorithms::moment((*df)[2].xVec(i),vr,3.0)).imag();
         }
@@ -1469,21 +1469,21 @@ valarray<double> DistFunc1D::getcurrent(size_t dir) const{
 
     if (dir == 0)
     {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i<(*df)[0].numx();++i){
             out[i] = (4.0/3.0*M_PI*charge/ma)*(Algorithms::moment((*df)[1].xVec(i),vr,3.0)).real();
         }
     }
     else if (dir == 1)
     {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i<(*df)[0].numx();++i){
             out[i] = (8.0/3.0*M_PI*charge/ma)*(Algorithms::moment((*df)[2].xVec(i),vr,3.0)).real();
         }
     }
     else if (dir == 2)
     {
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        // #pragma omp parallel for num_threads(Input::List().ompthreads)
         for (size_t i = 0; i<(*df)[0].numx();++i){
             out[i] = (-8.0/3.0*M_PI*charge/ma)*(Algorithms::moment((*df)[2].xVec(i),vr,3.0)).imag();
         }
@@ -1518,7 +1518,7 @@ Array2D<double> DistFunc1D::getcurrent() const{
     double current_c2(2.0*current_c1);
     double current_c3(-1.0*current_c2);
 
-    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    // #pragma omp parallel for num_threads(Input::List().ompthreads)
     for (size_t i = 0; i<(*df)[0].numx();++i)
     {
         out(0,i) = (current_c1)*(Algorithms::moment((*df)[1].xVec(i),vr,3.0)).real();

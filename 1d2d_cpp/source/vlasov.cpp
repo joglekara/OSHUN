@@ -238,8 +238,8 @@ Electric_Field::Electric_Field(size_t Nl, size_t Nm, valarray<double> dp)
     // // std::cout << "\n numthreads = " << num_threads << "\n\n";    
     //     size_t lsperthread = static_cast<size_t>(Nl/num_threads - 2);
         
-        if (num_threads > 1) 
-        {    
+    if (num_threads > 1) 
+    {    
             f_start[0] = 1;
             f_end[0]   = fsperthread - 2;           // Remember that f_end isn't actually processed
                                                 // until the boundaries so that a gap of 2 is 
@@ -258,6 +258,9 @@ Electric_Field::Electric_Field(size_t Nl, size_t Nm, valarray<double> dp)
 
         f_start[num_threads-1] = f_end[num_threads-2] + 2;
         f_end[num_threads-1]   = num_dists; 
+
+        // if (num_threads > 1)    std::cout << "\nls[" << num_threads-1 << "]=" << f_start[num_threads-1] << "\n\n";
+        // if (num_threads > 1)    std::cout << "le[" << num_threads-1 << "]=" << f_end[num_threads-1] << "\n\n";
     }
     else
     {
@@ -3726,16 +3729,34 @@ void Spatial_Advection::es1d(const DistFunc1D& Din, DistFunc1D& Dh) {
         //  -------------------------------------------------------- //
         if (this_thread == 0)
         {
-            fd1 = Din(0,0);                         fd1 = fd1.Dx(Input::List().dbydx_order);
+            fd1 = Din(0,0);                         
+
+            // for (size_t ix(0); ix < Dh(0,0).numx(); ++ix)
+            // {
+            //     std::cout << "\n fd0a(" << ix << "," << 0 << ") = " << fd1(4,ix);
+            // }
+
+            fd1.Dx(Input::List().dbydx_order);
+
+            // for (size_t ix(0); ix < Dh(0,0).numx(); ++ix)
+            // {
+            //     std::cout << "\n fd0b(" << ix << "," << 0 << ") = " << fd1(4,ix);
+            // }
+
             vtemp *= A1(0,0);                       Dh(1,0) += fd1.mpaxis(vtemp);
             vtemp /= A1(0,0);
+
+            // for (size_t ix(0); ix < Dh(0,0).numx(); ++ix)
+            // {
+            //     std::cout << "\n dh(" << ix << "," << 1 << ") = " << Dh(1,0)(4,ix);
+            // }
 
             f_start_thread = 1;
         }
 
         if (this_thread == Input::List().ompthreads - 1)    
         {    
-            fd1 = Din(l0,0);                        fd1 = fd1.Dx(Input::List().dbydx_order);
+            fd1 = Din(l0,0);                        fd1.Dx(Input::List().dbydx_order);
             vtemp *= A2(l0,0);                      Dh(l0-1,0) += fd1.mpaxis(vtemp);
             vtemp /= A2(l0,0);
 
@@ -3750,11 +3771,25 @@ void Spatial_Advection::es1d(const DistFunc1D& Din, DistFunc1D& Dh) {
 
         for (size_t l = f_start_thread; l < f_end_thread; ++l)
         {
+            // std::cout << "\n l = " << l ;
+
+            
+
             fd1 = Din(l,0);  //std::cout << "\n \n before dx, l = " << l << " \n";          
-            fd1 = fd1.Dx(Input::List().dbydx_order);  //std::cout << " \n after dx\n";
+            // for (size_t ix(0); ix < Dh(0,0).numx(); ++ix)
+            // {
+            //     std::cout << "\n fd1(" << ix << "," << l << ") = " << fd1(4,ix);
+            // }
+
+            fd1.Dx(Input::List().dbydx_order);  //std::cout << " \n after dx\n";
 
             vtemp *= A2(l,0)/A1(l-1,0);    fd2 = fd1;  Dh(l-1,0) += fd1.mpaxis(vtemp);
             vtemp *= A1(l,0)/A2(l  ,0);                Dh(l+1,0) += fd2.mpaxis(vtemp);
+
+            // for (size_t ix(0); ix < Dh(0,0).numx(); ++ix)
+            // {
+            //     std::cout << "\n dh(" << ix << "," << l+1 << ") = " << Dh(l+1,0)(4,ix);
+            // }
         }    
     }
 

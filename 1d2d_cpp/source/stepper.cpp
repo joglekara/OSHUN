@@ -558,12 +558,8 @@ void RKCK45::take_step(State1D& Y5, State1D& Y4, double time, double h, VlasovFu
 }
 //--------------------------------------------------------------
 RK4C::RK4C(State1D& Yin): Y0(Yin), Y1(Yin), Y2(Yin), Yh(Yin), //Y0_2D(), Y1_2D(), Y2_2D(), Yh_2D(),
-                            onethird(1./3.), twothird(2./3.)
+                            onethird(complex<double>(1./3.,0.)), twothird(complex<double>(2./3.,0.))
     {}
-
-// RK4C::RK4C(State2D& Yin): Y0_2D(Yin), Y1_2D(Yin), Y2_2D(Yin), Yh_2D(Yin), Y0(), Y1(), Y2(), Yh(),
-                            // onethird(1./3.), twothird(2./3.)
-    // {}    
 //--------------------------------------------------------------
 RK4C:: ~RK4C(){
 //--------------------------------------------------------------
@@ -576,17 +572,16 @@ void RK4C::take_step(State1D& Ystar, State1D& Y, double time, double h, VlasovFu
 
     // Initialization
         Y0 = Y; Y1 = Y;
-
+//      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //      Step 1
         vF(Y1,Yh,time,h);                    // slope in the beginning
         PE.Neighbor_Communications(Yh);
-        Yh *= (0.5*h);   Y1 += Yh;      // Y1 = Y1 + (h/2)*Yh  Yhc = (*CF)(Y1,time,0.5*h)
-        Yh *= (onethird); Y  += Yh;      // Y  = Y  + (h/6)*Yh
+        Yh *= (0.5*h);      Y1 += Yh;      // Y1 = Y1 + (h/2)*Yh  Yhc = (*CF)(Y1,time,0.5*h)
+        Yh *= (onethird);   Y  += Yh;      // Y  = Y  + (h/6)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 //      Step 2
-        vF(Y1,Yh,time,h);     Y1  = Y0;      // slope in the middle
-        PE.Neighbor_Communications(Yh);
+        vF(Y1,Yh,time,h);   Y1  =  Y0;      // slope in the middle
+        PE.Neighbor_Communications(Yh); 
         Yh *= (0.5*h);   Y1 += Yh;      // Y1 = Y0 + (h/2)*Yh
         Yh *= (twothird); Y  += Yh;      // Y  = Y  + (h/3)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
