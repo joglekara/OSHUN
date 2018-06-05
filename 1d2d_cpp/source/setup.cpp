@@ -677,11 +677,6 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
     coeff = m/alpha/alpha/alpha/tgamma(3.0/m);
     coeff *= sqrt(M_PI)/4.0;
 
-    double rand_phase(0.);
-
-    // int rank;
-    // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    srand(42);
 
     for (int j(0); j < h.numx(); ++j)
     {
@@ -711,17 +706,26 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
 
     if (Input::List().f0_x_noise_window > 0)
     {
-        for (int ik(0); ik < h.numx()/2; ++ik)
-        {
-            double wavenumber(double(ik+1)/double(h.numx()));
+        size_t maxwavenumber = Input::List().NxGlobal[0] / 2;
+        double rand_phase(0.);
 
-            double rand_phase = double(rand())/double(RAND_MAX);
+        int rank;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        srand(42);
+
+        size_t first_local_ix = rank*(h.numx()-Input::List().BoundaryCells);
+
+        for (size_t ik(0); ik < maxwavenumber; ++ik)
+        {
+            double wavenumber(double(ik+1)/double(Input::List().NxGlobal[0]));
+
+            double rand_phase(double(rand())/double(RAND_MAX));
 
             for (int ix(0); ix < h.numx(); ++ix)
             {
                 for (int ip(0); ip < h.nump(); ++ip)
                 {
-                    h(ip,ix) *= (1.+(Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase))));
+                    h(ip,ix) *= (1.+(Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix + first_local_ix)+0.5)+rand_phase))));
                     // h(ip,ix) += (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));
 
                 }
