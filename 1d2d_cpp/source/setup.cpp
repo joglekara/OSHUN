@@ -679,9 +679,9 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
 
     double rand_phase(0.);
 
-    int rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    srand(rank);
+    // int rank;
+    // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    srand(42);
 
     for (int j(0); j < h.numx(); ++j)
     {
