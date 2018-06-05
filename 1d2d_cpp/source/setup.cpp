@@ -706,10 +706,7 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
             // Maxwell-Jutner distribution
             // if (Input::List().relativity) 
             //     h(k,j) = coefftemp_relativistic*exp(-sqrt(1.0+p[k]*p[k])/temperature[j]);
-
-            // std::cout << "\n\n h(" << k << "," << j << ") = " << h(k,j) << "\n\n";
         }
-        // exit(1);    
     }
 
     if (Input::List().f0_x_noise_window > 0)
@@ -720,23 +717,14 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
 
             double rand_phase = double(rand())/double(RAND_MAX);
 
-            // std::cout << "\nwavenumber = " << wavenumber;
-            // std::cout << "\nRP = " << rand_phase;
-
             for (int ix(0); ix < h.numx(); ++ix)
             {
                 for (int ip(0); ip < h.nump(); ++ip)
                 {
-                    // h(ip,ix) *= (1+Input::List().f0_x_noise_window*sin(wavenumber*(ix+0.5)+rand_phase));
-                    h(ip,ix) += (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));
+                    h(ip,ix) *= (1.+(Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase))));
+                    // h(ip,ix) += (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));
 
-                    
                 }
-                
-                // std::cout << "\nval[" << ix << "] = " << (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));// << "\n";
-
-                // if (ix > 3)
-                //     exit(1);
             }
         }
     }
