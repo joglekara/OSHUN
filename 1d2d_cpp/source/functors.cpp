@@ -98,11 +98,12 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
                 // EF[s].gpu1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
                 // SA[s].gpu1d(Yin.DF(s),Yslope.DF(s));
             // }
-            SA[s].es1d(Yin.DF(s),Yslope.DF(s));
+            if (Input::List().vgradf)
+                SA[s].es1d(Yin.DF(s),Yslope.DF(s));
             // { 
             
-
-            EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
+            if (Input::List().Edfdv)
+                EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
                 
             // }
             
@@ -113,7 +114,8 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope){
             //         std::cout << "\nf(" << ip << ") = " << Yslope.SH(0,1,0)(ip,4);
             //     }
             // }
-            JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
+            if (Input::List().dEdt)
+                JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
 
 
 
@@ -187,7 +189,9 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
         {
             // std::cout << "\n10\n";
             // EF[s].es1d(Yin.DF(s),Yin.EMF().Ex(),Yslope.DF(s));
-            JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
+            
+            if (Input::List().dEdt)
+                JX[s].es1d(Yin.DF(s),Yslope.EMF().Ex());
             // SA[s].es1d(Yin.DF(s),Yslope.DF(s));
 
             size_t l0(Yin.DF(s).l0());
@@ -215,6 +219,9 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 // valarray<complex<double> > Ex_ext(EMF_ext(0).array());
                 Ex = Ex + EMF_ext(0).array();
                 Ex *= Yin.DF(s).q();
+
+                if (!Input::List().Edfdv)
+                    Ex = 0.;
 
                 //  -------------------------------------------------------- //
                 //   First thread takes the boundary conditions (l = 0)
@@ -293,6 +300,9 @@ void VlasovFunctor1D_explicitE::operator()(const State1D& Yin, State1D& Yslope, 
                 Ex = Ex + EMF_ext(0).array();
 
                 Ex *= Yin.DF(s).q();
+
+                if (!Input::List().Edfdv)
+                    Ex = 0.;
 
             //  Initialize Ex so that it its ready for loop iteration l
                 Ex *= EF[s].getA1(EF[s].get_f_end(threadboundaries)-1,0);    

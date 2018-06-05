@@ -57,6 +57,7 @@ Input::Input_List::Input_List():
     collisions(1),
     f00_implicitorexplicit(2),
     flm_collisions(0),flm_acc(0),ee_bool(1),ei_bool(1), coll_op(0),
+    vgradf(1), Edfdv(1), dEdt(1),
     BoundaryCells(4),
     
     bndX(0),
@@ -108,7 +109,7 @@ Input::Input_List::Input_List():
     hydromotion(0),
     hydromass(100), hydrocharge(79),
     polarization_direction(0),
-    init_f1(0), init_f2(0), flm_noise_window(0.),
+    init_f1(0), init_f2(0), flm_noise_window(0.), f0_x_noise_window(0.),
     MX_cooling(0),
     super_gaussian_m(2.0),
 
@@ -728,6 +729,33 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> deckstringbool;
                 implicit_B = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "vgradf") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                vgradf = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "Edfdv") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                Edfdv = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
+            if (deckstring == "dEdt") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                dEdt = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
             }
             if (deckstring == "collisions_switch") {
                 deckfile >> deckequalssign;
@@ -1708,6 +1736,15 @@ Input::Input_List::Input_List():
                 }
                 deckfile >> deckreal;
                 flm_noise_window = deckreal;
+            }
+            if (deckstring == "f0_x_noise_window") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckreal;
+                f0_x_noise_window = deckreal;
             }
 
 

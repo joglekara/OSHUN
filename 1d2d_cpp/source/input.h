@@ -68,6 +68,7 @@ namespace Input{
         int flm_acc;
         bool ee_bool,ei_bool;
         int coll_op;
+        bool vgradf, Edfdv, dEdt;
 
         int BoundaryCells;
         
@@ -119,7 +120,7 @@ namespace Input{
         double hydromass, hydrocharge;
         int polarization_direction;
         bool init_f1, init_f2;
-        double flm_noise_window;
+        double flm_noise_window, f0_x_noise_window;
         bool MX_cooling;
 
         double super_gaussian_m;        

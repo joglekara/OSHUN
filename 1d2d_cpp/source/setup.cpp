@@ -677,12 +677,18 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
     coeff = m/alpha/alpha/alpha/tgamma(3.0/m);
     coeff *= sqrt(M_PI)/4.0;
 
-    for (int j(0); j < h.numx(); ++j){
+    double rand_phase(0.);
 
+    // int rank;
+    // MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    srand(42);
+
+    for (int j(0); j < h.numx(); ++j)
+    {
         // std::cout << "\n";
 
         coefftemp = coeff*density[j]/pow(2.0*M_PI*temperature[j]*mass,1.5);
-        
+
         // coefftemp_relativistic = density[j]/(4.0*M_PI*temperature[j]*pow(mass,3.)*boost::math::cyl_bessel_k(2.,1./temperature[j]));
 
         // std::cout << "\n\n coefftemp_relativistic = " << coefftemp_relativistic << "\n\n";
@@ -704,8 +710,37 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
             // std::cout << "\n\n h(" << k << "," << j << ") = " << h(k,j) << "\n\n";
         }
         // exit(1);    
-
     }
+
+    if (Input::List().f0_x_noise_window > 0)
+    {
+        for (int ik(0); ik < h.numx()/2; ++ik)
+        {
+            double wavenumber(double(ik+1)/double(h.numx()));
+
+            double rand_phase = double(rand())/double(RAND_MAX);
+
+            std::cout << "\nwavenumber = " << wavenumber;
+            std::cout << "\nRP = " << rand_phase;
+
+            for (int ix(0); ix < h.numx(); ++ix)
+            {
+                for (int ip(0); ip < h.nump(); ++ip)
+                {
+                    // h(ip,ix) *= (1+Input::List().f0_x_noise_window*sin(wavenumber*(ix+0.5)+rand_phase));
+                    h(ip,ix) += (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));
+
+                    
+                }
+                
+                std::cout << "\nval[" << ix << "] = " << (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));// << "\n";
+
+                // if (ix > 3)
+                //     exit(1);
+            }
+        }
+    }
+    // exit(1);
 
 }
 //----------------------------------------------------------------------------------------------------------------------
