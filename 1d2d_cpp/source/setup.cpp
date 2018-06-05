@@ -720,8 +720,8 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
 
             double rand_phase = double(rand())/double(RAND_MAX);
 
-            std::cout << "\nwavenumber = " << wavenumber;
-            std::cout << "\nRP = " << rand_phase;
+            // std::cout << "\nwavenumber = " << wavenumber;
+            // std::cout << "\nRP = " << rand_phase;
 
             for (int ix(0); ix < h.numx(); ++ix)
             {
@@ -733,7 +733,7 @@ void Setup_Y:: init_f0(size_t s, SHarmonic1D& h, const valarray<double>& p, cons
                     
                 }
                 
-                std::cout << "\nval[" << ix << "] = " << (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));// << "\n";
+                // std::cout << "\nval[" << ix << "] = " << (Input::List().f0_x_noise_window*sin(2.*M_PI*(wavenumber*(double(ix)+0.5)+rand_phase)));// << "\n";
 
                 // if (ix > 3)
                 //     exit(1);
