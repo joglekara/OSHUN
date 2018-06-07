@@ -2270,7 +2270,13 @@ Input::Input_List::Input_List():
             if (dbydx_order > 2 || dbydy_order > 2) BoundaryCells = 6;
             else BoundaryCells = 4;
         }
-        else BoundaryCells = 2;
+        else
+        {   
+            // if (dbydx_order == 2) BoundaryCells = 1;
+            if (dbydx_order == 2 || dbydx_order == 4) BoundaryCells = 2;
+            else if (dbydx_order == 6) BoundaryCells = 3;
+                
+        }
 
         /// Do X discretization
         for (size_t i(0); i < NxGlobal.size(); ++i){

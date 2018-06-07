@@ -153,6 +153,11 @@ SHarmonic1D& SHarmonic1D::Dp()
         {
             *sh = (*sh).Dd1_4th_order();
         }
+        else if (Input::List().dbydv_order == 6)
+        {
+            *sh = (*sh).Dd1_6th_order();
+        }
+
 
         // for (size_t i(0); i < plast.size(); ++i) {
             // TODO                The Dp at the zeroth cell is taken care off
@@ -306,7 +311,7 @@ SHarmonic1D& SHarmonic1D::Dx(size_t order){
     // }
     if (order == 2) *sh = (*sh).Dd2_2nd_order();                          // Worry about boundaries elsewhere
     if (order == 4) *sh = (*sh).Dd2_4th_order();                          // Worry about boundaries elsewhere
-    
+    if (order == 6) *sh = (*sh).Dd2_6th_order();
 
     
     

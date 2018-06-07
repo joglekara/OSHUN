@@ -327,9 +327,11 @@ public:
     Array2D& Dd1(); // in the direction d1 (requires dim1() > 2)
     Array2D& Dd1_2nd_order(); // in the direction d1 (requires dim1() > 2)
     Array2D& Dd1_4th_order(); // in the direction d1 (requires dim1() > 2)
+    Array2D& Dd1_6th_order(); // in the direction d1 (requires dim1() > 2)
     // Array2D& Dd2(); // in the direction d2 (requires dim2() > 2)
     Array2D& Dd2_2nd_order(); // in the direction d2 (requires dim2() > 2)
     Array2D& Dd2_4th_order(); // in the direction d2 (requires dim2() > 2)
+    Array2D& Dd2_6th_order(); // in the direction d2 (requires dim2() > 2)
 
 //      Filter first N-cells in d1 direction 
     Array2D& Filterd1(size_t N);
@@ -608,6 +610,33 @@ template<class T> Array2D<T>& Array2D<T>::Dd1_4th_order(){
     return *this;
 
 }
+
+template<class T> Array2D<T>& Array2D<T>::Dd1_6th_order(){
+
+    Array2D<T> temp(*this);
+
+    for (long i2(0); i2<long(d2);++i2)
+    {
+        temp(0,i2) = (3.0*(*this)(0,i2) - 4.*(*this)(1,i2) + (*this)(2,i2));
+        temp(1,i2) = ((*this)(0,i2)-(*this)(2,i2));
+        temp(2,i2) = ((*this)(1,i2)-(*this)(3,i2));
+
+        for (long i1(3); i1<long(d1)-3;++i1)
+        {
+            temp(i1,i2)  = -1./30.*((*this)(i1+3,i2)-(*this)(i1-3,i2));
+            temp(i1,i2) += 0.3*((*this)(i1+2,i2)-(*this)(i1-2,i2));
+            temp(i1,i2) -= 1.5*((*this)(i1+1,i2)-(*this)(i1-1,i2));
+        }
+        
+        temp(long(d1)-3,i2) = ((*this)(long(d1)-4,i2)-(*this)(long(d1)-2,i2));
+        temp(long(d1)-2,i2) = ((*this)(long(d1)-3,i2)-(*this)(long(d1)-1,i2));
+        temp(long(d1)-1,i2) = (-3.0*(*this)(long(d1)-1,i2) + 4.*(*this)(long(d1)-2,i2) - (*this)(long(d1)-3,i2));
+   }
+
+   *this = temp; 
+    return *this;
+
+}
 // (minus) Central difference for elements with distance d1 (row-wise)
 // Example: 0 4  8 12 16       -8 -8 -8 -8 16 
 //          1 5  9 13 17  -->  -8 -8 -8 -8 17 
@@ -633,6 +662,35 @@ template<class T> Array2D<T>& Array2D<T>::Dd2_4th_order(){
             temp(i1,i2)  = 0.5*((*this)(i1,i2+2)-(*this)(i1,i2-2));
             temp(i1,i2) += 4.0*((*this)(i1,i2-1)-(*this)(i1,i2+1));
             temp(i1,i2) /= 3.0;
+        }
+   }
+   
+
+
+   *this = temp; 
+   
+    return *this;
+   ////////////////// ////////////////// //////////////////
+}
+template<class T> Array2D<T>& Array2D<T>::Dd2_6th_order(){
+    Array2D<T> temp(*this);
+
+    // complex<double> onesixth(static_cast<complex<double> >(1.0/6.0));
+    // complex<double> fourthirds(static_cast<complex<double> >(4./3.));
+
+    // for (long i1(0); i1<long(d1);++i1)
+    // {
+    //     temp(i1,1)  = ((*this)(i1,0))-((*this)(i1,2));
+    //     temp(i1,d2-2)  = ((*this)(i1,d2-3))-((*this)(i1,d2-1));
+    // }
+
+    for (long i2(3); i2<long(d2)-3;++i2)
+    {
+        for (long i1(0); i1<long(d1);++i1)
+        {
+            temp(i1,i2)  = -1./30.*((*this)(i1,i2+3)-(*this)(i1,i2-3));
+            temp(i1,i2) += 0.3*((*this)(i1,i2+2)-(*this)(i1,i2-2));
+            temp(i1,i2) -= 1.5*((*this)(i1,i2+1)-(*this)(i1,i2-1));
         }
    }
    
