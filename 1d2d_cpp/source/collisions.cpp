@@ -1372,48 +1372,12 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
         Alpha(0,0) = 0.0;
     }
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-    if ( !(if_tridiagonal) && (Input::List().coll_op < 2) )
+    if (Input::List().ee_bool)
     {
-        // double LL(el);
-        collide_f0withRBflm(fin, double (el), position);
-//         double A1(         (LL+1.0)*(LL+2.0) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
-//         double A2( (-1.0) *(LL-1.0)* LL      / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
-//         double B1( (-1.0) *( 0.5 *LL*(LL+1.0) +(LL+1.0) ) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
-//         double B2( (       (-0.5)*LL*(LL+1.0) +(LL+2.0) ) / ((2.0*LL+1.0)*(2.0*LL+3.0)) );
-//         double B3(         ( 0.5 *LL*(LL+1.0) +(LL-1.0) ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
-//         double B4(         ( 0.5 *LL*(LL+1.0) - LL      ) / ((2.0*LL+1.0)*(2.0*LL-1.0)) );
-// //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-//         for (size_t i(0); i < Alpha.dim1()-1; ++i)
-//         {
-//             double t1( A1*(ddf0_x[position])[i] + B1*(df0_x[position])[i] );
-//             t1 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
-//             double t2( A1*(ddf0_x[position])[i] + B2*(df0_x[position])[i] );
-//             t2 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
-//             double t3( A2*(ddf0_x[position])[i] + B3*(df0_x[position])[i] );
-//             t3 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
-//             double t4( A2*(ddf0_x[position])[i] + B4*(df0_x[position])[i] );
-//             t4 *= (-1.0) * (_LOGee_x[position]) * kpre * Dt;
-
-//             Alpha(i,0) += t1 * ( 2.0*M_PI*pow(vr[0]/vr[i],el+2)*vr[0]*vr[0]*(vr[1]-vr[0]) );
-//             Alpha(i,0) += t3 * ( 2.0*M_PI*pow(vr[0]/vr[i],el)  *vr[0]*vr[0]*(vr[1]-vr[0]) );
-
-//             for (size_t j(1); j < i; ++j){
-//                 Alpha(i,j) += t1 * ( 2.0*M_PI*pow(vr[j]/vr[i],el+2)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-//                 Alpha(i,j) += t3 * ( 2.0*M_PI*pow(vr[j]/vr[i],el)  *vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-//             }
-
-//             Alpha(i,i) += t1 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i]-vr[i-1]) );
-//             Alpha(i,i) += t3 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i]-vr[i-1]) );
-
-//             Alpha(i,i) += t2 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i+1]-vr[i]) );
-//             Alpha(i,i) += t4 * ( 2.0*M_PI *vr[i]*vr[i]*(vr[i+1]-vr[i]) );
-
-//             for (size_t j(i+1); j < Alpha.dim2()-1; ++j){
-//                 Alpha(i,j) += t2 * ( 2.0*M_PI*pow(vr[j]/vr[i],-el-1)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-//                 Alpha(i,j) += t4 * ( 2.0*M_PI*pow(vr[j]/vr[i],-el+1)*vr[j]*vr[j]*(vr[j+1]-vr[j-1]) );
-//             }
-//         }
+        if ( !(if_tridiagonal) && (Input::List().coll_op < 2)  )
+        {
+            collide_f0withRBflm(fin, double (el), position);
+        }
     }
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     // }
@@ -1461,11 +1425,14 @@ void  self_flm_implicit_step::advance(valarray<complex<double> >& fin, const int
     // }
 
 
-    if ( !(if_tridiagonal) && (Input::List().coll_op < 2) )
+    if (Input::List().ee_bool)
     {
-        collide_f0withRBflm(fout, double (el), position);
-    }    
-    
+        if ( !(if_tridiagonal) && (Input::List().coll_op < 2)  )
+        {
+            collide_f0withRBflm(fin, double (el), position);
+        }
+    }
+
     fin = fout;
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
