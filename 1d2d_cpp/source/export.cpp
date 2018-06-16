@@ -2557,12 +2557,14 @@ void Output_Data::Output_Preprocessor::px_radial(const State1D& Y, const Grid_In
     size_t outNxGlobal(grid.axis.Nxg(0));
 
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+    
 
     for(int s(0); s < Y.Species(); ++s) 
     {
         size_t Npx(grid.axis.Npx(s));
         int msg_sz(outNxLocal*Npx);
         size_t Np(grid.axis.Np(s));
+        vector<double> pvec(valtovec(grid.axis.p(s)));
         
         Array2D<double> p1x1Global(Npx,outNxGlobal); 
         vector<double> p1axis(valtovec(grid.axis.px(s)));
@@ -2577,23 +2579,34 @@ void Output_Data::Output_Preprocessor::px_radial(const State1D& Y, const Grid_In
         {
             double LP;
             size_t ip;
+            double interpval;
+            
             for (size_t il(0); il < grid.l0[s] + 1; ++il) 
             {
                 double pow_il(il%2);
                 LP = pow(-1.,pow_il);
-                
+
+                vector<double> shdata_real( vdouble_real( Y.DF(s)(il).xVec(ix)));
+                tk::spline splSH;
+                splSH.set_points(pvec,shdata_real);
+
 
                 for (size_t ipx(0); ipx < Npx; ++ipx) 
                 {
-                    if (ipx < Np)
+                    
+                    interpval = splSH(abs(p1axis[ipx]));
+
+                    if (ipx < Npx/2)
                     {
-                        ip = Np-1-ipx;
-                        pxbuf[ix*Npx+ipx] += LP*Y.DF(s)(il)(ip,ix).real(); 
+                        // ip = Np-1-ipx;
+                        // pxbuf[ix*Npx+ipx] += LP*Y.DF(s)(il)(ip,ix).real(); 
+                        pxbuf[ix*Npx+ipx] += LP*interpval;
                     }
                     else
                     {
-                        ip = ipx-Np; 
-                        pxbuf[ix*Npx+ipx] += Y.DF(s)(il)(ip,ix).real(); 
+                        // ip = ipx-Np; 
+                        // pxbuf[ix*Npx+ipx] += Y.DF(s)(il)(ip,ix).real(); 
+                        pxbuf[ix*Npx+ipx] += interpval;
                     }
                 }
             }
