@@ -6821,30 +6821,32 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<double> >& field
     size_t Nbc = Input::List().BoundaryCells;
     MPI_Status status;
     
-    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
-    size_t outNxGlobal(grid.axis.Nxg(0));
+    vector<double> pxaxis(valtovec(grid.axis.px(0)));
+    size_t Npx(pxaxis.size());
+
     size_t number_of_time_steps(time_history.size());
-    int msg_sz(number_of_time_steps*outNxLocal);
+    int msg_sz(number_of_time_steps*Npx);
     
-    valarray<double> ExtBuf(msg_sz);
-    valarray<double> ExtGlobalBuf(number_of_time_steps*outNxGlobal);
+    valarray<double> fhat0Buf(msg_sz);
+    valarray<double> fhat0GlobalBuf(number_of_time_steps*Npx);
     
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
-    vector<double> pxaxis(valtovec(grid.axis.px(0)));
-    Array2D<double> ExtGlobal(number_of_time_steps,outNxGlobal);
+    
+    Array2D<double> fhat0Global(number_of_time_steps,Npx);
+    fhat0Global = 0.;
 
     // std::cout << "fieldhsize = "  << fieldhistory[0].size();
     // exit(1);
 
     for(size_t it(0); it < number_of_time_steps; ++it) 
     {
-        for(size_t ix(0); ix < outNxLocal; ++ix) 
+        for(size_t ipx(0); ipx < Npx; ++ipx) 
         {
-            ExtBuf[it*outNxLocal+ix] = fieldhistory[it][ix+Nbc];
+            fhat0Buf[it*Npx+ipx] = fieldhistory[it][ipx];
         }
     }
 
-    MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+    MPI_Gather( &fhat0Buf[0], msg_sz, MPI_DOUBLE, &fhat0GlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
     size_t offset(0);
     for (int rr(0); rr < PE.MPI_Processes(); ++rr)
@@ -6853,18 +6855,18 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<double> >& field
 
         for(size_t it(0); it < number_of_time_steps; ++it) 
         {
-            for(size_t ix(0); ix < outNxLocal; ++ix) 
+            for(size_t ipx(0); ipx < Npx; ++ipx) 
             {
-                ExtGlobal(it,ix+rr*outNxLocal) = ExtGlobalBuf[offset+ix];
+                fhat0Global(it,ipx) += fhat0GlobalBuf[offset+ipx];
             }
-            offset += outNxLocal;
+            offset += Npx;
         }
     }
 
     if (PE.RANK() == 0) 
     {
 
-        expo.Export_h5(tag, time_history, pxaxis, ExtGlobal, tout, time, dt, 0);
+        expo.Export_h5(tag, time_history, pxaxis, fhat0Global, tout, time, dt, 0);
             
         // else expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
     }
