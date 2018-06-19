@@ -1162,7 +1162,7 @@ DistFunc1D:: DistFunc1D(const DistFunc1D& other)
             ind(il,0) = il;
             first_resolved_cell[il] = filter_base + static_cast<size_t>(std::round(filter_pcell_per_harmonic * double(il)));
 
-            std::cout << "frc = " << first_resolved_cell[il];
+            // std::cout << "frc = " << first_resolved_cell[il];
 
             // exit(1);
         }
