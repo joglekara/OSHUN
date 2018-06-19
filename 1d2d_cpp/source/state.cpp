@@ -1085,7 +1085,7 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
                         double q, double _ma)
         : lmax(l), mmax(m), sz(((m+1)*(2*l-m+2))/2),
         dp(_dp), 
-        charge(q), ma(_ma), ind(l+1,m+1), first_resolved_cell(l+1) {
+        charge(q), ma(_ma), ind(l+1,m+1), first_resolved_cell(l+1), filterf0(_dp.size()) {
 
 //      Initialize the array of the harmonics
     if (lmax < 1) {
@@ -1103,6 +1103,7 @@ DistFunc1D:: DistFunc1D(size_t l, size_t m,
     double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/Input::List().filter_dp);
     size_t filter_base(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
     // double filter_numH(256.);
+
 
     if (mmax == 0)
     {
@@ -1138,7 +1139,7 @@ DistFunc1D:: DistFunc1D(const DistFunc1D& other)
         sz(((other.m0()+1)*(2*other.l0()-other.m0()+2))/2),
             dp(other.getdp()),
           charge(other.q()), ma(other.mass()), 
-          ind(other.l0()+1,other.m0()+1),first_resolved_cell(other.l0()+1)
+          ind(other.l0()+1,other.m0()+1),first_resolved_cell(other.l0()+1), filterf0(other.getf0())
           {
 
 //      Generate container for the harmonics
@@ -1160,6 +1161,10 @@ DistFunc1D:: DistFunc1D(const DistFunc1D& other)
         {
             ind(il,0) = il;
             first_resolved_cell[il] = filter_base + static_cast<size_t>(std::round(filter_pcell_per_harmonic * double(il)));
+
+            std::cout << "frc = " << first_resolved_cell[il];
+
+            // exit(1);
         }
 
     }
@@ -1316,6 +1321,15 @@ void DistFunc1D::Filterp()
 
     if (Input::List().filter_pmax > 0.)
     {
+
+        for(size_t ix = 0; ix < (*df)[0].numx(); ++ix) 
+        {
+            for(size_t ip = 0; ip < first_resolved_cell[0]; ++ip) 
+            {
+                (*df)[0](ip,ix) = filterf0[ip];
+            }
+        }
+
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t il = 1; il < dim() ; ++il) 
         {
@@ -1352,6 +1366,14 @@ void DistFunc1D::Filterp()
     }
         // (*df)[i].Filterp(i);
 }
+//--------------------------------------------------------------------------------------------------------------------------
+void DistFunc1D::setf0_filter(const SHarmonic1D& f0)
+{
+    for (size_t ip(0); ip < dp.size(); ++ip)
+    {
+        filterf0[ip] = f0(0,ip).real();
+    }
+}    
 //--------------------------------------------------------------------------------------------------------------------------
 //  Moments for Hydro
 //--------------------------------------------------------------------------------------------------------------------------

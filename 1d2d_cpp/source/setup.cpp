@@ -539,6 +539,8 @@ void Setup_Y::initialize(State1D &Y, Grid_Info &grid){
         // std::cout << "\n14\n";
         init_f0(s, Y.SH(s,0,0), grid.axis.p(s), grid.axis.x(0), dens_profile, temp_profile, Y.DF(s).mass(), pedestal_profile);
 
+        Y.DF(s).setf0_filter(Y.SH(s,0,0));
+
         for (size_t i(1); i < Y.DF(s).dim(); ++i)
             init_flm(Y.DF(s)(i));
         // std::cout << "\n15\n";

@@ -376,6 +376,7 @@ private:
     Array2D<int> ind;
 
     valarray<size_t> first_resolved_cell;
+    valarray<double> filterf0;
 
 public:
 
@@ -392,6 +393,7 @@ public:
     valarray<double> getdp()        const {return dp;   }
     double q()                      const {return charge;}
     double mass()                   const {return ma;    }
+    valarray<double> getf0()        const {return filterf0;}
     
 
     Array2D<int> indx() const {return ind;}
@@ -405,6 +407,8 @@ public:
     valarray<double> getrelativisticcurrent(size_t dir) const;
     Array2D<double>  getrelativisticcurrent() const;
     valarray<double> getpressure();
+
+    void setf0_filter(const SHarmonic1D& fMx);
 
 //      Access
     SHarmonic1D& operator()(size_t i)                   {return (*df)[size_t(i)];}
