@@ -1371,7 +1371,7 @@ void DistFunc1D::setf0_filter(const SHarmonic1D& f0)
 {
     for (size_t ip(0); ip < dp.size(); ++ip)
     {
-        filterf0[ip] = f0(0,ip).real();
+        filterf0[ip] = f0(ip,0).real();
     }
 }    
 //--------------------------------------------------------------------------------------------------------------------------
