@@ -2580,7 +2580,7 @@ void Output_Data::Output_Preprocessor::px_radial(const State1D& Y, const Grid_In
             double LP;
             size_t ip;
             double interpval;
-            
+
             for (size_t il(0); il < grid.l0[s] + 1; ++il) 
             {
                 double pow_il(il%2);
@@ -6720,11 +6720,14 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
     Array2D<double> ExtGlobal(number_of_time_steps,outNxGlobal);
 
+    // std::cout << "fieldhsize = "  << fieldhistory[0].size();
+    // exit(1);
+
     for(size_t it(0); it < number_of_time_steps; ++it) 
     {
         for(size_t ix(0); ix < outNxLocal; ++ix) 
         {
-            ExtBuf[it*outNxLocal+ix] = fieldhistory[it][ix].real();
+            ExtBuf[it*outNxLocal+ix] = fieldhistory[it][ix+Nbc].real();
         }
     }
 
