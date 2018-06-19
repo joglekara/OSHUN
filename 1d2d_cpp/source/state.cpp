@@ -1318,14 +1318,14 @@ void DistFunc1D::Filterp()
 {
     
     valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
-    double a(0.), c(0.);
+    complex<double> a(0.), c(0.);
 
     if (Input::List().filter_pmax > 0.)
     {
 
         for(size_t ix = 0; ix < (*df)[0].numx(); ++ix) 
         {
-            a = ((*df)[0](first_resolved_cell[0],ix) - filterf0[0])/(pow(vr[first_resolved_cell[0]],2.)-pow(vr[0],2.));
+            a = ((*df)[0](first_resolved_cell[0],ix) - static_cast<complex<double> >(filterf0[0]))/(pow(vr[first_resolved_cell[0]],2.)-pow(vr[0],2.));
             c = filterf0[0] - a*pow(vr[0],2.);
             for(size_t ip = 0; ip < first_resolved_cell[0]; ++ip) 
             {
