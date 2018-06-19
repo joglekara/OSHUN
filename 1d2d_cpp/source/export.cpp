@@ -423,6 +423,7 @@ Export_Files::DefaultTags::DefaultTags(size_t species){
     for (size_t s(0); s < species; ++s) {
         pvsx.push_back( "px");
         pvsx.push_back( "px-th0");
+        pvsx.push_back( "fhat0hist");
         pvsx.push_back( "py");
         pvsx.push_back( "pz");
     }
@@ -2546,6 +2547,60 @@ void Output_Data::Output_Preprocessor::px(const State1D& Y, const Grid_Info& gri
 
 }
 //--------------------------------------------------------------
+valarray<double> Output_Data::Output_Preprocessor::px_radial_hat0(const State1D& Y, const Grid_Info& grid) 
+{
+    size_t Nbc = Input::List().BoundaryCells;
+
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+
+    int s(0);
+    // for(int s(0); s < Y.Species(); ++s) 
+    // {
+        size_t Npx(grid.axis.Npx(s));
+        // int msg_sz(outNxLocal*Npx);
+        size_t Np(grid.axis.Np(s));
+        vector<double> pvec(valtovec(grid.axis.p(s)));
+        vector<double> p1axis(valtovec(grid.axis.px(s)));
+
+        valarray<double> pxhat0_buf(Npx);
+
+        pxhat0_buf = 0.;
+
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for (size_t ix = 0; ix < outNxLocal; ++ix) 
+        {
+            double LP;
+            size_t ip;
+            double interpval;
+
+            for (size_t il(0); il < grid.l0[s] + 1; ++il) 
+            {
+                double pow_il(il%2);
+                LP = pow(-1.,pow_il);
+
+                vector<double> shdata_real( vdouble_real( Y.DF(s)(il).xVec(ix+Nbc)));
+                tk::spline splSH;
+                splSH.set_points(pvec,shdata_real);
+
+                for (size_t ipx(0); ipx < Npx; ++ipx) 
+                {
+                    interpval = splSH(abs(p1axis[ipx]));
+
+                    if (ipx < Npx/2)
+                    {
+                        pxhat0_buf[ipx] += LP*interpval;
+                    }
+                    else
+                    {
+                        pxhat0_buf[ipx] += interpval;
+                    }
+                }
+            }
+        }
+    
+
+    return pxhat0_buf;
+}
 //--------------------------------------------------------------
 void Output_Data::Output_Preprocessor::px_radial(const State1D& Y, const Grid_Info& grid, const size_t tout, const double time, const double dt,
  const Parallel_Environment_1D& PE) {
@@ -2586,7 +2641,7 @@ void Output_Data::Output_Preprocessor::px_radial(const State1D& Y, const Grid_In
                 double pow_il(il%2);
                 LP = pow(-1.,pow_il);
 
-                vector<double> shdata_real( vdouble_real( Y.DF(s)(il).xVec(ix)));
+                vector<double> shdata_real( vdouble_real( Y.DF(s)(il).xVec(ix+Nbc)));
                 tk::spline splSH;
                 splSH.set_points(pvec,shdata_real);
 
@@ -6718,6 +6773,7 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
     valarray<double> ExtGlobalBuf(number_of_time_steps*outNxGlobal);
     
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
+    vector<double> pxaxis(valtovec(grid.axis.px(0)));
     Array2D<double> ExtGlobal(number_of_time_steps,outNxGlobal);
 
     // std::cout << "fieldhsize = "  << fieldhistory[0].size();
@@ -6748,7 +6804,70 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
         }
     }
 
-    if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+    if (PE.RANK() == 0) 
+    {
+
+        // if (tag == 'fhat0hist') expo.Export_h5(tag, time_history, pxaxis, ExtGlobal, tout, time, dt, 0);
+            
+        expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+    }
+}
+// ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------
+void Output_Data::Output_Preprocessor::histdump(vector<valarray<double> >& fieldhistory, vector<double>& time_history, const Grid_Info& grid, const size_t tout, const double time, const double dt,
+   const Parallel_Environment_1D& PE, std::string tag) 
+{
+
+    size_t Nbc = Input::List().BoundaryCells;
+    MPI_Status status;
+    
+    size_t outNxLocal(grid.axis.Nx(0) - 2*Nbc);
+    size_t outNxGlobal(grid.axis.Nxg(0));
+    size_t number_of_time_steps(time_history.size());
+    int msg_sz(number_of_time_steps*outNxLocal);
+    
+    valarray<double> ExtBuf(msg_sz);
+    valarray<double> ExtGlobalBuf(number_of_time_steps*outNxGlobal);
+    
+    vector<double> xaxis(valtovec(grid.axis.xg(0)));
+    vector<double> pxaxis(valtovec(grid.axis.px(0)));
+    Array2D<double> ExtGlobal(number_of_time_steps,outNxGlobal);
+
+    // std::cout << "fieldhsize = "  << fieldhistory[0].size();
+    // exit(1);
+
+    for(size_t it(0); it < number_of_time_steps; ++it) 
+    {
+        for(size_t ix(0); ix < outNxLocal; ++ix) 
+        {
+            ExtBuf[it*outNxLocal+ix] = fieldhistory[it][ix+Nbc];
+        }
+    }
+
+    MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
+
+    size_t offset(0);
+    for (int rr(0); rr < PE.MPI_Processes(); ++rr)
+    {            
+        offset = rr*msg_sz;
+
+        for(size_t it(0); it < number_of_time_steps; ++it) 
+        {
+            for(size_t ix(0); ix < outNxLocal; ++ix) 
+            {
+                ExtGlobal(it,ix+rr*outNxLocal) = ExtGlobalBuf[offset+ix];
+            }
+            offset += outNxLocal;
+        }
+    }
+
+    if (PE.RANK() == 0) 
+    {
+
+        expo.Export_h5(tag, time_history, pxaxis, ExtGlobal, tout, time, dt, 0);
+            
+        // else expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+    }
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------

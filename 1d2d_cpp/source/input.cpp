@@ -71,6 +71,7 @@ Input::Input_List::Input_List():
 
 //          Output
     o_Exhist(0), o_Eyhist(0), o_Ezhist(0), o_Bxhist(0), o_Byhist(0), o_Bzhist(0), 
+    o_fhat0hist(0),
     o_Ex(0), o_Ey(0), o_Ez(0), o_Bx(0), o_By(0), o_Bz(0), o_x1x2(0), o_pth(0), 
     o_p1x1(0), o_p2x1(0), o_p3x1(0), o_p1p2x1(0), o_p1p3x1(0), o_p2p3x1(0), o_p1p2p3x1(0), 
     o_p1x1_th0(0),
@@ -928,6 +929,15 @@ Input::Input_List::Input_List():
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
             //// ---- //////// ---- //////// ---- //////// ---- //////// ---- //////// ---- ////
+            if (deckstring == "o_fhat0Hist") {
+                deckfile >> deckequalssign;
+                if(deckequalssign != "=") {
+                    std::cout << "Error reading " << deckstring << std::endl;
+                    exit(1);
+                }
+                deckfile >> deckstringbool;
+                o_fhat0hist = (deckstringbool[0] == 't' || deckstringbool[0] == 'T');
+            }
 
             if (deckstring == "o_ExHist") {
                 deckfile >> deckequalssign;
@@ -2172,6 +2182,7 @@ Input::Input_List::Input_List():
         oTags.push_back("allfs_flogf");
         oTags.push_back("pxpy");
 
+        oTags.push_back("fhat0hist");
         oTags.push_back("Exhist");
         oTags.push_back("Eyhist");
         oTags.push_back("Ezhist");

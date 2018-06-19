@@ -180,16 +180,15 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
     timings_at_current_timestep[3] += MPI_Wtime(); 
 
 
-
+    
     if (Input::List().o_Exhist) Ex_history1D.push_back(Y_current.FLD(0).array());
     if (Input::List().o_Eyhist) Ey_history1D.push_back(Y_current.FLD(1).array());
     if (Input::List().o_Ezhist) Ez_history1D.push_back(Y_current.FLD(2).array());
     if (Input::List().o_Bxhist) Bx_history1D.push_back(Y_current.FLD(3).array());
     if (Input::List().o_Byhist) By_history1D.push_back(Y_current.FLD(4).array());
     if (Input::List().o_Bzhist) Bz_history1D.push_back(Y_current.FLD(5).array());
-    // if (Input::List().o_fhat0)  fhat0_history1D.push_back(Y_current.DF(0).getfhat0());
+    if (Input::List().o_fhat0hist)  fhat0_history1D.push_back(output.px_radial_hat0(Y_current,grid));
     // if (Input::List().o_fhat1)  fhat0_history1D.push_back(Y_current.DF(0).getfhat1());
-
 
     timing_history.push_back(timings_at_current_timestep); std::fill(timings_at_current_timestep.begin(),timings_at_current_timestep.end(),0.);
     time_history.push_back(current_time);
@@ -202,7 +201,12 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
             cout << "\n dt = " << _dt;
             cout << " , Output #" << t_out;                        
         }
-        
+            
+        if (Input::List().o_fhat0hist) 
+        {
+            output.histdump(fhat0_history1D, time_history, grid,  t_out, current_time, _dt, PE, "fhat0hist");
+            fhat0_history1D.clear();
+        }
         if (Input::List().o_Exhist) 
         {
             output.histdump(Ex_history1D, time_history, grid,  t_out, current_time, _dt, PE, "Exhist");
