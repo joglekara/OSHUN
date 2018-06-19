@@ -6806,9 +6806,6 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<complex<double> 
 
     if (PE.RANK() == 0) 
     {
-
-        // if (tag == 'fhat0hist') expo.Export_h5(tag, time_history, pxaxis, ExtGlobal, tout, time, dt, 0);
-            
         expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
     }
 }
@@ -6828,7 +6825,7 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<double> >& field
     int msg_sz(number_of_time_steps*Npx);
     
     valarray<double> fhat0Buf(msg_sz);
-    valarray<double> fhat0GlobalBuf(number_of_time_steps*Npx);
+    valarray<double> fhat0GlobalBuf(number_of_time_steps*Npx*PE.MPI_Processes());
     
     vector<double> xaxis(valtovec(grid.axis.xg(0)));
     
@@ -6865,10 +6862,7 @@ void Output_Data::Output_Preprocessor::histdump(vector<valarray<double> >& field
 
     if (PE.RANK() == 0) 
     {
-
         expo.Export_h5(tag, time_history, pxaxis, fhat0Global, tout, time, dt, 0);
-            
-        // else expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
     }
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
