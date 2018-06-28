@@ -154,6 +154,8 @@ Clock& Clock::advance(State1D& Y_current, Grid_Info& grid,
     Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
     Parallel_Environment_1D& PE) 
 {
+    // std::cout << "\n dt = " << _dt;
+
     end_of_loop_time_updates();
 
     timings_at_current_timestep[3] -= MPI_Wtime(); 
@@ -370,10 +372,11 @@ void Clock::end_of_loop_time_updates()
 {
     dt_next = min(dt_next,1.01*_dt);
     dt_next = min(dt_next,Input::List().dt);
-    dt_next = max(0.01,dt_next);
+    // dt_next = max(0.01,dt_next);
     failed_steps = 0;
     current_time += _dt;
 
+    // std::cout << "\ndt_next = " << _dt;
 
     _dt = dt_next; 
     _success = 0;

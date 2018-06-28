@@ -1334,6 +1334,14 @@ void DistFunc1D::Filterp()
             }
         }
 
+        // for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
+        // {
+        //     for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
+        //     {
+        //         (*df)[il](ip,ix) = (*df)[1](first_resolved_cell[1],ix)*pow(vr[ip]/vr[first_resolved_cell[1]],2.);
+        //     }
+        // }
+
         #pragma omp parallel for num_threads(Input::List().ompthreads)
         for(size_t il = 1; il < dim() ; ++il) 
         {
