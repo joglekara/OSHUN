@@ -6904,24 +6904,25 @@ void Output_Data::Output_Preprocessor::histdump(vector<Array2D<complex<double> >
 
     MPI_Gather( &ExtBuf[0], msg_sz, MPI_DOUBLE, &ExtGlobalBuf[0], msg_sz, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    // size_t offset(0);
-    // for (int rr(0); rr < PE.MPI_Processes(); ++rr)
-    // {            
-    //     offset = rr*msg_sz;
+    size_t offset(0);
+    for (int rr(0); rr < PE.MPI_Processes(); ++rr)
+    {            
+        offset = rr*msg_sz;
 
-    //     for(size_t it(0); it < number_of_time_steps; ++it) 
-    //     {
-    //         for(size_t iy(0); iy < outNyLocal; ++iy) 
-    //         {
-    //             for(size_t ix(0); ix < outNxLocal; ++ix) 
-    //             {
-    //                 ExtGlobal(it,ix+rr*outNxLocal,iy) = ExtGlobalBuf[offset+ix];
-    //             }
-    //             offset += outNxLocal;
-    //     }
-    // }
+        for(size_t it(0); it < number_of_time_steps; ++it) 
+        {
+            for(size_t iy(0); iy < outNyLocal; ++iy) 
+            {
+                for(size_t ix(0); ix < outNxLocal; ++ix) 
+                {
+                    ExtGlobal(it,ix+rr*outNxLocal,iy) = ExtGlobalBuf[offset+ix];
+                }
+                offset += outNxLocal;
+            }
+        }
+    }
 
-    // if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, ExtGlobal, tout, time, dt, 0);
+    if (PE.RANK() == 0) expo.Export_h5(tag, time_history, xaxis, yaxis, ExtGlobal, tout, time, dt);
 }
 // ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 //--------------------------------------------------------------

@@ -18,7 +18,7 @@ class Clock {
 public:
 //      Constructor
     Clock(double starttime, double __dt, double abs_tol, double rel_tol, size_t _maxfails, State1D& Y);
-    // Clock(double starttime, double __dt, double abs_tol, double rel_tol, size_t _maxfails, State2D& Y);
+    Clock(double starttime, double __dt, double abs_tol, double rel_tol, size_t _maxfails, State2D& Y);
     ~Clock();
 
     void end_of_loop_time_updates();
@@ -28,26 +28,26 @@ public:
 
     void do_step(State1D& Ystar, State1D& Y_new, State1D& Y_old,
                         VlasovFunctor1D_explicitE& vF, collisions_1D& cF, Parallel_Environment_1D& PE);
-    // void do_step(State2D& Ystar, State2D& Y_new, State2D& Y_old,
-                        // VlasovFunctor2D_explicitE& vF, collisions_2D& cF, Parallel_Environment_2D& PE);
+    void do_step(State2D& Ystar, State2D& Y_new, State2D& Y_old,
+                        VlasovFunctor2D_explicitE& vF, collisions_2D& cF, Parallel_Environment_2D& PE);
 
     double check_temperature(const State1D& Ystar, const State1D& Y, double& maxval);
     double check_flds(const State1D& Ystar, const State1D& Y, double& maxval);
-    // double check_flds(const State2D& Ystar, const State2D& Y, double& maxval);
+    double check_flds(const State2D& Ystar, const State2D& Y, double& maxval);
     double check_last_harmonic(const State1D& Ystar, const State1D& Y, double& maxval);
     double check_js(const State1D& Ystar, const State1D& Y);
 
     void update_dt(State1D& Y_old, const State1D& Ystar, State1D& Y_new);
-    // void update_dt(const State2D& Y_old, const State2D& Ystar, State2D& Y_new);
+    void update_dt(const State2D& Y_old, const State2D& Ystar, State2D& Y_new);
 
     Clock& operator++();
     Clock& advance(State1D& Y_current, Grid_Info& grid, 
     Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
     Parallel_Environment_1D& PE);
 
-    // Clock& advance(State2D& Y_current, Grid_Info& grid, 
-    // Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
-    // Parallel_Environment_2D& PE);
+    Clock& advance(State2D& Y_current, Grid_Info& grid, 
+    Output_Data::Output_Preprocessor &output, Export_Files::Restart_Facility &Re,
+    Parallel_Environment_2D& PE);
 
     double dt() {return _dt;}
     double nextdt() {return dt_next;}
@@ -83,8 +83,8 @@ private:
     vector<valarray<complex<double> > > Ex_history1D, Ey_history1D, Ez_history1D;
     vector<valarray<complex<double> > > Bx_history1D, By_history1D, Bz_history1D;
     vector<valarray<double> >          fhat0_history1D;
-    // vector<Array2D<complex<double> > > Ex_history2D, Ey_history2D, Ez_history2D;
-    // vector<Array2D<complex<double> > > Bx_history2D, By_history2D, Bz_history2D;
+    vector<Array2D<complex<double> > > Ex_history2D, Ey_history2D, Ez_history2D;
+    vector<Array2D<complex<double> > > Bx_history2D, By_history2D, Bz_history2D;
     
     vector<vector<double> >             timing_history;
     vector<double>                      time_history;
