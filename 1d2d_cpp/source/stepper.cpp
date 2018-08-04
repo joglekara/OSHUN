@@ -614,28 +614,28 @@ void RK4C::take_step(State2D& Ystar, State2D& Y, double time, double h, VlasovFu
 
 //      Step 1
         vF(Y1_2D,Yh_2D,time,h);                    // slope in the beginning
-        PE.Neighbor_Communications(Yh_2D);
+        // PE.Neighbor_Communications(Yh_2D);
         Yh_2D *= (0.5*h);   Y1_2D += Yh_2D;      // Y1 = Y1 + (h/2)*Yh  Yhc = (*CF)(Y1,time,0.5*h)
         Yh_2D *= (onethird); Y  += Yh_2D;      // Y  = Y  + (h/6)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //      Step 2
         vF(Y1_2D,Yh_2D,time,h);     Y1_2D  = Y0_2D;      // slope in the middle
-        PE.Neighbor_Communications(Yh_2D);
+        // PE.Neighbor_Communications(Yh_2D);
         Yh_2D *= (0.5*h);   Y1_2D += Yh_2D;      // Y1 = Y0 + (h/2)*Yh
         Yh_2D *= (twothird); Y  += Yh_2D;      // Y  = Y  + (h/3)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //      Step 3
         vF(Y1_2D,Yh_2D,time,h);                    // slope in the middle again
-        PE.Neighbor_Communications(Yh_2D);
+        // PE.Neighbor_Communications(Yh_2D);
         Yh_2D *= h;          Y0_2D += Yh_2D;     // Y0 = Y0 + h*Yh
         Yh_2D *= (onethird);  Y  += Yh_2D;     // Y  = Y  + (h/3)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 //      Step 4
         vF(Y0_2D,Yh_2D,time,h);                    // slope at the end
-        PE.Neighbor_Communications(Yh_2D);
+        // PE.Neighbor_Communications(Yh_2D);
         Yh_2D *= (h/6.0);    Y += Yh_2D;      // Y  = Y  + (h/6)*Yh
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 //      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

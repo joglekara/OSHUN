@@ -539,7 +539,8 @@ VlasovFunctor2D_explicitE::VlasovFunctor2D_explicitE(vector<size_t> Nl,vector<si
                                                     // vector<double> pmax, vector<size_t> Np,
                                                     vector<valarray<double> > dp,
                                                      double xmin, double xmax, size_t Nx,
-                                                     double ymin, double ymax, size_t Ny) {
+                                                     double ymin, double ymax, size_t Ny):
+                                                     WD(xmin, xmax, Nx, ymin, ymax, Ny) {
 //--------------------------------------------------------------
 
     for (size_t s(0); s < Nl.size(); ++s){
@@ -586,6 +587,8 @@ void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope){
         
         else 
         {
+            // EMF2D EMF_ext(Yin.DF(s)(0,0).numx(),Yin.DF(s)(0,0).numy()); EMF_ext = static_cast<complex<double> > (0.0);
+            // if (Input::List().trav_wave) WD.applytravelingwave(EMF_ext,time + dt*0.5);
 
             SA[s](Yin.DF(s),Yslope.DF(s));
 
@@ -606,7 +609,49 @@ void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope){
 }
 
 void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, size_t direction){}
-void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){}
+void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, double time, double dt){
+    bool debug(0);
+
+    Yslope = 0.0;
+
+    for (size_t s(0); s < Yin.Species(); ++s) 
+    {
+
+        if (Yin.DF(s).l0() == 1) 
+        {
+
+            SA[s].f1only(Yin.DF(s),Yslope.DF(s));
+
+            EF[s].f1only(Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+
+            BF[s].f1only(Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+
+            JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+
+        }
+        
+        else 
+        {
+            // EMF2D EMF_ext(Yin.DF(s)(0,0).numx(),Yin.DF(s)(0,0).numy()); EMF_ext = static_cast<complex<double> > (0.0);
+            if (Input::List().trav_wave) WD.applytravelingwave(Yin.EMF(),time + dt*0.5);
+
+            SA[s](Yin.DF(s),Yslope.DF(s));
+
+            EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
+
+            BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+
+            JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
+            
+        }
+
+    }
+
+    AM[0](Yin.EMF(),Yslope.EMF());
+
+    FA[0](Yin.EMF(),Yslope.EMF());
+
+}
 //--------------------------------------------------------------
 //  Functor to be used in the Runge-Kutta methods with implicit
 //  E-field solver

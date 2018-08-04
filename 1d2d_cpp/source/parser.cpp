@@ -229,6 +229,7 @@ void Parser::parseprofile( const valarray<double>& grid1, const valarray<double>
                 ystr = grid2[i2];
                 
                 profile(i1,i2) = expression.value();
+                // std::cout << "val = " << expression.value() << "\n";
 
             }
         }

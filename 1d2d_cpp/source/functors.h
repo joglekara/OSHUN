@@ -126,6 +126,8 @@ private:
     vector<Ampere>              AM;
     vector<Magnetic_Field>      BF;
     vector<Faraday>             FA;
+
+    WaveDriver               WD;
  // vector<Hydro_Advection>   HA;
 };
 //--------------------------------------------------------------

@@ -2284,8 +2284,18 @@ Input::Input_List::Input_List():
         else
         {   
             // if (dbydx_order == 2) BoundaryCells = 1;
-            if (dbydx_order == 2 || dbydx_order == 4) BoundaryCells = 2;
-            else if (dbydx_order == 6) BoundaryCells = 3;
+            if (dim == 1)
+            {
+                if (dbydx_order == 2 || dbydx_order == 4) BoundaryCells = 2;
+                else if (dbydx_order == 6) BoundaryCells = 3;
+            }
+            else
+            {
+                if (dbydx_order == 2) BoundaryCells = 4;
+                else if (dbydx_order == 4) BoundaryCells = 8;
+                else BoundaryCells = 12;   
+            }
+
                 
         }
 
@@ -2299,6 +2309,7 @@ Input::Input_List::Input_List():
             xmaxLocalnobnd.push_back(0.0);
             globdx.push_back((xmaxGlobal[i]-xminGlobal[i])/(double (NxGlobal[i]) ));
         }
+            
         
     }
     else {

@@ -261,7 +261,7 @@ void self_f00_implicit_step::update_D_inversebremsstrahlung(valarray<double> &C_
     vw_cube  = Z0*formulas.Zeta*formulas.LOGei(C_RB[C_RB.size()-1],temperature,Z0*formulas.Zeta);  ///< ZLogLambda
     vw_cube *= vw_coeff_cube * C_RB[C_RB.size()-1];
 
-    double ZLnee = Z0*formulas.Zeta*formulas.LOGee(C_RB[C_RB.size()-1],temperature);
+    double ZLnee = Z0*formulas.Zeta*0.5*formulas.LOGee(C_RB[C_RB.size()-1],temperature);
 
     double g, b0, nueff, xsi;
 
@@ -299,7 +299,7 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
     update_D_and_delta(C_RB, D_RB, delta_CC, fin);    /// And takes care of boundaries
 
     /// Normalizing quantities (Inspired by previous collision routines and OSHUN notes by M. Tzoufras)
-    collisional_coefficient  = formulas.LOGee(C_RB[C_RB.size()-1],2.*I4_Lnee/3.0/C_RB[C_RB.size()-1]);
+    collisional_coefficient  = 0.5*formulas.LOGee(C_RB[C_RB.size()-1],2.*I4_Lnee/3.0/C_RB[C_RB.size()-1]);
     collisional_coefficient *= 4.0*M_PI/3.0*c_kpre;
     collisional_coefficient *= step_size;           /// Step size incorporated here
 
@@ -378,7 +378,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
 
     /// Normalizing quantities (Inspired by previous collision routines and OSHUN notes by M. Tzoufras)
     double collisional_coefficient;
-    collisional_coefficient  = -4.0*M_PI/3.0*c_kpre*formulas.LOGee(C_RB[C_RB.size()-1],I2_temperature)/I2_temperature*step_size;
+    collisional_coefficient  = -4.0*M_PI/3.0*c_kpre*0.5*formulas.LOGee(C_RB[C_RB.size()-1],I2_temperature)/I2_temperature*step_size;
     // collisional_coefficient *= ;
     // collisional_coefficient *= pow(I2_temperature,-1.0);
     // collisional_coefficient *= -step_size;           /// Step size incorporated here
@@ -731,7 +731,7 @@ void self_f00_explicit_step::takestep(const valarray<double>& fin, valarray<doub
 //     Use I2 and I4 to calculate the Coulomb logarithm now, the
 //     arrays I2 I4 will be modified later and it will be too late.
 
-    Ln_ee = formulas.LOGee(4.0*M_PI*I2[I2.size()-1],I4[I4.size()-1]/3.0/I2[I4.size()-1]);
+    Ln_ee = 0.5*formulas.LOGee(4.0*M_PI*I2[I2.size()-1],I4[I4.size()-1]/3.0/I2[I4.size()-1]);
 
 //     <><><><><><><><><><><><><><><><><><>
 //     Tony's Energy Conserving Algorithm 
@@ -1137,7 +1137,7 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     Scattering_Term    = TriI1;
     // Scattering_Term    = I2_temperature;
-    Scattering_Term   *= _LOGee;                        // Electron-electron contribution
+    Scattering_Term   *= 0.5*_LOGee;                        // Electron-electron contribution
     Scattering_Term[0] = 0.0;
     Scattering_Term   += _ZLOGei * I0_density;          // Ion-electron contribution
     // Scattering_Term   /= pow(vr,3);
@@ -1178,7 +1178,7 @@ void  self_flm_implicit_step::reset_coeff_FP(valarray<double>& fin, const double
 
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt;         // (-1) because the matrix moves to the LHS in the equation
+    Alpha_Tri *=  (-1.0) * 0.5*_LOGee * kpre * Dt;         // (-1) because the matrix moves to the LHS in the equation
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
     //     Evaluate the derivative
@@ -1288,7 +1288,7 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
     // Scattering_Term    = TriI1;
     Scattering_Term    = 2.*I2_temperature;
-    Scattering_Term   *= _LOGee;                        // Electron-electron contribution
+    Scattering_Term   *= 0.5*_LOGee;                        // Electron-electron contribution
     Scattering_Term[0] = 0.0;
     Scattering_Term   += _ZLOGei * I0_density;          // Ion-electron contribution
     // Scattering_Term   /= pow(vr,3);
@@ -1339,7 +1339,7 @@ void  self_flm_implicit_step::reset_coeff_LB(valarray<double>& fin, const double
     // Alpha_Tri(ip    , ip) += 1.;
 
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    Alpha_Tri *=  (-1.0) * _LOGee * kpre * Dt / pow(I2_temperature,1.0);         // (-1) because the matrix moves to the LHS in the equation
+    Alpha_Tri *=  (-1.0) * 0.5*_LOGee * kpre * Dt / pow(I2_temperature,1.0);         // (-1) because the matrix moves to the LHS in the equation
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 //     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -     
     // Collect all terms to share with matrix solve routine
@@ -1479,10 +1479,10 @@ void  self_flm_implicit_step::collide_f0withRBflm(valarray<complex<double> >& fi
 
     for (size_t k(0); k < I_ellplustwo.size(); ++k) 
     {
-        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A1*(ddf0_x[position][k]) + B1*(df0_x[position])[k])*I_ellplustwo[k];
-        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A1*(ddf0_x[position][k]) + B2*(df0_x[position])[k])*J_minusellminusone[k];
-        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A2*(ddf0_x[position][k]) + B3*(df0_x[position])[k])*I_ell[k];
-        fin_singleharmonic[k] += 0.5*((_LOGee_x[position]) * kpre * Dt)*(A2*(ddf0_x[position][k]) + B4*(df0_x[position])[k])*J_oneminusell[k];
+        fin_singleharmonic[k] += 0.5*(0.5*(_LOGee_x[position]) * kpre * Dt)*(A1*(ddf0_x[position][k]) + B1*(df0_x[position])[k])*I_ellplustwo[k];
+        fin_singleharmonic[k] += 0.5*(0.5*(_LOGee_x[position]) * kpre * Dt)*(A1*(ddf0_x[position][k]) + B2*(df0_x[position])[k])*J_minusellminusone[k];
+        fin_singleharmonic[k] += 0.5*(0.5*(_LOGee_x[position]) * kpre * Dt)*(A2*(ddf0_x[position][k]) + B3*(df0_x[position])[k])*I_ell[k];
+        fin_singleharmonic[k] += 0.5*(0.5*(_LOGee_x[position]) * kpre * Dt)*(A2*(ddf0_x[position][k]) + B4*(df0_x[position])[k])*J_oneminusell[k];
     }
 }
 //-------------------------------------------------------------------
@@ -1994,7 +1994,7 @@ void collisions_1D::advance(State1D& Yin, const double time, const double step_s
         // Yh.checknan();
         advanceflm(Yin,Yh);
 
-        Yh.DF(0).Filterp();
+        // Yh.DF(0).Filterp();
         // std::cout << "\n 12 \n";
         // Yh.checknan();
     }

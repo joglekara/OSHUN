@@ -190,7 +190,7 @@ void WaveDriver::applytravelingwave(EMF1D& fields, const double time)
     }
 }
 //---------------------------------------------------------------------------
-void WaveDriver::applytravelingwave(State2D& Y, const double time)
+void WaveDriver::applytravelingwave(EMF2D& fields, const double time)
 {
 
     for (size_t n(0); n < Input::List().num_waves; ++n)
@@ -245,16 +245,16 @@ void WaveDriver::applytravelingwave(State2D& Y, const double time)
                 time_coeff += 1.0;
             }
 
-            for (size_t ix(0);ix<Y.SH(0,0,0).numx();++ix)
+            for (size_t ix(0);ix<xaxis.size();++ix)
             {
-                for (size_t iy(0);iy<Y.SH(0,0,0).numy();++iy)
+                for (size_t iy(0);iy<yaxis.size();++iy)
                 {
-                    Y.EMF().Ex()(ix,iy) += Ex_profile_drive_2D(ix,iy)*time_coeff;
-                    Y.EMF().Ey()(ix,iy) += Ey_profile_drive_2D(ix,iy)*time_coeff;
-                    Y.EMF().Ez()(ix,iy) += Ez_profile_drive_2D(ix,iy)*time_coeff;
-                    Y.EMF().Bx()(ix,iy) += Bx_profile_drive_2D(ix,iy)*time_coeff;
-                    Y.EMF().By()(ix,iy) += By_profile_drive_2D(ix,iy)*time_coeff;
-                    Y.EMF().Bz()(ix,iy) += Bz_profile_drive_2D(ix,iy)*time_coeff;
+                    fields.Ex()(ix,iy) += Ex_profile_drive_2D(ix,iy)*time_coeff;
+                    fields.Ey()(ix,iy) += Ey_profile_drive_2D(ix,iy)*time_coeff;
+                    fields.Ez()(ix,iy) += Ez_profile_drive_2D(ix,iy)*time_coeff;
+                    fields.Bx()(ix,iy) += Bx_profile_drive_2D(ix,iy)*time_coeff;
+                    fields.By()(ix,iy) += By_profile_drive_2D(ix,iy)*time_coeff;
+                    fields.Bz()(ix,iy) += Bz_profile_drive_2D(ix,iy)*time_coeff;
                 }
             }
         }
