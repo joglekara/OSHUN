@@ -1970,11 +1970,71 @@ void DistFunc1D::checknan() const {
     }
 
     DistFunc2D& DistFunc2D::Filterp(){
-        for(size_t i(0); i < dim() ; ++i) { 
-            // (*df)[i].Filterp(i);
-            // (*df)[i].Filterp(filter_ceiling[i]);
+        
+    valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
+    double a(0.), c(0.);
+
+    if (Input::List().filter_pmax > 0.)
+    {
+        for(size_t iy = 0; iy < (*df)[0].numy(); ++iy) 
+        {
+            for(size_t ix = 0; ix < (*df)[0].numx(); ++ix) 
+            {
+                a = ((*df)[0](first_resolved_cell[0],ix,iy).real() - (filterf0[0]))/(pow(vr[first_resolved_cell[0]],2.)-pow(vr[0],2.));
+                c = filterf0[0] - a*pow(vr[0],2.);
+                for(size_t ip = 0; ip < first_resolved_cell[0]; ++ip) 
+                {
+                    // (*df)[0](ip,ix) = filterf0[ip];
+                    (*df)[0](ip,ix,iy) = complex<double> (a*vr[ip]*vr[ip]+c);
+                }
+            }
         }
-        return *this;
+
+        // for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
+        // {
+        //     for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
+        //     {
+        //         (*df)[il](ip,ix) = (*df)[1](first_resolved_cell[1],ix)*pow(vr[ip]/vr[first_resolved_cell[1]],2.);
+        //     }
+        // }
+
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t il = 1; il < dim() ; ++il) 
+        {
+            for(size_t iy = 0; iy < (*df)[0].numy(); ++iy) 
+            {
+                for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
+                {
+                    for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
+                    {
+                        (*df)[il](ip,ix,iy) = (*df)[il](first_resolved_cell[il],ix,iy)*pow(vr[ip]/vr[first_resolved_cell[il]],il);
+
+                        if (Input::List().filter_Nl)
+                            (*df)[il](ip,ix,iy) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+                    }
+
+                    if (Input::List().filter_Nl)
+                    {
+                        for(size_t ip = first_resolved_cell[il]; ip < (*df)[il].nump(); ++ip) 
+                        {
+                            (*df)[il](ip,ix,iy) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+        if (Input::List().filter_Nl)
+        {
+            #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t il = 1; il < dim() ; ++il)
+            {
+                (*df)[il] *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+            }
+        }
+    }
     }
 
     //--------------------------------------------------------------------------------------------------------------------------
