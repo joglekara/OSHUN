@@ -462,6 +462,9 @@ public:
 //  Index for "trapezoid matrix"
         Array2D<int> ind;
         
+        valarray<size_t> first_resolved_cell;
+        valarray<double> filterf0;
+
 
     public:
 
@@ -477,6 +480,7 @@ public:
         valarray<double> getdp()            const {return dp;   }
         double q()                          const {return charge;}
         double mass()                       const {return ma;}
+        valarray<double> getf0()        const {return filterf0;}
 
         Array2D<int> indx()                 const {return ind;}
 
@@ -488,6 +492,8 @@ public:
         Array2D<double> getrelativisticcurrent(size_t dir) const;
         Array3D<double>  getrelativisticcurrent() const;
         Array2D<double> getpressure();
+
+        void setf0_filter(const SHarmonic2D& fMx);
 
 //      Access
         SHarmonic2D& operator()(size_t i)           {return (*df)[size_t(i)];}
@@ -508,7 +514,7 @@ public:
         DistFunc2D& operator-=(const DistFunc2D& other);
 
 //      Filter
-        DistFunc2D& Filterp();
+        void Filterp();
 
 //      Debug
         void checknan();    

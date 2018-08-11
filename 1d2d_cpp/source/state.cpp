@@ -1782,7 +1782,8 @@ void DistFunc1D::checknan() const {
                             size_t nx, size_t ny,
                             double q=1, double _ma=1) 
              : lmax(l), mmax(m), sz(((m+1)*(2*l-m+2))/2),
-             dp(_dp), charge(q), ma(_ma), ind(l+1,m+1) {
+             dp(_dp), charge(q), ma(_ma), ind(l+1,m+1),
+             first_resolved_cell(l+1), filterf0(_dp.size())  {
              
 //      Initialize the array of the harmonics
         if (lmax < 1 || mmax < 1) {
@@ -1794,6 +1795,9 @@ void DistFunc1D::checknan() const {
         //      Generate container for the harmonics
         df = new vector<SHarmonic2D>(sz,SHarmonic2D(_dp.size(),nx,ny)); 
         
+        double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/Input::List().filter_dp);
+        size_t filter_base(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
+
 //      Define the index for the triangular array 
         ind = -1;
 
@@ -1802,7 +1806,7 @@ void DistFunc1D::checknan() const {
             for(size_t il(0); il < lmax+1 ; ++il){
                 ind(il,0) = il;
 
-                
+                first_resolved_cell[il] = filter_base + static_cast<size_t>(std::round(filter_pcell_per_harmonic * double(il)));
             }
 
         }
@@ -1812,6 +1816,8 @@ void DistFunc1D::checknan() const {
                 for(size_t im(0); im < ((mmax < il)? mmax:il)+1; ++im){
                     ind(il,im) = ((il < mmax+1)?((il*(il+1))/2+im):
                                   (il*(mmax+1)-(mmax*(mmax+1))/2 + im));
+
+                    first_resolved_cell[il] = filter_base + static_cast<size_t>(std::round(filter_pcell_per_harmonic * double(il)));
                  
                 }
             }
@@ -1821,72 +1827,80 @@ void DistFunc1D::checknan() const {
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 //  Copy constructor
-    DistFunc2D:: DistFunc2D(const DistFunc2D& other)
-              : lmax(other.l0()), mmax(other.m0()), 
-              sz(((other.m0()+1)*(2*other.l0()-other.m0()+2))/2),
-              dp(other.getdp()),
-              charge(other.q()), ma(other.mass()), ind(other.l0()+1,other.m0()+1)
-    {
-        // sz = ((mmax+1)*(2*lmax-mmax+2))/2;
+DistFunc2D:: DistFunc2D(const DistFunc2D& other)
+          : lmax(other.l0()), mmax(other.m0()), 
+          sz(((other.m0()+1)*(2*other.l0()-other.m0()+2))/2),
+          dp(other.getdp()),
+          charge(other.q()), ma(other.mass()), ind(other.l0()+1,other.m0()+1),
+          first_resolved_cell(other.l0()+1), filterf0(other.getf0())
+{
+    // sz = ((mmax+1)*(2*lmax-mmax+2))/2;
 
 //      Generate container for the harmonics
-        df = new vector<SHarmonic2D>(sz,SHarmonic2D(other(0).nump(),other(0).numx(),other(0).numy()));
+    df = new vector<SHarmonic2D>(sz,SHarmonic2D(other(0).nump(),other(0).numx(),other(0).numy()));
 
 
-         for(size_t i(0); i < sz ; ++i){  
-            (*df).push_back(other(i));
-        }
-
-        //      Define the index for the triangular array 
-        ind = -1;
-        if (mmax == 0)
-        {
-            for(size_t il(0); il < lmax+1 ; ++il){
-                ind(il,0) = il;
-                
-            }
-        }
-        else
-        {
-            for(size_t il(0); il < lmax+1 ; ++il){
-                for(size_t im(0); im < ((mmax < il)? mmax:il)+1; ++im){
-                    ind(il,im) = ((il < mmax+1)?((il*(il+1))/2+im):
-                                  (il*(mmax+1)-(mmax*(mmax+1))/2 + im));
-                    
-             
-                }
-            }
-        }
-        
+     for(size_t i(0); i < sz ; ++i){  
+        (*df).push_back(other(i));
     }
+
+    double filter_pcell_per_harmonic(Input::List().filter_pmax/dp[0]/Input::List().filter_dp);
+    size_t filter_base(static_cast<size_t>(std::ceil(Input::List().filter_pmax/dp[0])));
+
+    //      Define the index for the triangular array 
+    ind = -1;
+    if (mmax == 0)
+    {
+        for(size_t il(0); il < lmax+1 ; ++il){
+            ind(il,0) = il;
+
+            first_resolved_cell[il] = filter_base + static_cast<size_t>(std::round(filter_pcell_per_harmonic * double(il)));
+            
+        }
+    }
+    else
+    {
+        for(size_t il(0); il < lmax+1 ; ++il){
+            for(size_t im(0); im < ((mmax < il)? mmax:il)+1; ++im){
+                ind(il,im) = ((il < mmax+1)?((il*(il+1))/2+im):
+                              (il*(mmax+1)-(mmax*(mmax+1))/2 + im));
+
+                first_resolved_cell[il] = filter_base + static_cast<size_t>(std::round(filter_pcell_per_harmonic * double(il)));
+                
+         
+            }
+        }
+    }
+    
+}
 //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
 //  Destructor
-    DistFunc2D:: ~DistFunc2D(){
-        delete df;
-    }
+DistFunc2D:: ~DistFunc2D(){
+    delete df;
+}
 //--------------------------------------------------------------
 //  Access THESE WERE CHANGED IS BE (L,M) RATHER THAN (I)... WHY?
 //--------------------------------------------------------------
 ////  Pointer to the (l-th, m-th) harmonic
 
-   // SHarmonic2D& DistFunc2D::operator()(size_t l, size_t m) {   
-   //     // if ((l < 0) || (l> lmax) || (m < 0) || (m> mmax)) return NULL;
-   //     return (*df)[ind(l,m)];
-   //  }
+// SHarmonic2D& DistFunc2D::operator()(size_t l, size_t m) {   
+//     // if ((l < 0) || (l> lmax) || (m < 0) || (m> mmax)) return NULL;
+//     return (*df)[ind(l,m)];
+//  }
 //  Pointer to the l-th harmonic
-    // SHarmonic2D& DistFunc2D::operator()(size_t i) {   
-    //     return ((*df)[size_t(i)]);
-    // }      
+// SHarmonic2D& DistFunc2D::operator()(size_t i) {   
+//     return ((*df)[size_t(i)]);
+// }      
 
-   // SHarmonic2D& DistFunc2D::operator()(size_t l, size_t m) const {
-   //      // if ((l < 0) || (l> lmax) || (m < 0) || (m> mmax)) return NULL;
-   //      return (*df)[ind(l,m)];
-   //  }
-   //  SHarmonic2D& DistFunc2D::operator()(size_t i) const {
-   //      // if ((l < 0) || (l> lmax) || (m < 0) || (m > mmax)) return NULL;
-   //      return ((*df)[size_t(i)]);
-   //  }
+// SHarmonic2D& DistFunc2D::operator()(size_t l, size_t m) const {
+//      // if ((l < 0) || (l> lmax) || (m < 0) || (m> mmax)) return NULL;
+//      return (*df)[ind(l,m)];
+//  }
+//  SHarmonic2D& DistFunc2D::operator()(size_t i) const {
+//      // if ((l < 0) || (l> lmax) || (m < 0) || (m > mmax)) return NULL;
+//      return ((*df)[size_t(i)]);
+//  }
 
 // //  Pointer to the "n" neighbor of the l harmonic
 //     SHarmonic1D* DistFunc2D::Compus(size_t l, _Compus1D n) const {
@@ -1896,316 +1910,327 @@ void DistFunc1D::checknan() const {
 //  Operators
 //--------------------------------------------------------------
 //  Copy assignment operator
-    DistFunc2D& DistFunc2D::operator=(const complex <double>& d){
-        for(size_t i(0); i < dim() ; ++i){  
-            (*df)[i] = d;
-        }
-        return *this;
+DistFunc2D& DistFunc2D::operator=(const complex <double>& d){
+    for(size_t i(0); i < dim() ; ++i){  
+        (*df)[i] = d;
     }
-    DistFunc2D& DistFunc2D::operator=(const SHarmonic2D& h){
-        for(size_t i(0); i < dim() ; ++i){  
-            if (&((*df)[i]) != &h) {   //self-assignment
-                (*df)[i] = h;
-            }
+    return *this;
+}
+DistFunc2D& DistFunc2D::operator=(const SHarmonic2D& h){
+    for(size_t i(0); i < dim() ; ++i){  
+        if (&((*df)[i]) != &h) {   //self-assignment
+            (*df)[i] = h;
         }
-        return *this;
     }
-    DistFunc2D& DistFunc2D::operator=(const DistFunc2D& other){
-        if (this != &other) 
-        {   //self-assignment
-            for(size_t i(0); i < other.dim() ; ++i) {  
-        
-                (*df)[i] = other(i);
+    return *this;
+}
+DistFunc2D& DistFunc2D::operator=(const DistFunc2D& other){
+    if (this != &other) 
+    {   //self-assignment
+        for(size_t i(0); i < other.dim() ; ++i) {  
+    
+            (*df)[i] = other(i);
 
-            }
         }
-
-        return *this;
     }
+
+    return *this;
+}
 //  *=
-    DistFunc2D& DistFunc2D::operator*=(const complex <double>& d){
-        for(size_t i(0); i < dim() ; ++i) { 
-            (*df)[i] *= d;
-        }
-        return *this;
+DistFunc2D& DistFunc2D::operator*=(const complex <double>& d){
+    for(size_t i(0); i < dim() ; ++i) { 
+        (*df)[i] *= d;
     }
-    DistFunc2D& DistFunc2D::operator*=(const DistFunc2D& other){
-        if (this != &other) {   //self-assignment
-            for(size_t i(0); i < dim() ; ++i)  
-            {
-                    (*df)[i] *= (other(i));
-            }
+    return *this;
+}
+DistFunc2D& DistFunc2D::operator*=(const DistFunc2D& other){
+    if (this != &other) {   //self-assignment
+        for(size_t i(0); i < dim() ; ++i)  
+        {
+                (*df)[i] *= (other(i));
         }
-        return *this;
     }
+    return *this;
+}
 //  +=
-    DistFunc2D& DistFunc2D::operator+=(const complex <double>& d){
-        for(size_t i(0); i < dim() ; ++i) { 
-            (*df)[i] += d;
-        }
-        return *this;
+DistFunc2D& DistFunc2D::operator+=(const complex <double>& d){
+    for(size_t i(0); i < dim() ; ++i) { 
+        (*df)[i] += d;
     }
-    DistFunc2D& DistFunc2D::operator+=(const DistFunc2D& other){
-        if (this != &other) {   //self-assignment
-            for(size_t i(0); i < dim() ; ++i) {  
-                (*df)[i] += (other(i));
-            }
+    return *this;
+}
+DistFunc2D& DistFunc2D::operator+=(const DistFunc2D& other){
+    if (this != &other) {   //self-assignment
+        for(size_t i(0); i < dim() ; ++i) {  
+            (*df)[i] += (other(i));
         }
-        return *this;
     }
+    return *this;
+}
 //  -=
-    DistFunc2D& DistFunc2D::operator-=(const complex <double>& d){
-        for(size_t i(0); i < dim() ; ++i) { 
-            (*df)[i] -= d;
-        }
-        return *this;
+DistFunc2D& DistFunc2D::operator-=(const complex <double>& d){
+    for(size_t i(0); i < dim() ; ++i) { 
+        (*df)[i] -= d;
     }
-    DistFunc2D& DistFunc2D::operator-=(const DistFunc2D& other){
-        if (this != &other) {   //self-assignment
-            for(size_t i(0); i < dim() ; ++i) {  
-                (*df)[i] -= (other(i));
+    return *this;
+}
+DistFunc2D& DistFunc2D::operator-=(const DistFunc2D& other){
+    if (this != &other) {   //self-assignment
+        for(size_t i(0); i < dim() ; ++i) {  
+            (*df)[i] -= (other(i));
+        }
+    }
+    return *this;
+}
+
+//--------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+
+void DistFunc2D::setf0_filter(const SHarmonic2D& f0)
+{
+    for (size_t ip(0); ip < dp.size(); ++ip)
+    {
+        filterf0[ip] = f0(ip,0,0).real();
+    }
+}    
+
+void DistFunc2D::Filterp(){
+    
+valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
+double a(0.), c(0.);
+
+if (Input::List().filter_pmax > 0.)
+{
+    for(size_t iy = 0; iy < (*df)[0].numy(); ++iy) 
+    {
+        for(size_t ix = 0; ix < (*df)[0].numx(); ++ix) 
+        {
+            a = ((*df)[0](first_resolved_cell[0],ix,iy).real() - (filterf0[0]))/(pow(vr[first_resolved_cell[0]],2.)-pow(vr[0],2.));
+            c = filterf0[0] - a*pow(vr[0],2.);
+            for(size_t ip = 0; ip < first_resolved_cell[0]; ++ip) 
+            {
+                // (*df)[0](ip,ix) = filterf0[ip];
+                (*df)[0](ip,ix,iy) = complex<double> (a*vr[ip]*vr[ip]+c);
             }
         }
-        return *this;
     }
 
-    DistFunc2D& DistFunc2D::Filterp(){
-        
-    valarray<double> vr(Algorithms::MakeCAxis(0.0,dp));
-    double a(0.), c(0.);
+    // for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
+    // {
+    //     for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
+    //     {
+    //         (*df)[il](ip,ix) = (*df)[1](first_resolved_cell[1],ix)*pow(vr[ip]/vr[first_resolved_cell[1]],2.);
+    //     }
+    // }
 
-    if (Input::List().filter_pmax > 0.)
+    #pragma omp parallel for num_threads(Input::List().ompthreads)
+    for(size_t il = 1; il < dim() ; ++il) 
     {
         for(size_t iy = 0; iy < (*df)[0].numy(); ++iy) 
         {
-            for(size_t ix = 0; ix < (*df)[0].numx(); ++ix) 
+            for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
             {
-                a = ((*df)[0](first_resolved_cell[0],ix,iy).real() - (filterf0[0]))/(pow(vr[first_resolved_cell[0]],2.)-pow(vr[0],2.));
-                c = filterf0[0] - a*pow(vr[0],2.);
-                for(size_t ip = 0; ip < first_resolved_cell[0]; ++ip) 
+                for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
                 {
-                    // (*df)[0](ip,ix) = filterf0[ip];
-                    (*df)[0](ip,ix,iy) = complex<double> (a*vr[ip]*vr[ip]+c);
-                }
-            }
-        }
-
-        // for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
-        // {
-        //     for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
-        //     {
-        //         (*df)[il](ip,ix) = (*df)[1](first_resolved_cell[1],ix)*pow(vr[ip]/vr[first_resolved_cell[1]],2.);
-        //     }
-        // }
-
-        #pragma omp parallel for num_threads(Input::List().ompthreads)
-        for(size_t il = 1; il < dim() ; ++il) 
-        {
-            for(size_t iy = 0; iy < (*df)[0].numy(); ++iy) 
-            {
-                for(size_t ix = 0; ix < (*df)[il].numx(); ++ix) 
-                {
-                    for(size_t ip = 0; ip < first_resolved_cell[il]; ++ip) 
-                    {
-                        (*df)[il](ip,ix,iy) = (*df)[il](first_resolved_cell[il],ix,iy)*pow(vr[ip]/vr[first_resolved_cell[il]],il);
-
-                        if (Input::List().filter_Nl)
-                            (*df)[il](ip,ix,iy) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
-                    }
+                    (*df)[il](ip,ix,iy) = (*df)[il](first_resolved_cell[il],ix,iy)*pow(vr[ip]/vr[first_resolved_cell[il]],il);
 
                     if (Input::List().filter_Nl)
+                        (*df)[il](ip,ix,iy) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+                }
+
+                if (Input::List().filter_Nl)
+                {
+                    for(size_t ip = first_resolved_cell[il]; ip < (*df)[il].nump(); ++ip) 
                     {
-                        for(size_t ip = first_resolved_cell[il]; ip < (*df)[il].nump(); ++ip) 
-                        {
-                            (*df)[il](ip,ix,iy) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
-                        }
+                        (*df)[il](ip,ix,iy) *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
                     }
                 }
             }
         }
     }
+}
+else
+{
+    if (Input::List().filter_Nl)
+    {
+        #pragma omp parallel for num_threads(Input::List().ompthreads)
+        for(size_t il = 1; il < dim() ; ++il)
+        {
+            (*df)[il] *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
+        }
+    }
+}
+}
+
+//--------------------------------------------------------------------------------------------------------------------------
+//  Moments for Hydro
+//--------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+Array2D<double> DistFunc2D::getdensity()
+{
+    
+    Array2D<double> out((*df)[0].numx(),(*df)[0].numy());
+
+    valarray<complex<double> > vr(Algorithms::MakeCAxis(
+        static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+
+    vr[0] = 0.5*dp[0];
+    for (size_t ip(1); ip < dp.size(); ++ip)
+    {
+        vr[ip] = vr[ip-1] + dp[ip];
+    }
+
+      
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(ix,iy) = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(ix,iy),vr,2.0)).real();
+            }
+        }
+    return out;
+}    
+
+//--------------------------------------------------------------------------------------------------------------------------
+//--------------------------------------------------------------------------------------------------------------------------
+Array2D<double> DistFunc2D::getcurrent(size_t dir){
+    
+    Array2D<double> out((*df)[0].numx(),(*df)[0].numy());
+    
+
+    valarray<complex<double> > vr(Algorithms::MakeCAxis(
+        static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+
+    vr[0] = 0.5*dp[0];
+    for (size_t ip(1); ip < dp.size(); ++ip)
+    {
+        vr[ip] = vr[ip-1] + dp[ip];
+    }
+
+    
+    double current_c1(4.0/3.0*M_PI*charge/ma);
+    double current_c2(2.0*current_c1);
+    double current_c3(-1.0*current_c2);
+
+    if (dir == 0)
+    {    
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(ix,iy) = (current_c1*Algorithms::moment((*df)[1].xVec(ix,iy),vr,3.0)).real();
+            }
+        }
+    }   
+    else if (dir == 1)
+    {    
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(ix,iy) = (current_c2*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).real();
+            }
+        }
+    }
+    else if (dir == 2)
+    {    
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(ix,iy) = (current_c3*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).imag();
+            }
+        }
+    }
+
     else
     {
-        if (Input::List().filter_Nl)
-        {
-            #pragma omp parallel for num_threads(Input::List().ompthreads)
-            for(size_t il = 1; il < dim() ; ++il)
-            {
-                (*df)[il] *= complex<double>(exp(-36.*pow(il/(dim()-1),36)));
-            }
-        }
-    }
+        std::cout << "\n\n ERROR: Wrong current Direction \n\n ";
+        exit(1);
     }
 
-    //--------------------------------------------------------------------------------------------------------------------------
-    //  Moments for Hydro
-    //--------------------------------------------------------------------------------------------------------------------------
-    //--------------------------------------------------------------------------------------------------------------------------
-    Array2D<double> DistFunc2D::getdensity()
+    return out;
+
+
+}
+//--------------------------------------------------------------------------------------------------------------------------
+Array2D<double> DistFunc2D::getcurrent(size_t dir) const{
+    
+
+    Array2D<double> out((*df)[0].numx(),(*df)[0].numy());
+    valarray<complex<double> > vr(Algorithms::MakeCAxis(
+        static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+
+    vr[0] = 0.5*dp[0];
+    for (size_t ip(1); ip < dp.size(); ++ip)
     {
-        
-        Array2D<double> out((*df)[0].numx(),(*df)[0].numy());
-
-        valarray<complex<double> > vr(Algorithms::MakeCAxis(
-            static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
-
-        vr[0] = 0.5*dp[0];
-        for (size_t ip(1); ip < dp.size(); ++ip)
-        {
-            vr[ip] = vr[ip-1] + dp[ip];
-        }
-
-          
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(ix,iy) = (4.0*M_PI*Algorithms::moment((*df)[0].xVec(ix,iy),vr,2.0)).real();
-                }
-            }
-        return out;
-    }    
-
-//--------------------------------------------------------------------------------------------------------------------------
-//--------------------------------------------------------------------------------------------------------------------------
-   Array2D<double> DistFunc2D::getcurrent(size_t dir){
-        
-        Array2D<double> out((*df)[0].numx(),(*df)[0].numy());
-        
-
-        valarray<complex<double> > vr(Algorithms::MakeCAxis(
-            static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
-
-        vr[0] = 0.5*dp[0];
-        for (size_t ip(1); ip < dp.size(); ++ip)
-        {
-            vr[ip] = vr[ip-1] + dp[ip];
-        }
-
-        
-        double current_c1(4.0/3.0*M_PI*charge/ma);
-        double current_c2(2.0*current_c1);
-        double current_c3(-1.0*current_c2);
-
-        if (dir == 0)
-        {    
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(ix,iy) = (current_c1*Algorithms::moment((*df)[1].xVec(ix,iy),vr,3.0)).real();
-                }
-            }
-        }   
-        else if (dir == 1)
-        {    
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(ix,iy) = (current_c2*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).real();
-                }
-            }
-        }
-        else if (dir == 2)
-        {    
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(ix,iy) = (current_c3*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).imag();
-                }
-            }
-        }
-
-        else
-        {
-            std::cout << "\n\n ERROR: Wrong current Direction \n\n ";
-            exit(1);
-        }
-
-        return out;
-
-
+        vr[ip] = vr[ip-1] + dp[ip];
     }
-//--------------------------------------------------------------------------------------------------------------------------
-    Array2D<double> DistFunc2D::getcurrent(size_t dir) const{
+
+    double current_c1(4.0/3.0*M_PI*charge/ma);
+    double current_c2(2.0*current_c1);
+    double current_c3(-1.0*current_c2);
+
+    if (dir == 0)
+    {    
         
-
-        Array2D<double> out((*df)[0].numx(),(*df)[0].numy());
-        valarray<complex<double> > vr(Algorithms::MakeCAxis(
-            static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
-
-        vr[0] = 0.5*dp[0];
-        for (size_t ip(1); ip < dp.size(); ++ip)
-        {
-            vr[ip] = vr[ip-1] + dp[ip];
-        }
-
-        double current_c1(4.0/3.0*M_PI*charge/ma);
-        double current_c2(2.0*current_c1);
-        double current_c3(-1.0*current_c2);
-
-        if (dir == 0)
-        {    
-            
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(ix,iy) = (current_c1*Algorithms::moment((*df)[1].xVec(ix,iy),vr,3.0)).real();
-                }
-            }
-        }   
-        else if (dir == 1)
-        {    
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(ix,iy) = (current_c2*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).real();
-                }
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(ix,iy) = (current_c1*Algorithms::moment((*df)[1].xVec(ix,iy),vr,3.0)).real();
             }
         }
-        else if (dir == 2)
-        {    
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(ix,iy) = (current_c3*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).imag();
-                }
+    }   
+    else if (dir == 1)
+    {    
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(ix,iy) = (current_c2*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).real();
             }
         }
-
-        else
-        {
-            std::cout << "\n\n ERROR: Wrong current Direction \n\n ";
-            exit(1);
-        }
-
-        return out;
-
-
     }
+    else if (dir == 2)
+    {    
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(ix,iy) = (current_c3*Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).imag();
+            }
+        }
+    }
+
+    else
+    {
+        std::cout << "\n\n ERROR: Wrong current Direction \n\n ";
+        exit(1);
+    }
+
+    return out;
+
+
+}
 //--------------------------------------------------------------------------------------------------------------------------    
-    Array3D<double> DistFunc2D::getcurrent() const{
-        
-        Array3D<double> out(3,(*df)[0].numx(),(*df)[0].numy());
-        valarray<complex<double> > vr(Algorithms::MakeCAxis(
-            static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
+Array3D<double> DistFunc2D::getcurrent() const{
+    
+    Array3D<double> out(3,(*df)[0].numx(),(*df)[0].numy());
+    valarray<complex<double> > vr(Algorithms::MakeCAxis(
+        static_cast<complex<double> > (0.0),static_cast<complex<double> >(1.0),(*df)[0].nump()));
 
-        vr[0] = 0.5*dp[0];
-        for (size_t ip(1); ip < dp.size(); ++ip)
-        {
-            vr[ip] = vr[ip-1] + dp[ip];
+    vr[0] = 0.5*dp[0];
+    for (size_t ip(1); ip < dp.size(); ++ip)
+    {
+        vr[ip] = vr[ip-1] + dp[ip];
+    }
+
+    
+    double current_c1(4.0/3.0*M_PI*charge/ma);
+    double current_c2(2.0*current_c1);
+    double current_c3(-1.0*current_c2);
+
+        for (size_t iy(0); iy<(*df)[0].numy();++iy){
+            for (size_t ix(0); ix<(*df)[0].numx();++ix){
+                out(0,ix,iy) = (current_c1)*(Algorithms::moment((*df)[1].xVec(ix,iy),vr,3.0)).real();
+        
+                out(1,ix,iy) = (current_c2)*(Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).real();
+        
+                out(2,ix,iy) = (current_c3)*(Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).imag();
+            }
         }
 
-        
-        double current_c1(4.0/3.0*M_PI*charge/ma);
-        double current_c2(2.0*current_c1);
-        double current_c3(-1.0*current_c2);
-
-            for (size_t iy(0); iy<(*df)[0].numy();++iy){
-                for (size_t ix(0); ix<(*df)[0].numx();++ix){
-                    out(0,ix,iy) = (current_c1)*(Algorithms::moment((*df)[1].xVec(ix,iy),vr,3.0)).real();
-            
-                    out(1,ix,iy) = (current_c2)*(Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).real();
-            
-                    out(2,ix,iy) = (current_c3)*(Algorithms::moment((*df)[2].xVec(ix,iy),vr,3.0)).imag();
-                }
-            }
-
-        return out;
+    return out;
 
 
-    }
+}
     //--------------------------------------------------------------------------------------------------------------------------
 
 Array2D<double> DistFunc2D::getrelativisticcurrent(size_t dir){
