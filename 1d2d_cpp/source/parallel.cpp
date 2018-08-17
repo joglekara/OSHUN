@@ -743,11 +743,11 @@ void Node_Communications_1D::mirror_bound_Xleft(State1D& Y) {
     }
 
     for (size_t c(0); c < Nbc; ++c) {
-// 			Ey
+//          Ey
         Y.EMF().Ey()(c) *= -1.0; // left  boundary
-// 			Ez
+//          Ez
         Y.EMF().Ez()(c) *= -1.0; // left  boundary
-// 			Bx
+//          Bx
         Y.EMF().Bx()(c) *= -1.0; // left  boundary
 
 //        Y.EMF().By()(c) = 1e-3; // left  boundary
@@ -1904,19 +1904,24 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 "Right-Bound ---> " 
         for (size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Ny_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
-                    for (size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for (size_t e(0); e < Nbc; e++) {
-                          msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nx_local-2*Nbc+e,iy);
+                    for (size_t e(0); e < Nbc; e++) {
+                        for (size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                            // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nx_local-2*Nbc+e,iy);
+                            msg_bufX[offset] = (Y.DF(s)(i))(p, Nx_local-2*Nbc+e,iy);
+                            ++offset;
                         }
-                        bufind += step_f;
+                        // bufind += step_f;
                     }
                 } 
             }
+            bufind += Y.DF(s).dim() * Ny_local * Y.SH(s,0,0).nump() * Nbc;
         }
         // Fields:   x0 "Right-Bound --> "
-        for(size_t i(0); i < Y.EMF().dim(); ++i){
+        for(size_t i = 0; i < Y.EMF().dim(); ++i){
             for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
                 for (size_t e(0); e < Nbc; e++) {
                     msg_bufX[bufind + e] = Y.FLD(i)(Nx_local-2*Nbc+e,iy);
@@ -1965,21 +1970,26 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0-"---> Left-Guard" 
         for (size_t s(0); s < Y.Species(); ++s) {
-            for (size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for (size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Ny_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
-                    for (size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for (size_t e(0); e < Nbc; e++) {
-                            (Y.DF(s)(i))(p, e, iy) = msg_bufX[bufind + e];
+                    for (size_t e(0); e < Nbc; e++) {
+                        for (size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                            // (Y.DF(s)(i))(p, e, iy) = msg_bufX[bufind + e];
+                            (Y.DF(s)(i))(p, e, iy) = msg_bufX[offset];
+                            ++offset;
                         }
-                        bufind += step_f;
+                        // bufind += step_f;
                     }
                 }
             } 
+            bufind += Y.DF(s).dim() * Ny_local * Y.SH(s,0,0).nump() * Nbc;
         }
 
 
         // Fields:   x0-"---> Left-Guard"
-        for (size_t i(0); i < Y.EMF().dim(); ++i){
+        for (size_t i = 0; i < Y.EMF().dim(); ++i){
             for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
                 for (size_t e(0); e < Nbc; e++) {
                    Y.FLD(i)(e,iy) = msg_bufX[bufind + e];
@@ -2026,19 +2036,24 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 " <--- Left-Bound "
         for (size_t s(0); s < Y.Species(); ++s) {
-            for (size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)            
+            for (size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Ny_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
-                    for (size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for (size_t e(0); e < Nbc; e++) {
-                          msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nbc+e,iy);
+                    for (size_t e(0); e < Nbc; e++) {
+                        for (size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                            // msg_bufX[bufind + e] = (Y.DF(s)(i))(p, Nbc+e,iy);
+                            msg_bufX[offset] = (Y.DF(s)(i))(p, Nbc+e,iy);
+                            ++offset;
                         }
-                        bufind += step_f;
+                        // bufind += step_f;
                     }
                 }
             } 
+            bufind += Y.DF(s).dim() * Ny_local * Y.SH(s,0,0).nump() * Nbc;
         } 
         // Fields:   x0 " <--- Left-Bound "
-        for (size_t i(0); i < Y.EMF().dim(); ++i){
+        for (size_t i = 0; i < Y.EMF().dim(); ++i){
             for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
                 for (size_t e(0); e < Nbc; e++) {
                     msg_bufX[bufind + e] = Y.FLD(i)(Nbc+e,iy);
@@ -2088,19 +2103,25 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0-"Right-Guard <--- " 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Ny_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
-                    for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for(size_t e(0); e < Nbc; e++) {
-                            (Y.DF(s)(i))(p, Nx_local-Nbc+e,iy) = msg_bufX[bufind + e];
+                    for(size_t e(0); e < Nbc; e++) {
+                        for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                        
+                            // (Y.DF(s)(i))(p, Nx_local-Nbc+e,iy) = msg_bufX[bufind + e];
+                            (Y.DF(s)(i))(p, Nx_local-Nbc+e,iy) = msg_bufX[offset];
+                            ++offset;
                         }
-                        bufind += step_f;
+                        // bufind += step_f;
                     }
                 }
-            } 
+            }
+            bufind += Y.DF(s).dim() * Ny_local * Y.SH(s,0,0).nump() * Nbc;
         }
         // Fields:   x0-"Right-Guard <--- "
-        for(size_t i(0); i < Y.EMF().dim(); ++i){
+        for(size_t i = 0; i < Y.EMF().dim(); ++i){
             for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
                 for(size_t e(0); e < Nbc; e++) {
                    Y.FLD(i)(Nx_local-Nbc+e,iy) = msg_bufX[bufind + e];
@@ -2149,19 +2170,24 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 "Right-Bound ---> " 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Nx_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t ix(0); ix < Nx_local; ++ix){  // All the y cells
-                    for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for(size_t e(0); e < Nbc; e++) {
-                          msg_bufY[bufind + e] = (Y.DF(s)(i))(p, ix, Ny_local-2*Nbc+e);
+                    for(size_t e(0); e < Nbc; e++) {
+                        for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                        
+                          // msg_bufY[bufind + e] = (Y.DF(s)(i))(p, ix, Ny_local-2*Nbc+e);
+                            msg_bufY[offset] = (Y.DF(s)(i))(p, ix, Ny_local-2*Nbc+e);
+                            ++offset;
                         }
-                        bufind += step_f;
                     }
                 } 
             }
+            bufind += Y.DF(s).dim() * Nx_local * Y.SH(s,0,0).nump() * Nbc;
         }
         // Fields:   x0 "Right-Bound --> "
-        for(size_t i(0); i < Y.EMF().dim(); ++i){
+        for(size_t i = 0; i < Y.EMF().dim(); ++i){
             for(size_t ix(0); ix < Nx_local; ++ix){  // All the y cells
                 for(size_t e(0); e < Nbc; e++) {
                     msg_bufY[bufind + e] = Y.FLD(i)(ix,Ny_local-2*Nbc+e);
@@ -2210,21 +2236,26 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0-"---> Left-Guard" 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Nx_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t ix(0); ix < Nx_local; ++ix){  // All the y cells
-                    for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for(size_t e(0); e < Nbc; e++) {
-                            (Y.DF(s)(i))(p, ix, e) = msg_bufY[bufind + e];
+                    for(size_t e(0); e < Nbc; e++) {
+                        for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                            // (Y.DF(s)(i))(p, ix, e) = msg_bufY[bufind + e];
+                            (Y.DF(s)(i))(p, ix, e) = msg_bufY[offset];
+                            ++offset;
                         }
-                        bufind += step_f;
+                        // bufind += step_f;
                     }
                 }
             } 
+            bufind += Y.DF(s).dim() * Nx_local * Y.SH(s,0,0).nump() * Nbc;
         }
 
 
         // Fields:   x0-"---> Left-Guard"
-        for(size_t i(0); i < Y.EMF().dim(); ++i){
+        for(size_t i = 0; i < Y.EMF().dim(); ++i){
             for(size_t ix(0); ix < Nx_local; ++ix){  // All the y cells
                 for(size_t e(0); e < Nbc; e++) {
                    Y.FLD(i)(ix, e) = msg_bufY[bufind + e];
@@ -2271,19 +2302,23 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 " <--- Left-Bound "
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Nx_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t ix(0); ix < Nx_local; ++ix){  // All the y cells
-                    for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for(size_t e(0); e < Nbc; e++) {
-                          msg_bufY[bufind + e] = (Y.DF(s)(i))(p, ix, Nbc+e);
+                    for(size_t e(0); e < Nbc; e++) {
+                        for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                            // msg_bufY[bufind + e] = (Y.DF(s)(i))(p, ix, Nbc+e);
+                            msg_bufY[offset] = (Y.DF(s)(i))(p, ix, Nbc+e);
+                            ++offset;
                         }
-                        bufind += step_f;
                     }
                 }
-            } 
+            }
+            bufind += Y.DF(s).dim() * Nx_local * Y.SH(s,0,0).nump() * Nbc;
         } 
         // Fields:   x0 " <--- Left-Bound "
-        for(size_t i(0); i < Y.EMF().dim(); ++i){
+        for(size_t i = 0; i < Y.EMF().dim(); ++i){
             for(size_t ix(0); ix < Nx_local; ++ix){  // All the y cells
                 for(size_t e(0); e < Nbc; e++) {
                     msg_bufY[bufind + e] = Y.FLD(i)(ix,Nbc+e);
@@ -2333,16 +2368,22 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0-"Right-Guard <--- " 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i){
+            // #pragma omp parallel for num_threads(Input::List().ompthreads)            
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i){
+                size_t offset( i * Nx_local * Nbc * Y.SH(s,0,0).nump()    );
                 for(size_t ix(0); ix < Nx_local; ++ix){  // All the y cells
-                    for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
-                        for(size_t e(0); e < Nbc; e++) {
-                            (Y.DF(s)(i))(p, ix, Ny_local-Nbc+e) = msg_bufY[bufind + e];
+                    for(size_t e(0); e < Nbc; e++) {
+                        for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
+                        
+                            // (Y.DF(s)(i))(p, ix, Ny_local-Nbc+e) = msg_bufY[bufind + e];
+                            (Y.DF(s)(i))(p, ix, Ny_local-Nbc+e) = msg_bufY[offset];
+                            ++offset;
                         }
-                        bufind += step_f;
+                        // bufind += step_f;
                     }
                 }
-            } 
+            }
+            bufind += Y.DF(s).dim() * Nx_local * Y.SH(s,0,0).nump() * Nbc;
         }
         // Fields:   x0-"Right-Guard <--- "
         for(size_t i(0); i < Y.EMF().dim(); ++i){
@@ -2666,7 +2707,8 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 "Right-Bound ---> Left-Guard" 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i) {
+            #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i) {
                 for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells
                     for(size_t c(0); c < Nbc; c++) {
                         for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
@@ -2692,7 +2734,8 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 "Left-Bound ---> Right-Guard" 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i) {
+            #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i  = 0; i < Y.DF(s).dim(); ++i) {
                 for(size_t iy(0); iy < Ny_local; ++iy){  // All the y cells                    
                     for(size_t c(0); c < Nbc; c++) {
                         for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
@@ -2887,7 +2930,8 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 "Right-Bound ---> Left-Guard" 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i) {
+            #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i) {
                 for(size_t ix(0); ix < Nx_local; ++ix){  // All the x cells
                     for(size_t c(0); c < Nbc; c++) {
                         for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
@@ -2914,7 +2958,8 @@ void Parallel_Environment_1D::Neighbor_Communications(State1D& Y) {
 
         // Harmonics:x0 "Left-Bound ---> Right-Guard" 
         for(size_t s(0); s < Y.Species(); ++s) {
-            for(size_t i(0); i < Y.DF(s).dim(); ++i) {
+            #pragma omp parallel for num_threads(Input::List().ompthreads)
+            for(size_t i = 0; i < Y.DF(s).dim(); ++i) {
                 for(size_t ix(0); ix < Nx_local; ++ix){  // All the x cells
                     for(size_t p(0); p < Y.SH(s,0,0).nump(); ++p) {
                         for(size_t c(0); c < Nbc; c++) {

@@ -60,9 +60,10 @@ void Current::operator()(const DistFunc2D& Din, Field2D& Exh, Field2D& Eyh, Fiel
     if (Input::List().relativity)   temp = Din.getrelativisticcurrent();
     else                            temp = Din.getcurrent();
 
-    for (size_t ix(0); ix < Exh.numx(); ++ix) 
+    #pragma omp parallel for collapse(2) num_threads(4)
+    for (size_t ix = 0; ix < Exh.numx(); ++ix) 
     {
-        for (size_t iy(0); iy < Exh.numy(); ++iy) 
+        for (size_t iy = 0; iy < Exh.numy(); ++iy) 
         {
             Exh(ix,iy) += static_cast<complex<double> >(temp(0,ix,iy));
             Eyh(ix,iy) += static_cast<complex<double> >(temp(1,ix,iy));

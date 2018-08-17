@@ -3,18 +3,16 @@
 # Makefile for OSHUN
 # This should work with gcc-6, open-mpi compiled with gcc-6, and HDF5 compiled with c++11 standards
 
-COMPILER = g++-7
+COMPILER = g++-8
 
 # GNU compilers#
-OPTFLAGS1 = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
-OPTFLAGSt = -O2 -no-vec
-OPTFLAGS2 = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
 DBGFLAGS = -v -O0 -Wall -Wuninitialized -Wextra -Wpedantic
+OPTFLAGS3 = -O3 -ffast-math -ftree-loop-distribution -fno-signed-zeros -ftree-loop-ivcanon -ftree-vect-loop-version
 # -O3 -ffast-math -ftree-loop-distribution -fno-signed-zeros -ftree-loop-ivcanon -ftree-vect-loop-version
 #-fopt-info-vec-optimized  
 # INTEL compilers
-#OPTFLAGS1 = -O3
-#OPTFLAGS1 = -g -O0 -Wall
+#OPTFLAGS3 = -O3
+#OPTFLAGS3 = -g -O0 -Wall
 
 # HDF5 libraries
 H5LIB = -lhdf5_hl -lhdf5
@@ -46,54 +44,54 @@ clean ::
 	rm -f ${TMP_DIR}/${BUILDOBJECTS}
 
 debug :
-	${COMPILER} ${OPTFLAGS1} -o ${BUILDEXEC} \
+	${COMPILER} ${DBGFLAGS} -o ${BUILDEXEC} \
 	%.cpp
 
 ${TMP_DIR}/parser.o: parser.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<		
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<		
 
 ${TMP_DIR}/input.o: input.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/stepper.o: stepper.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/clock.o: clock.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/state.o: state.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<	
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<	
 
 ${TMP_DIR}/formulary.o: formulary.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<	
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<	
 
 ${TMP_DIR}/setup.o: setup.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<	
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<	
 
 ${TMP_DIR}/vlasov.o: vlasov.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<	
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<	
 
 ${TMP_DIR}/nmethods.o: nmethods.cpp
 	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS2) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/functors.o: functors.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/collisions.o: collisions.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/fluid.o: fluid.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/implicitE.o: implicitE.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/parallel.o: parallel.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/export.o: export.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<
 
 ${TMP_DIR}/main.o: main.cpp
-	$(COMPILER) ${CPPFLAGS} $(OPTFLAGS1) $(INCLUDE_DIRS) -c -o $@ $<		
+	$(COMPILER) ${CPPFLAGS} $(DBGFLAGS) $(INCLUDE_DIRS) -c -o $@ $<		
 	#

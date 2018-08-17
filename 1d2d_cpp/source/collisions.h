@@ -86,6 +86,9 @@ public:
     void loop(const SHarmonic1D& SHin, const valarray<double>& Zarray, SHarmonic1D& SHout, const double time, const double step_size);
     void loop(const SHarmonic2D& SHin, const Array2D<double>& Zarray, SHarmonic2D& SHout, const double time, const double step_size);
 
+    void loop(SHarmonic1D& SHin, const valarray<double>& Zarray, const double time, const double step_size);
+    void loop(SHarmonic2D& SHin, const Array2D<double>& Zarray,  const double time, const double step_size);
+
 private:
     //  Variables
     // valarray<double>            fin, fout;
@@ -284,6 +287,7 @@ class self_f00_explicit_step {
             void advance(valarray<complex<double> >& fin, const int el, size_t position);    
 
             void flm_solve(const DistFunc1D& DF, DistFunc1D& Dh);
+            void flm_solve(DistFunc1D& DF);
             // void flm_solve_FP2(const DistFunc1D& DF, DistFunc1D& Dh);
         };
 //-------------------------------------------------------------------
@@ -313,6 +317,13 @@ class self_f00_explicit_step {
 
             void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
             void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
+
+            void advancef1(DistFunc1D& DF, const valarray<double>& Zarray, const double step_size);
+            void advanceflm(DistFunc1D& DF, const valarray<double>& Zarray);
+
+            void advancef1(DistFunc2D& DF, const Array2D<double>& Zarray, const double step_size);
+            void advanceflm(DistFunc2D& DF, const Array2D<double>& Zarray);
+
 
         private:
 
@@ -356,6 +367,14 @@ class self_f00_explicit_step {
             void advancef1(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh, const double step_size);
             void advanceflm(const DistFunc2D& DF, const Array2D<double>& Zarray, DistFunc2D& DFh);
 
+            void advancef00(SHarmonic1D& f00, const valarray<double>& Zarray, const double time, const double step_size);
+            void advancef1(DistFunc1D& DF, const valarray<double>& Zarray, const double step_size);
+            void advanceflm(DistFunc1D& DF, const valarray<double>& Zarray);
+
+            void advancef00(SHarmonic2D& f00, const Array2D<double>& Zarray, const double time, const double step_size);
+            void advancef1(DistFunc2D& DF, const Array2D<double>& Zarray, const double step_size);
+            void advanceflm(DistFunc2D& DF, const Array2D<double>& Zarray);            
+
 
         private:
         //  Variables
@@ -387,6 +406,10 @@ class self_f00_explicit_step {
             void advancef1(const State1D& Y, State1D& Yh, const double step_size);
             void advanceflm(const State1D& Y, State1D& Yh);
 
+            void advancef0(State1D& Y, const double time, const double step_size);
+            void advancef1(State1D& Y, const double step_size);
+            void advanceflm(State1D& Y);
+
             vector<self_collisions> self();
             // void advancef1(State1D& Y);
             // void advanceflm(State1D& Y);
@@ -415,6 +438,11 @@ class self_f00_explicit_step {
             void advancef0(const State2D& Y, State2D& Yh, const double time, const double step_size);
             void advancef1(const State2D& Y, State2D& Yh, const double step_size);
             void advanceflm(const State2D& Y, State2D& Yh);
+
+            
+            void advancef0(State2D& Y, const double time, const double step_size);
+            void advancef1(State2D& Y, const double step_size);
+            void advanceflm(State2D& Y);
 
             vector<self_collisions> self();
             // void advancef1(State1D& Y);

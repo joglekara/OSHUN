@@ -633,13 +633,15 @@ void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, 
         else 
         {
             // EMF2D EMF_ext(Yin.DF(s)(0,0).numx(),Yin.DF(s)(0,0).numy()); EMF_ext = static_cast<complex<double> > (0.0);
+            
+            // std::cout << "\n DR \n";
             if (Input::List().trav_wave) WD.applytravelingwave(Yin.EMF(),time + dt*0.5);
-
+            // std::cout << "\n SA \n";
             SA[s](Yin.DF(s),Yslope.DF(s));
-
+            // std::cout << "\n EF \n";
             EF[s](Yin.DF(s),Yin.EMF().Ex(),Yin.EMF().Ey(),Yin.EMF().Ez(),Yslope.DF(s));
-
-            BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
+            // std::cout << "\n done \n";
+            // BF[s](Yin.DF(s),Yin.EMF().Bx(),Yin.EMF().By(),Yin.EMF().Bz(),Yslope.DF(s));
 
             JX[s](Yin.DF(s),Yslope.EMF().Ex(),Yslope.EMF().Ey(),Yslope.EMF().Ez());
             
@@ -650,6 +652,8 @@ void VlasovFunctor2D_explicitE::operator()(const State2D& Yin, State2D& Yslope, 
     AM[0](Yin.EMF(),Yslope.EMF());
 
     FA[0](Yin.EMF(),Yslope.EMF());
+
+    if (Input::List().filterdistribution)  Yslope.DF(0).Filterp();
 
 }
 //--------------------------------------------------------------
