@@ -325,23 +325,44 @@ void TridiagonalSolve ( valarray<double>& a,
 //-------------------------------------------------------------------
 //   Fills solution into x. Warning: will modify c and d!
 //-------------------------------------------------------------------
-    size_t n(d.size());
-    // // Modify the coefficients.
-    c[0] /= b[0];                            // Division by zero risk.
-    d[0] /= b[0];                            // Division by zero would imply a singular matrix.
-    for (size_t i(1); i < n; ++i){
-        double id(1.0/(b[i]-c[i-1]*a[i]));   // Division by zero risk.
-        c[i] *= id;	                         // Last value calculated is redundant.
-        d[i] -= d[i-1] * a[i];
-        d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id
-    }
+    // size_t n(d.size());
+    // // // Modify the coefficients.
+    // c[0] /= b[0];                            // Division by zero risk.
+    // d[0] /= b[0];                            // Division by zero would imply a singular matrix.
+    // for (size_t i(1); i < n; ++i){
+    //     double id(1.0/(b[i]-c[i-1]*a[i]));   // Division by zero risk.
+    //     c[i] *= id;	                         // Last value calculated is redundant.
+    //     d[i] -= d[i-1] * a[i];
+    //     d[i] *= id;                          // d[i] = (d[i] - d[i-1] * a[i]) * id
+    // }
 
-    // Now back substitute.
-    x[n-1] = d[n-1];
-    for (int i(2); i < n+1; ++i)
+    // // Now back substitute.
+    // x[n-1] = d[n-1];
+    // for (int i(2); i < n+1; ++i)
+    // {
+    //     x[n-i]  = d[n-i];
+    //     x[n-i] -= c[n-i] * x[n-i+1];               // x[i] = d[i] - c[i] * x[i + 1];
+    // }
+
+    int j, n(a.size());
+    double bet(b[0]);
+    valarray <double> gam(0.,n);
+
+    if (b[0] == 0.) throw("Error 1 in TridiagonalSolve");
+
+    x[0] = d[0]/b[0];
+
+    for (j=1;j<n;++j)
     {
-        x[n-i]  = d[n-i];
-        x[n-i] -= c[n-i] * x[n-i+1];               // x[i] = d[i] - c[i] * x[i + 1];
+        gam[j] = c[j-1]/bet;
+        bet = b[j]-a[j]*gam[j];
+        if (bet == 0.) throw("Error 2 in TridiagonalSolve");   
+        x[j] = (d[j]-a[j]*x[j-1])/bet;
+    }
+    #pragma novector
+    for (j=n-2;j>=0;j--)
+    {
+        x[j] -= gam[j+1]*d[j+1];
     }
 }
 //-------------------------------------------------------------------
@@ -369,8 +390,8 @@ bool Thomas_Tridiagonal(Array2D<double>& A,
 
     valarray<double> a(d.size()), b(d.size()), c(d.size());
 
-    for (size_t i(0); i < A.dim1()-1; ++i){
-        a[i+1] = A(i+1,i);
+    for (size_t i(1); i < A.dim1(); ++i){
+        a[i] = A(i,i-1);
         // std::cout << "\n a[" << i+1 << "] = " << a[i+1];
     }
     for (size_t i(0); i < A.dim1(); ++i){

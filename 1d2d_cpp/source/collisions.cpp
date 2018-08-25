@@ -127,12 +127,12 @@ void self_f00_implicit_step::update_C_Rosenbluth(valarray<double> &C_RB, double 
     /// and, C[1] is C_{3/2} aka C(v[1st point, 0th index C style])
 
     // C_RB = p4dp*fin;
-    I4_Lnee = p4dp[0]*fin[0];
+    I4_Lnee = 0.;
     C_RB = 0.;
     
     for (size_t n(1); n < C_RB.size(); ++n) 
     {
-        I4_Lnee += p4dp[n] * fin[n];
+        I4_Lnee += p4dp[n-1] * fin[n-1];
         C_RB[n]  = C_RB[n - 1] + (vr[n - 1] * vr[n - 1] * dvr[n - 1] * fin[n - 1]);
     }
 
@@ -433,6 +433,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
 
     Array2D<double> LHS(2*fin.size(),2*fin.size());
     valarray<double> fin_r(0.,2*fin.size()), fh_r(0.,2*fin.size()), vr_r(0.,2*fin.size());
+    valarray<double> fin2_r(0.,2*fin.size());
 
     LHS = 0.;
     valarray<double> C_RB(0.0,fin.size()+1), D_RB(0.0,fin.size()+1);
@@ -460,6 +461,9 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
         fin_r[ip] = fin[fin.size()-1-ip];
         fin_r[ip+fin.size()] = fin[ip];
 
+
+
+        // #pragma omp critical
         // if (omp_get_thread_num == 0)
         //     std::cout << "1: fin_r[" << ip << "] = " << fin_r[ip] << "\n";
         // else
@@ -469,6 +473,8 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
         vr_r[ip+fin.size()] = vr[ip];
     }
     
+
+
     ip = 0;
 
     /// Boundaries by hand -- This operates on f(0)
@@ -519,11 +525,17 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     // }
     // exit(1);
 
+    // fin2_r = fin_r;
+
     Thomas_Tridiagonal(LHS,fin_r,fh_r);
-    
+        
+
+
     for (ip = 0; ip < fin.size(); ++ip)
     {
         fh[ip] = fh_r[ip+fin.size()];
+        // fh[ip] = fin2_r[ip+fin.size()];
+        // fh[ip] = fin[ip];
     }
 
 
@@ -612,13 +624,16 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
         else if (Input::List().coll_op == 2 || Input::List().coll_op == 3)
         {
             collide.takeLBstep(fin,fout,step_size);
+
+            // fout = fin;
         }
 
         // Return updated data to the harmonic
         for (size_t ip(0); ip < f00.nump(); ++ip)
         {
             f00h(ip,ix).real(fout[ip]);
-            // f00h(ip,ix+Nbc) = fin[ip];
+            // f00h(ip,ix).real(fout[ip]);
+            // f00h(ip,ix) = fin[ip];
             
             
         }
