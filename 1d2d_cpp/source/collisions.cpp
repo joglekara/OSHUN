@@ -366,7 +366,74 @@ void self_f00_implicit_step::takestep(valarray<double>  &fin, valarray<double> &
 void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double> &fh, const double step_size)//, const double cooling) {
 {
 
-    Array2D<double> LHS(fin.size(),fin.size());
+    // Array2D<double> LHS(fin.size(),fin.size());
+    // LHS = 0.;
+    // valarray<double> C_RB(0.0,fin.size()+1), D_RB(0.0,fin.size()+1);
+    // double I4_Lnee(0.0); 
+    // valarray<double> delta_CC(0.0,fin.size()+1);
+
+    // ///  Calculate Rosenbluth and Chang-Cooper quantities
+    // update_C_Rosenbluth(C_RB, I4_Lnee, fin);   /// Also fills in I4_Lnee (the temperature for the Lnee calculation)
+    // double I2_temperature(2.*I4_Lnee/3.0/C_RB[C_RB.size()-1]);
+
+    // /// Normalizing quantities (Inspired by previous collision routines and OSHUN notes by M. Tzoufras)
+    // double collisional_coefficient;
+    // collisional_coefficient  = -4.0*M_PI/3.0*c_kpre*formulas.LOGee(C_RB[C_RB.size()-1],I2_temperature)/I2_temperature*step_size;
+    // // collisional_coefficient *= ;
+    // // collisional_coefficient *= pow(I2_temperature,-1.0);
+    // // collisional_coefficient *= -step_size;           /// Step size incorporated here
+
+    // double deltav = vr[2]-vr[1];
+
+    
+    // // std::cout << "\n cc = " << collisional_coefficient;
+    // // exit(1);
+    // /// Fill in matrix
+    // size_t ip(0);
+
+    // /// Boundaries by hand -- This operates on f(0)
+    // LHS(ip, ip + 1)  = vr[ip+1]/2/deltav + I2_temperature/deltav/deltav;
+    // LHS(ip, ip + 1) *= collisional_coefficient;
+
+    // LHS(ip    , ip)  = - 2*I2_temperature/deltav/deltav;
+    // LHS(ip    , ip) += vr[ip]/2/deltav + I2_temperature/deltav/deltav;
+    // LHS(ip    , ip) *= collisional_coefficient;
+    // LHS(ip    , ip) += 1.;
+
+    // // #pragma ivdep
+    // for (ip = 1; ip < fin.size() - 1; ++ip)
+    // {
+    //     LHS(ip, ip + 1)  = vr[ip+1]/2/deltav + I2_temperature/deltav/deltav;
+    //     LHS(ip, ip + 1) *= collisional_coefficient;
+
+    //     LHS(ip    , ip)  = -2.*I2_temperature/deltav/deltav;
+    //     LHS(ip    , ip) *= collisional_coefficient;
+    //     LHS(ip    , ip) += 1.;
+
+    //     LHS(ip, ip - 1)  = -vr[ip-1]/2/deltav + I2_temperature/deltav/deltav;
+    //     LHS(ip, ip - 1) *= collisional_coefficient;
+    // }
+
+    // ip = fin.size() - 1;
+
+    // // LHS(ip    , ip)  = I2_temperature/deltav/deltav;
+    // // LHS(ip    , ip) += vr[ip]/deltav;
+    // // LHS(ip    , ip) *= collisional_coefficient;
+    // LHS(ip    , ip) += 1.;
+
+    // // LHS(ip, ip - 1)  = -vr[ip]/deltav 
+    // // LHS(ip, ip - 1) += -I2_temperature/deltav/deltav;
+    // // LHS(ip, ip - 1) *= collisional_coefficient;
+
+   
+
+    // Thomas_Tridiagonal(LHS,fin,fh);
+    // fh = fin;
+
+
+    Array2D<double> LHS(2*fin.size(),2*fin.size());
+    valarray<double> fin_r(0.,2*fin.size()), fh_r(0.,2*fin.size()), vr_r(0.,2*fin.size());
+
     LHS = 0.;
     valarray<double> C_RB(0.0,fin.size()+1), D_RB(0.0,fin.size()+1);
     double I4_Lnee(0.0); 
@@ -374,6 +441,7 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
 
     ///  Calculate Rosenbluth and Chang-Cooper quantities
     update_C_Rosenbluth(C_RB, I4_Lnee, fin);   /// Also fills in I4_Lnee (the temperature for the Lnee calculation)
+
     double I2_temperature(2.*I4_Lnee/3.0/C_RB[C_RB.size()-1]);
 
     /// Normalizing quantities (Inspired by previous collision routines and OSHUN notes by M. Tzoufras)
@@ -385,45 +453,61 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
 
     double deltav = vr[2]-vr[1];
 
-    
-    // std::cout << "\n cc = " << collisional_coefficient;
-    // exit(1);
-    /// Fill in matrix
     size_t ip(0);
+    
+    for (ip = 0; ip < fin.size(); ++ip)
+    {
+        fin_r[ip] = fin[fin.size()-1-ip];
+        fin_r[ip+fin.size()] = fin[ip];
+
+        // if (omp_get_thread_num == 0)
+        //     std::cout << "1: fin_r[" << ip << "] = " << fin_r[ip] << "\n";
+        // else
+        //     std::cout << "2: fin_r[" << ip << "] = " << fin_r[ip] << "\n";
+
+        vr_r[ip] = -vr[fin.size()-1-ip];
+        vr_r[ip+fin.size()] = vr[ip];
+    }
+    
+    ip = 0;
 
     /// Boundaries by hand -- This operates on f(0)
-    LHS(ip, ip + 1)  = vr[ip+1]/2/deltav + I2_temperature/deltav/deltav;
+    LHS(ip, ip + 1)  = vr_r[ip+1]/deltav + I2_temperature/deltav/deltav;
     LHS(ip, ip + 1) *= collisional_coefficient;
 
-    LHS(ip    , ip)  = - 2*I2_temperature/deltav/deltav;
-    LHS(ip    , ip) += vr[ip]/2/deltav + I2_temperature/deltav/deltav;
+    LHS(ip    , ip)  = -vr_r[ip]/deltav - I2_temperature/deltav/deltav;
     LHS(ip    , ip) *= collisional_coefficient;
     LHS(ip    , ip) += 1.;
 
-    // #pragma ivdep
-    for (ip = 1; ip < fin.size() - 1; ++ip)
+    // std::cout << "00 = " << LHS(ip,ip) << "\n";
+
+    // exit(1);
+
+    for (ip = 1; ip < 2*fin.size() - 1; ++ip)
     {
-        LHS(ip, ip + 1)  = vr[ip+1]/2/deltav + I2_temperature/deltav/deltav;
+        LHS(ip, ip + 1)  = vr_r[ip+1]/2/deltav + I2_temperature/deltav/deltav;
         LHS(ip, ip + 1) *= collisional_coefficient;
 
         LHS(ip    , ip)  = -2.*I2_temperature/deltav/deltav;
         LHS(ip    , ip) *= collisional_coefficient;
         LHS(ip    , ip) += 1.;
 
-        LHS(ip, ip - 1)  = -vr[ip-1]/2/deltav + I2_temperature/deltav/deltav;
+        LHS(ip, ip - 1)  = -vr_r[ip-1]/2/deltav + I2_temperature/deltav/deltav;
         LHS(ip, ip - 1) *= collisional_coefficient;
+
     }
 
-    ip = fin.size() - 1;
+    ip = 2*fin.size() - 1;
 
-    // LHS(ip    , ip)  = I2_temperature/deltav/deltav;
-    // LHS(ip    , ip) += vr[ip]/deltav;
-    // LHS(ip    , ip) *= collisional_coefficient;
+    LHS(ip    , ip)  = -I2_temperature/deltav/deltav;
+    LHS(ip    , ip) += vr_r[ip]/deltav;
+    LHS(ip    , ip) *= collisional_coefficient;
     LHS(ip    , ip) += 1.;
 
-    // LHS(ip, ip - 1)  = -vr[ip]/deltav 
-    // LHS(ip, ip - 1) += -I2_temperature/deltav/deltav;
-    // LHS(ip, ip - 1) *= collisional_coefficient;
+    LHS(ip, ip - 1)  = -vr_r[ip-1]/deltav;
+    LHS(ip, ip - 1) += I2_temperature/deltav/deltav;
+    LHS(ip, ip - 1) *= collisional_coefficient;
+
 
     // std::cout << "\n\n LHS = \n";
     // for (size_t i(0); i < LHS.dim1(); ++i) {
@@ -435,8 +519,13 @@ void self_f00_implicit_step::takeLBstep(valarray<double>  &fin, valarray<double>
     // }
     // exit(1);
 
-    Thomas_Tridiagonal(LHS,fin,fh);
-    // fh = fin;
+    Thomas_Tridiagonal(LHS,fin_r,fh_r);
+    
+    for (ip = 0; ip < fin.size(); ++ip)
+    {
+        fh[ip] = fh_r[ip+fin.size()];
+    }
+
 
 }
 
@@ -510,8 +599,11 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
         {
             // fin[ip] = (f00(ip,ix+Nbc)).real();
             fin[ip] = (f00(ip,ix)).real();
-           // std::cout << "fin[" << ip << "," << ix << "] = " << fin[ip] << "\n";
+            
+            
         }
+        // if (omp_get_thread_num())
+                // std::cout << "fin[ " << ix << "] = " << fin.sum() << "\n";
         // collide.takestep(fin,fout,Zarray[ix+Nbc],heatingprofile_1d[ix+Nbc],step_size);//,coolingprofile_1d[ix+Nbc]);
         if (Input::List().coll_op == 0 || Input::List().coll_op == 1)
         {
@@ -528,10 +620,14 @@ void self_f00_implicit_collisions::loop(const SHarmonic1D& f00, const valarray<d
             f00h(ip,ix).real(fout[ip]);
             // f00h(ip,ix+Nbc) = fin[ip];
             
-            // std::cout << "fout[" << ip << "," << ix << "] = " << fout[ip] << "\n";
+            
         }
         
+        // if (omp_get_thread_num())
+                // std::cout << "fout[ " << ix << "] = " << fout.sum() << "\n";
+
     }
+    // exit(1);
     //-------------------------------------------------------------------
     // exit(1);
 }
@@ -2503,12 +2599,40 @@ void collisions_1D::advance(State1D& Yin, const double time, const double step_s
     // Yh = complex<double>(0.0,0.0);
     Yh = Yin;
     
+    valarray<double> vr(0.,Yin.DF(0)(0,0).nump());
+    valarray<double> dp(0.,Yin.DF(0)(0,0).nump());
+    dp = Yin.DF(0).getdp();
+    vr = Algorithms::MakeCAxis(0.,dp); 
+
     if (Input::List().f00_implicitorexplicit)
     {
+        // double sum(0.);
+        // for (size_t ix(0); ix < Yin.DF(0)(0,0).numx(); ++ix)
+        // {
+        //     sum = 0.;
+        //     for (size_t ip(0); ip < Yin.DF(0)(0,0).nump(); ++ip)
+        //         sum += Yin.DF(0)(0,0)(ip,ix).real()*pow(vr[ip],2.);
+
+        //     std::cout << "in, " << ix << " = " << 4.*M_PI*sum*(vr[2]-vr[1]) << "\n";
+        // }
+
+
         advancef0(Yin,Yh,time,step_size);
-        // std::cout << "\n 10 \n";    
+        
+
+
+        // for (size_t ix(0); ix < Yin.DF(0)(0,0).numx(); ++ix)
+        // {
+        //     sum = 0.;
+        //     for (size_t ip(0); ip < Yin.DF(0)(0,0).nump(); ++ip)
+        //         sum += Yh.DF(0)(0,0)(ip,ix).real()*pow(vr[ip],2.);
+
+        //     // std::cout << "out, " << ix << " = " << 4.*M_PI*sum*(vr[2]-vr[1]) << "\n";
+        //     std::cout << "out, " << ix << " = " << 4.*M_PI*sum*(vr[2]-vr[1]) << "\n";
+        // }
         // Yh.checknan();
     }
+    // exit(1);
     
     if (Input::List().flm_collisions )
     {
